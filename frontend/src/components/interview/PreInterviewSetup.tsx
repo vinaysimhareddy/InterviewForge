@@ -1040,23 +1040,23 @@ export function PreInterviewSetup({
     <div className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in py-4 px-3 sm:px-0">
       {/* Header */}
       <div className="text-center space-y-2">
-        <Badge variant="outline" className="border-indigo-500/50 text-indigo-300 bg-indigo-950/40">
-          Machine-Verified Pre-Flight
+        <Badge variant="outline" className="border-card-border text-text-muted bg-bg-subtle font-mono text-xs">
+          01 // MACHINE-VERIFIED PRE-FLIGHT
         </Badge>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-bold font-display text-text tracking-tight">
           Adaptive Live Interview Setup
         </h1>
-        <p className="text-sm text-slate-400 max-w-xl mx-auto">
+        <p className="text-sm text-text-muted max-w-xl mx-auto">
           Verify physical camera feed, confirm two-way audio, and complete active liveness verification.
         </p>
       </div>
 
       {!sttSupported && (
-        <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-800/80 text-amber-200 text-xs flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-600/30 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <span className="font-semibold block text-amber-300">Speech Recognition Notice</span>
-            <p className="text-slate-300">
+            <span className="font-semibold block text-warning font-mono uppercase tracking-wider text-[11px]">Speech Recognition Notice</span>
+            <p className="text-text-muted leading-relaxed">
               Your browser does not have the native Web Speech API enabled. Chrome or Edge is recommended.
               A typed input fallback will be provided automatically.
             </p>
@@ -1067,25 +1067,27 @@ export function PreInterviewSetup({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Duration & Settings (6 cols) */}
         <div className="lg:col-span-6 space-y-6">
-          <Card className="border-slate-800 bg-slate-900/90 shadow-xl backdrop-blur-md">
-            <CardHeader className="pb-3 border-b border-slate-800/80">
+          <Card className="card-editorial shadow-sm backdrop-blur-md">
+            <CardHeader className="pb-3 border-b border-card-border">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-indigo-400" />
-                  <CardTitle className="text-base text-white">Interview Duration</CardTitle>
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-lg bg-sky border border-primary/20 flex items-center justify-center text-primary">
+                    <Clock className="h-4 w-4" />
+                  </div>
+                  <CardTitle className="text-base text-text font-display font-bold">Interview Duration</CardTitle>
                 </div>
-                <Badge variant="outline" className="border-slate-700 text-slate-300 font-mono text-xs">
+                <Badge variant="outline" className="border-card-border text-text-muted bg-bg-subtle font-mono text-xs">
                   {durationMinutes} Minutes
                 </Badge>
               </div>
-              <CardDescription className="text-slate-400 text-xs">
+              <CardDescription className="text-text-muted text-xs mt-1">
                 Select target interview length. Questions adjust dynamically.
               </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-5 pt-4">
               <div className="space-y-2">
-                <span className="text-xs font-semibold text-slate-300">Preset Durations</span>
+                <span className="text-xs font-semibold text-text font-mono uppercase tracking-wider text-[11px]">Preset Durations</span>
                 <div className="grid grid-cols-4 gap-2">
                   {durationPresets.map((m) => (
                     <Button
@@ -1100,8 +1102,8 @@ export function PreInterviewSetup({
                       }}
                       className={`text-xs h-9 cursor-pointer ${
                         durationMinutes === m && !isCustomDuration
-                          ? 'bg-indigo-600 hover:bg-indigo-700 text-white border-transparent'
-                          : 'border-slate-800 text-slate-300 hover:bg-slate-800'
+                          ? 'bg-primary hover:bg-primary-hover text-primary-ink border-transparent shadow-xs font-semibold'
+                          : 'border-card-border text-text-muted hover:text-text hover:bg-bg-subtle'
                       }`}
                     >
                       {m} Min
@@ -1120,71 +1122,71 @@ export function PreInterviewSetup({
                         setDurationMinutes(parsed);
                       }
                     }}
-                    className={`h-9 rounded-md bg-slate-950 border text-xs text-white text-center px-1 font-mono focus:outline-none ${
-                      isCustomDuration ? 'border-indigo-500' : 'border-slate-800 text-slate-400'
+                    className={`h-9 rounded-xl bg-bg-subtle border text-xs text-text text-center px-1 font-mono focus:outline-none focus:ring-1 focus:ring-primary ${
+                      isCustomDuration ? 'border-primary ring-1 ring-primary' : 'border-card-border text-text-muted'
                     }`}
                     placeholder="Custom"
                   />
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 space-y-2">
+              <div className="p-3.5 rounded-xl bg-bg-subtle border border-card-border space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-400 font-medium flex items-center gap-1.5">
-                    <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+                  <span className="text-text-muted font-medium flex items-center gap-1.5 font-mono uppercase tracking-wider text-[11px]">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
                     Estimated Questions:
                   </span>
-                  <span className="text-indigo-300 font-mono font-semibold">
+                  <span className="text-primary font-mono font-semibold">
                     ~{questionEstimate.minQuestions}-{questionEstimate.maxQuestions} Questions
                   </span>
                 </div>
               </div>
 
               {/* Accessibility Accommodations */}
-              <div className="pt-2 border-t border-slate-800/80 space-y-2">
+              <div className="pt-3 border-t border-card-border space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-300 font-semibold flex items-center gap-1.5">
-                    <Accessibility className="h-4 w-4 text-indigo-400" />
+                  <span className="text-text font-semibold flex items-center gap-1.5 font-mono uppercase tracking-wider text-[11px]">
+                    <Accessibility className="h-4 w-4 text-primary" />
                     Accommodations
                   </span>
-                  <Badge variant="outline" className="border-slate-700 text-[10px] text-slate-400">
+                  <Badge variant="outline" className="border-card-border text-[10px] text-text-faint font-mono">
                     Candidate Setting
                   </Badge>
                 </div>
-                <label className="flex items-start gap-2.5 text-xs text-slate-400 cursor-pointer p-2.5 rounded-lg bg-slate-950/50 border border-slate-800/80 hover:border-slate-700">
+                <label className="flex items-start gap-2.5 text-xs text-text-muted cursor-pointer p-3 rounded-xl bg-bg-subtle border border-card-border hover:border-primary/40 transition-colors">
                   <input
                     type="checkbox"
                     checked={motorAccommodation}
                     onChange={(e) => setMotorAccommodation(e.target.checked)}
-                    className="mt-0.5 rounded border-slate-700 text-indigo-600 focus:ring-indigo-500"
+                    className="mt-0.5 rounded border-card-border text-primary focus:ring-primary accent-primary"
                   />
-                  <span>
+                  <span className="leading-relaxed">
                     Request motor accessibility accommodation (replaces head-turn liveness verification with facial and eye-blink verification).
                   </span>
                 </label>
               </div>
 
               {/* Privacy Guarantee */}
-              <div className="p-3.5 rounded-xl bg-indigo-950/20 border border-indigo-900/40 text-xs text-slate-300 space-y-1.5">
-                <div className="flex items-center gap-1.5 text-indigo-300 font-semibold">
-                  <ShieldCheck className="h-4 w-4 text-indigo-400" />
+              <div className="p-3.5 rounded-xl bg-mint/40 border border-primary/20 text-xs text-text space-y-1.5">
+                <div className="flex items-center gap-1.5 text-primary font-semibold font-mono uppercase tracking-wider text-[11px]">
+                  <ShieldCheck className="h-4 w-4 text-primary" />
                   Local Privacy Protection
                 </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
+                <p className="text-[11px] text-text-muted leading-relaxed">
                   Your camera and microphone are on during the interview. Camera monitoring and facial analysis run entirely on your device. Spoken answers are transcribed using your browser’s speech recognition service. Only numeric behavior signals and the transcribed text of your answers are saved. No raw audio or video recordings are stored on our servers.
                 </p>
               </div>
 
               {/* Consent Toggle */}
-              <div className="pt-2 border-t border-slate-800/80">
-                <label className="flex items-start gap-2.5 text-xs text-slate-400 cursor-pointer">
+              <div className="pt-3 border-t border-card-border">
+                <label className="flex items-start gap-2.5 text-xs text-text-muted cursor-pointer">
                   <input
                     type="checkbox"
                     checked={consentAccepted}
                     onChange={(e) => setConsentAccepted(e.target.checked)}
-                    className="mt-0.5 rounded border-slate-700 text-indigo-600 focus:ring-indigo-500"
+                    className="mt-0.5 rounded border-card-border text-primary focus:ring-primary accent-primary"
                   />
-                  <span>
+                  <span className="leading-relaxed">
                     I understand that real-time local non-verbal telemetry is computed client-side for feedback and candidate evaluation.
                   </span>
                 </label>
@@ -1195,12 +1197,14 @@ export function PreInterviewSetup({
 
         {/* Right Column: Hardware Proof Checks (6 cols) */}
         <div className="lg:col-span-6 space-y-6">
-          <Card className="border-slate-800 bg-slate-900/90 shadow-xl backdrop-blur-md">
-            <CardHeader className="pb-3 border-b border-slate-800/80">
+          <Card className="card-editorial shadow-sm backdrop-blur-md">
+            <CardHeader className="pb-3 border-b border-card-border">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Headphones className="h-5 w-5 text-indigo-400" />
-                  <CardTitle className="text-base text-white">Pre-Flight Hardware Check</CardTitle>
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-lg bg-mint border border-primary/20 flex items-center justify-center text-primary">
+                    <Headphones className="h-4 w-4" />
+                  </div>
+                  <CardTitle className="text-base text-text font-display font-bold">Pre-Flight Hardware Check</CardTitle>
                 </div>
                 <Badge
                   variant={isAllReady && consentAccepted ? 'success' : 'outline'}
@@ -1215,7 +1219,7 @@ export function PreInterviewSetup({
                   )}
                 </Badge>
               </div>
-              <CardDescription className="text-slate-400 text-xs">
+              <CardDescription className="text-text-muted text-xs mt-1">
                 Real physical webcam, two-way audio, and active liveness verification required.
               </CardDescription>
             </CardHeader>
@@ -1224,32 +1228,32 @@ export function PreInterviewSetup({
               {/* 1. Camera Section */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-300 flex items-center gap-1.5">
-                    <Camera className="h-3.5 w-3.5 text-indigo-400" />
+                  <span className="font-semibold text-text flex items-center gap-1.5 font-mono uppercase tracking-wider text-[11px]">
+                    <Camera className="h-3.5 w-3.5 text-primary" />
                     1. Real Physical Camera
                   </span>
 
                   {state.camera.status === 'verified' ? (
-                    <Badge variant="outline" className="bg-emerald-950/80 text-emerald-300 border-emerald-700 text-[11px] gap-1 py-0.5">
-                      <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                    <Badge variant="outline" className="bg-mint text-primary border-primary/30 text-[11px] gap-1 py-0.5">
+                      <CheckCircle2 className="h-3 w-3 text-success" />
                       Face Captured & Verified
                     </Badge>
                   ) : state.camera.status === 'captured_pending_confirm' ? (
-                    <Badge variant="outline" className="bg-amber-950/80 text-amber-300 border-amber-700 text-[11px] gap-1 py-0.5">
+                    <Badge variant="outline" className="bg-amber-500/10 text-warning border-warning/30 text-[11px] gap-1 py-0.5">
                       Confirm Captured Frame
                     </Badge>
                   ) : state.camera.status === 'ready_to_capture' ? (
-                    <Badge variant="outline" className="bg-emerald-950/80 text-emerald-300 border-emerald-600 text-[11px] gap-1 py-0.5 animate-pulse">
-                      <Sparkles className="h-3 w-3 text-emerald-400" />
+                    <Badge variant="outline" className="bg-mint text-primary border-primary/40 text-[11px] gap-1 py-0.5 animate-pulse">
+                      <Sparkles className="h-3 w-3 text-primary" />
                       Ready to Capture Face
                     </Badge>
                   ) : state.camera.status === 'quality_checking' || state.camera.status === 'streaming' ? (
-                    <Badge variant="outline" className="bg-indigo-950/80 text-indigo-300 border-indigo-700 text-[11px] gap-1 py-0.5">
-                      <RefreshCw className="h-3 w-3 animate-spin text-indigo-400" />
+                    <Badge variant="outline" className="bg-bg-subtle text-text border-card-border text-[11px] gap-1 py-0.5">
+                      <RefreshCw className="h-3 w-3 animate-spin text-primary" />
                       Checking Face Quality...
                     </Badge>
                   ) : state.camera.status === 'requesting' ? (
-                    <Badge variant="outline" className="bg-amber-950/80 text-amber-300 border-amber-700 text-[11px] gap-1 py-0.5">
+                    <Badge variant="outline" className="bg-bg-subtle text-text border-card-border text-[11px] gap-1 py-0.5">
                       {state.camera.stage === 'starting_video'
                         ? 'Starting Video...'
                         : state.camera.stage === 'loading_model'
@@ -1259,16 +1263,16 @@ export function PreInterviewSetup({
                         : 'Requesting Camera...'}
                     </Badge>
                   ) : state.camera.status === 'timeout' ? (
-                    <Badge variant="outline" className="bg-rose-950/80 text-rose-300 border-rose-700 text-[11px] gap-1 py-0.5">
+                    <Badge variant="outline" className="bg-danger/10 text-danger border-danger/30 text-[11px] gap-1 py-0.5">
                       Camera Timeout
                     </Badge>
                   ) : (
-                    <span className="text-slate-500 font-mono text-[11px]">Unverified</span>
+                    <span className="text-text-faint font-mono text-[11px]">Unverified</span>
                   )}
                 </div>
 
                 {/* Video Container Box */}
-                <div className="relative aspect-video rounded-xl bg-slate-950 border border-slate-800 overflow-hidden flex items-center justify-center">
+                <div className="relative aspect-video rounded-2xl bg-black border border-card-border overflow-hidden flex items-center justify-center">
                   {/* Live Video Feed */}
                   <video
                     ref={videoRef}
@@ -1287,20 +1291,20 @@ export function PreInterviewSetup({
 
                   {/* Captured Still Preview for Review & Confirmation */}
                   {state.camera.status === 'captured_pending_confirm' && (
-                    <div className="absolute inset-0 z-20 bg-slate-950 flex flex-col items-center justify-center">
+                    <div className="absolute inset-0 z-20 bg-black flex flex-col items-center justify-center">
                       <img
                         src={capturedPreview || state.camera.previewDataUrl}
                         alt="Captured face preview"
                         className="w-full h-full object-cover -scale-x-100"
                       />
-                      <div className="absolute bottom-3 inset-x-3 flex items-center justify-between p-2 rounded-lg bg-slate-950/85 backdrop-blur border border-slate-800">
-                        <span className="text-xs text-slate-300 font-medium">Review captured frame</span>
+                      <div className="absolute bottom-3 inset-x-3 flex items-center justify-between p-2.5 rounded-xl bg-card/90 backdrop-blur border border-card-border shadow-lg">
+                        <span className="text-xs text-text font-medium">Review captured frame</span>
                         <div className="flex items-center gap-2">
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={handleRetakeCapture}
-                            className="h-7 text-xs border-slate-700 text-slate-300 hover:bg-slate-800 gap-1"
+                            className="h-7 text-xs border-card-border text-text hover:bg-bg-subtle gap-1"
                           >
                             <RotateCcw className="h-3 w-3" />
                             Retake
@@ -1308,7 +1312,7 @@ export function PreInterviewSetup({
                           <Button
                             size="sm"
                             onClick={handleConfirmCapture}
-                            className="h-7 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold gap-1"
+                            className="h-7 text-xs bg-primary hover:bg-primary-hover text-primary-ink font-semibold gap-1"
                           >
                             <Check className="h-3 w-3" />
                             Confirm Face
@@ -1327,10 +1331,10 @@ export function PreInterviewSetup({
                       <div
                         className={`w-36 h-48 sm:w-44 sm:h-56 rounded-[50%] transition-all duration-300 pointer-events-none ${
                           state.camera.status === 'ready_to_capture' || faceQualityReport?.overallPassed
-                            ? 'border-2 border-emerald-400 shadow-[0_0_35px_rgba(52,211,153,0.5)] bg-emerald-500/5'
+                            ? 'border-2 border-success shadow-[0_0_35px_rgba(31,122,85,0.5)] bg-success/5'
                             : faceQualityReport?.firstFailingCriterion
-                            ? 'border-2 border-amber-400/80 shadow-[0_0_20px_rgba(251,191,36,0.25)] bg-slate-950/10'
-                            : 'border-2 border-dashed border-indigo-400/60 shadow-[0_0_20px_rgba(99,102,241,0.2)]'
+                            ? 'border-2 border-warning/80 shadow-[0_0_20px_rgba(183,121,31,0.25)] bg-black/10'
+                            : 'border-2 border-dashed border-primary/60 shadow-[0_0_20px_rgba(15,74,58,0.2)]'
                         }`}
                       />
 
@@ -1343,20 +1347,20 @@ export function PreInterviewSetup({
                         <span
                           className={`text-xs sm:text-sm font-semibold px-3.5 py-1.5 rounded-full shadow-xl flex items-center gap-1.5 backdrop-blur-md transition-all duration-200 ${
                             state.camera.status === 'ready_to_capture'
-                              ? 'bg-emerald-950/95 text-emerald-300 border border-emerald-500/80 shadow-emerald-900/40'
+                              ? 'bg-card/95 text-success border border-success/40 shadow-sm'
                               : faceQualityReport?.firstFailingCriterion
-                              ? 'bg-slate-950/95 text-amber-300 border border-amber-500/70 shadow-amber-950/40'
-                              : 'bg-slate-950/90 text-indigo-200 border border-indigo-700/60'
+                              ? 'bg-card/95 text-warning border border-warning/40 shadow-sm'
+                              : 'bg-card/95 text-primary border border-primary/40 shadow-sm'
                           }`}
                         >
                           {state.camera.status === 'ready_to_capture' ? (
                             <>
-                              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                              <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                               Ready to capture! Hold still
                             </>
                           ) : faceQualityReport?.firstFailingCriterion ? (
                             <>
-                              <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                              <AlertTriangle className="h-3.5 w-3.5 text-warning shrink-0" />
                               {faceQualityReport.firstFailingCriterion.hint}
                             </>
                           ) : (
@@ -1370,9 +1374,9 @@ export function PreInterviewSetup({
                   {/* Black Frame Shutter Warning */}
                   {isBlackFrame && (
                     <div className="absolute inset-0 bg-black/85 flex flex-col items-center justify-center p-4 text-center z-20">
-                      <AlertTriangle className="h-7 w-7 text-amber-400 mb-1" />
-                      <p className="text-xs text-amber-300 font-semibold">Camera is on but image is black</p>
-                      <p className="text-[11px] text-slate-300 max-w-xs mt-1">
+                      <AlertTriangle className="h-7 w-7 text-warning mb-1" />
+                      <p className="text-xs text-warning font-semibold">Camera is on but image is black</p>
+                      <p className="text-[11px] text-white/80 max-w-xs mt-1">
                         Please check your webcam lens cover or physical privacy shutter switch.
                       </p>
                     </div>
@@ -1385,12 +1389,12 @@ export function PreInterviewSetup({
                       role="status"
                       className="text-center p-4 space-y-3 z-10 max-w-sm w-full"
                     >
-                      <RefreshCw className="h-7 w-7 text-indigo-400 animate-spin mx-auto" />
+                      <RefreshCw className="h-7 w-7 text-primary animate-spin mx-auto" />
                       <div className="space-y-1">
                         <p className="text-xs font-semibold text-white">
                           Initializing Camera Pipeline...
                         </p>
-                        <p className="text-[11px] text-slate-400">
+                        <p className="text-[11px] text-white/70">
                           {state.camera.stage === 'starting_video'
                             ? 'Starting Video Stream...'
                             : state.camera.stage === 'loading_model'
@@ -1421,19 +1425,19 @@ export function PreInterviewSetup({
                               <div
                                 className={`h-1.5 w-full rounded-full transition-all duration-300 ${
                                   isDone
-                                    ? 'bg-emerald-400'
+                                    ? 'bg-success'
                                     : isCurrent
-                                    ? 'bg-indigo-400 animate-pulse'
-                                    : 'bg-slate-800'
+                                    ? 'bg-primary animate-pulse'
+                                    : 'bg-card-border'
                                 }`}
                               />
                               <span
                                 className={`text-[9px] font-mono ${
                                   isDone
-                                    ? 'text-emerald-400 font-bold'
+                                    ? 'text-success font-bold'
                                     : isCurrent
-                                    ? 'text-indigo-300 font-semibold'
-                                    : 'text-slate-600'
+                                    ? 'text-primary font-semibold'
+                                    : 'text-text-faint'
                                 }`}
                               >
                                 {isDone ? '✓ ' : ''}{label}
@@ -1452,16 +1456,16 @@ export function PreInterviewSetup({
                       role="status"
                       className="text-center p-4 space-y-2 z-10 max-w-xs"
                     >
-                      <AlertTriangle className="h-8 w-8 text-rose-400 mx-auto" />
-                      <p className="text-xs text-rose-300 font-semibold">
+                      <AlertTriangle className="h-8 w-8 text-danger mx-auto" />
+                      <p className="text-xs text-danger font-semibold">
                         Stage Timed Out: {state.camera.stage?.replace('_', ' ')}
                       </p>
-                      <p className="text-[11px] text-slate-300 break-words">{state.camera.error}</p>
+                      <p className="text-[11px] text-white/80 break-words">{state.camera.error}</p>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={handleEnableCamera}
-                        className="text-xs border-rose-700 text-rose-300 hover:bg-rose-950/60 mt-2"
+                        className="text-xs border-danger/40 text-danger hover:bg-danger/10 mt-2"
                         aria-label="Retry camera initialization"
                       >
                         Retry Camera
@@ -1478,8 +1482,8 @@ export function PreInterviewSetup({
                     state.camera.status !== 'requesting' &&
                     state.camera.status !== 'timeout' && (
                       <div className="text-center p-4 space-y-2 z-10 max-w-xs">
-                        <CameraOff className="h-8 w-8 text-slate-600 mx-auto" />
-                        <p className="text-xs text-slate-400 break-words">
+                        <CameraOff className="h-8 w-8 text-text-faint mx-auto" />
+                        <p className="text-xs text-text-muted break-words">
                           {state.camera.status === 'denied'
                             ? state.camera.error
                             : state.camera.status === 'in_use'
@@ -1496,7 +1500,7 @@ export function PreInterviewSetup({
                             size="sm"
                             variant="outline"
                             onClick={handleEnableCamera}
-                            className="text-xs border-indigo-700 text-indigo-300 hover:bg-indigo-950/60 cursor-pointer"
+                            className="text-xs border-card-border text-text hover:bg-bg-subtle cursor-pointer"
                           >
                             {state.camera.status === 'denied' ||
                             state.camera.status === 'in_use' ||
@@ -1509,7 +1513,7 @@ export function PreInterviewSetup({
                               size="sm"
                               variant="ghost"
                               onClick={() => setIsHelpModalOpen(true)}
-                              className="text-xs text-indigo-400 hover:text-indigo-300 underline underline-offset-2"
+                              className="text-xs text-primary hover:text-primary-hover underline underline-offset-2"
                             >
                               Permission Help
                             </Button>
@@ -1524,16 +1528,16 @@ export function PreInterviewSetup({
                   <div
                     aria-live="polite"
                     role="status"
-                    className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-950/50 border border-amber-800/60 text-amber-200 text-xs animate-in fade-in"
+                    className="flex items-start gap-2.5 p-3.5 rounded-xl bg-amber-500/10 border border-warning/30 text-xs animate-in fade-in"
                   >
-                    <Sun className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                    <Sun className="h-4 w-4 text-warning shrink-0 mt-0.5" />
                     <div className="space-y-0.5 flex-1 min-w-0">
-                      <p className="font-semibold text-amber-300">
+                      <p className="font-semibold text-warning">
                         {colorCastCrit && !colorCastCrit.passed
                           ? 'Lighting Warning: Strong Color Tint Detected'
                           : 'Lighting Tip: Uneven or Low Illumination'}
                       </p>
-                      <p className="text-[11px] text-amber-200/80">
+                      <p className="text-[11px] text-text-muted leading-relaxed">
                         Face a window or lamp; avoid strong backlight. Ensure your room is evenly illuminated so face verification succeeds smoothly.
                       </p>
                     </div>
@@ -1542,23 +1546,23 @@ export function PreInterviewSetup({
 
                 {/* Live Face Quality Checklist & Capture Button (Visible during quality checking & ready) */}
                 {(state.camera.status === 'quality_checking' || state.camera.status === 'ready_to_capture') && (
-                  <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+                  <div className="p-3.5 rounded-xl bg-bg-subtle border border-card-border space-y-3">
                     {/* Quality Meter */}
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-slate-400 font-medium">Face Alignment Quality</span>
-                        <span className="font-mono font-bold text-white">
+                        <span className="text-text-muted font-medium font-mono uppercase tracking-wider text-[10px]">Face Alignment Quality</span>
+                        <span className="font-mono font-bold text-text">
                           {faceQualityReport?.qualityScore ?? 0}%
                         </span>
                       </div>
-                      <div className="h-1.5 w-full rounded-full bg-slate-900 overflow-hidden">
+                      <div className="h-1.5 w-full rounded-full bg-card border border-card-border overflow-hidden">
                         <div
                           className={`h-full transition-all duration-200 ${
                             (faceQualityReport?.qualityScore ?? 0) >= 90
-                              ? 'bg-emerald-400'
+                              ? 'bg-success'
                               : (faceQualityReport?.qualityScore ?? 0) >= 60
-                              ? 'bg-indigo-400'
-                              : 'bg-amber-400'
+                              ? 'bg-primary'
+                              : 'bg-warning'
                           }`}
                           style={{ width: `${faceQualityReport?.qualityScore ?? 0}%` }}
                         />
@@ -1570,12 +1574,12 @@ export function PreInterviewSetup({
                       {faceQualityReport?.criteriaList.map((crit) => (
                         <div
                           key={crit.id}
-                          className={`p-1.5 rounded-md text-[10px] flex items-center justify-between border ${
+                          className={`p-1.5 rounded-lg text-[10px] flex items-center justify-between border ${
                             crit.passed
-                              ? 'bg-emerald-950/30 border-emerald-900/60 text-emerald-300'
+                              ? 'bg-mint text-primary border-primary/20 font-medium'
                               : crit.isWarningOnly
-                              ? 'bg-amber-950/30 border-amber-900/60 text-amber-300'
-                              : 'bg-slate-900/80 border-slate-800 text-slate-400'
+                              ? 'bg-amber-500/10 text-warning border-warning/30 font-medium'
+                              : 'bg-card border-card-border text-text-muted'
                           }`}
                         >
                           <span className="truncate mr-1 font-medium">{crit.name}</span>
@@ -1585,19 +1589,19 @@ export function PreInterviewSetup({
                     </div>
 
                     {captureError && (
-                      <p className="text-[11px] text-rose-400 font-medium bg-rose-950/40 border border-rose-900/50 p-2 rounded">
+                      <p className="text-[11px] text-danger font-medium bg-danger/10 border border-danger/25 p-2 rounded-lg">
                         {captureError}
                       </p>
                     )}
 
                     {/* Capture Controls */}
-                    <div className="flex items-center justify-between pt-1 border-t border-slate-900">
-                      <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
+                    <div className="flex items-center justify-between pt-1 border-t border-card-border">
+                      <label className="flex items-center gap-2 text-xs text-text-muted cursor-pointer">
                         <input
                           type="checkbox"
                           checked={isAutoCapture}
                           onChange={(e) => setIsAutoCapture(e.target.checked)}
-                          className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500"
+                          className="rounded border-card-border text-primary focus:ring-primary accent-primary"
                         />
                         <span>Auto-capture when ready (3s)</span>
                       </label>
@@ -1608,8 +1612,8 @@ export function PreInterviewSetup({
                         onClick={handleCaptureFace}
                         className={`text-xs gap-1.5 ${
                           state.camera.status === 'ready_to_capture'
-                            ? 'bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer shadow-lg shadow-emerald-900/40'
-                            : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                            ? 'bg-primary hover:bg-primary-hover text-primary-ink cursor-pointer shadow-sm font-semibold'
+                            : 'bg-card text-text-faint border border-card-border cursor-not-allowed'
                         }`}
                         title={
                           state.camera.status !== 'ready_to_capture'
@@ -1626,16 +1630,16 @@ export function PreInterviewSetup({
 
                 {/* Verified Camera Actions */}
                 {state.camera.status === 'verified' && (
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-900/50 text-xs text-emerald-300">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-mint/40 border border-success/30 text-xs text-success">
                     <span className="flex items-center gap-1.5 font-medium">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                      <CheckCircle2 className="h-4 w-4 text-success" />
                       Face verified and saved in memory. Liveness verification unlocked.
                     </span>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={handleRetakeCapture}
-                      className="h-6 text-[10px] text-emerald-400 hover:text-emerald-200 hover:bg-emerald-900/40"
+                      className="h-6 text-[10px] text-primary hover:underline"
                     >
                       Retake Photo
                     </Button>
@@ -1643,16 +1647,16 @@ export function PreInterviewSetup({
                 )}
 
                 {/* Device Selector & Diagnostics Link */}
-                <div className="flex items-center justify-between text-[11px] text-slate-400 px-1 pt-0.5">
+                <div className="flex items-center justify-between text-[11px] text-text-muted px-1 pt-0.5">
                   <div className="flex items-center gap-2 truncate max-w-[220px]">
                     <span className="truncate" title={availableCameras[0]?.label}>
-                      Camera: <strong className="text-slate-300">{availableCameras[0]?.label || 'Default Camera'}</strong>
+                      Camera: <strong className="text-text">{availableCameras[0]?.label || 'Default Camera'}</strong>
                     </span>
                     {availableCameras.length > 1 && (
                       <select
                         value={selectedDeviceId}
                         onChange={(e) => setSelectedDeviceId(e.target.value)}
-                        className="bg-slate-900 border border-slate-800 text-slate-300 rounded px-1.5 py-0.5 text-[10px]"
+                        className="bg-bg-subtle border border-card-border text-text rounded px-1.5 py-0.5 text-[10px]"
                       >
                         {availableCameras.map((c, i) => (
                           <option key={c.deviceId || i} value={c.deviceId}>
@@ -1667,79 +1671,79 @@ export function PreInterviewSetup({
                     variant="ghost"
                     size="sm"
                     onClick={() => setIsDiagnosticsOpen(true)}
-                    className="h-6 text-[10px] text-indigo-400 hover:text-indigo-300 underline underline-offset-2 p-0"
+                    className="h-6 text-[10px] text-primary hover:text-primary-hover underline underline-offset-2 p-0"
                   >
                     Run Diagnostics
                   </Button>
                 </div>
 
-                <p className="text-[10px] text-slate-500 pt-1 leading-relaxed border-t border-slate-900/60">
+                <p className="text-[10px] text-text-faint pt-1 leading-relaxed border-t border-card-border">
                   Your camera and microphone are on during the interview. Camera monitoring and facial analysis run entirely on your device. Spoken answers are transcribed using your browser’s speech recognition service. Only numeric behavior signals and the transcribed text of your answers are saved. No raw audio or video recordings are stored on our servers.
                 </p>
               </div>
 
               {/* 2. Liveness Section (Gated on Camera Verification) */}
-              <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/90 space-y-2.5">
+              <div className="p-3.5 rounded-xl bg-bg-subtle border border-card-border space-y-2.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-300 flex items-center gap-1.5">
-                    <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+                  <span className="font-semibold text-text flex items-center gap-1.5 font-mono uppercase tracking-wider text-[11px]">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
                     Liveness Verification
                   </span>
                   {state.liveness.status === 'passed' ? (
-                    <Badge variant="outline" className="bg-emerald-950 text-emerald-300 border-emerald-700 text-[10px] gap-1">
-                      <Check className="h-3 w-3 text-emerald-400" />
+                    <Badge variant="outline" className="bg-mint text-primary border-primary/30 text-[10px] gap-1 font-mono">
+                      <Check className="h-3 w-3 text-success" />
                       3/3 Steps Passed
                     </Badge>
                   ) : state.liveness.status === 'locked' ? (
-                    <Badge variant="outline" className="border-slate-800 text-slate-500 text-[10px] gap-1">
+                    <Badge variant="outline" className="border-card-border text-text-faint bg-card text-[10px] gap-1 font-mono">
                       <Lock className="h-2.5 w-2.5" />
                       Locked
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="border-indigo-600/50 text-indigo-300 text-[10px]">
+                    <Badge variant="outline" className="border-primary/30 text-primary bg-mint/30 text-[10px] font-mono">
                       Mandatory Check
                     </Badge>
                   )}
                 </div>
 
                 {state.liveness.status === 'locked' ? (
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-text-muted">
                     Enable your physical camera and align your face in the guide to unlock liveness verification.
                   </p>
                 ) : state.liveness.status === 'in_progress' ? (
-                  <div className="p-3 rounded-lg bg-indigo-950/50 border border-indigo-600/40 space-y-2 animate-in fade-in">
+                  <div className="p-3 rounded-xl bg-mint/30 border border-primary/30 space-y-2 animate-in fade-in">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">
+                      <span className="text-[10px] uppercase font-bold text-primary tracking-wider font-mono">
                         Action Required ({state.liveness.currentStep}/{state.liveness.totalSteps})
                       </span>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={handleStepComplete}
-                        className="h-6 text-[10px] text-indigo-300 hover:text-white hover:bg-indigo-900/50"
+                        className="h-6 text-[10px] text-primary hover:text-primary-hover hover:bg-mint/40"
                       >
                         Simulate Gesture Pass
                       </Button>
                     </div>
-                    <p className="text-xs font-semibold text-white">
+                    <p className="text-xs font-semibold text-text">
                       {state.liveness.prompt}
                     </p>
                   </div>
                 ) : state.liveness.status === 'passed' ? (
-                  <p className="text-xs text-emerald-300 flex items-center gap-1.5">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                  <p className="text-xs text-success flex items-center gap-1.5 font-medium">
+                    <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                     Live human presence confirmed. Anti-spoofing passed.
                   </p>
                 ) : (
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-text-muted">
                       Camera verified. Complete 3 quick actions to prove human presence.
                     </span>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={handleStartLiveness}
-                      className="text-xs border-indigo-700 text-indigo-300 hover:bg-indigo-900/60 h-7 cursor-pointer"
+                      className="text-xs border-primary/30 text-primary hover:bg-mint/40 h-7 cursor-pointer"
                     >
                       Start Check
                     </Button>
@@ -1748,103 +1752,103 @@ export function PreInterviewSetup({
               </div>
 
               {/* 3. Microphone Section */}
-              <div className="space-y-2 pt-2 border-t border-slate-800/80">
+              <div className="space-y-2 pt-2 border-t border-card-border">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-300 flex items-center gap-1.5">
-                    <Mic className="h-3.5 w-3.5 text-indigo-400" />
+                  <span className="font-semibold text-text flex items-center gap-1.5 font-mono uppercase tracking-wider text-[11px]">
+                    <Mic className="h-3.5 w-3.5 text-primary" />
                     2. Microphone Audio
                   </span>
 
                   {state.mic.status === 'verified' ? (
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="bg-emerald-950/80 text-emerald-300 border-emerald-700 text-[11px] gap-1 py-0.5">
-                        <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                      <Badge variant="outline" className="bg-mint text-primary border-primary/30 text-[11px] gap-1 py-0.5">
+                        <CheckCircle2 className="h-3 w-3 text-success" />
                         ✓ Microphone Verified
                       </Badge>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={handleRetestMic}
-                        className="h-5 text-[10px] text-slate-400 hover:text-indigo-300 p-0 underline"
+                        className="h-5 text-[10px] text-text-muted hover:text-primary p-0 underline"
                       >
                         Re-test
                       </Button>
                     </div>
                   ) : state.mic.status === 'measuring_noise' ? (
-                    <Badge variant="outline" className="bg-amber-950/80 text-amber-300 border-amber-700 text-[11px] gap-1 py-0.5">
-                      <RefreshCw className="h-3 w-3 animate-spin text-amber-400" />
+                    <Badge variant="outline" className="bg-amber-500/10 text-warning border-warning/30 text-[11px] gap-1 py-0.5">
+                      <RefreshCw className="h-3 w-3 animate-spin text-warning" />
                       Measuring Noise Floor (1s)...
                     </Badge>
                   ) : state.mic.status === 'collecting_speech' ? (
-                    <Badge variant="outline" className="bg-indigo-950/80 text-indigo-300 border-indigo-700 text-[11px] gap-1 py-0.5">
+                    <Badge variant="outline" className="bg-mint text-primary border-primary/30 text-[11px] gap-1 py-0.5">
                       Listening ({state.mic.voicedSeconds.toFixed(1)} / 1.5s)
                     </Badge>
                   ) : state.mic.status === 'streaming' ? (
-                    <span className="text-indigo-400 font-mono text-[11px] animate-pulse">
+                    <span className="text-primary font-mono text-[11px] animate-pulse">
                       Speak into mic...
                     </span>
                   ) : state.mic.status === 'requesting' ? (
-                    <Badge variant="outline" className="bg-amber-950/80 text-amber-300 border-amber-700 text-[11px] gap-1 py-0.5">
+                    <Badge variant="outline" className="bg-bg-subtle text-text border-card-border text-[11px] gap-1 py-0.5">
                       Requesting Mic...
                     </Badge>
                   ) : state.mic.status === 'error' ? (
                     <div className="flex items-center gap-1.5">
-                      <Badge variant="outline" className="bg-rose-950/80 text-rose-300 border-rose-700 text-[11px] gap-1 py-0.5">
+                      <Badge variant="outline" className="bg-danger/10 text-danger border-danger/30 text-[11px] gap-1 py-0.5">
                         Mic Error
                       </Badge>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={handleRetestMic}
-                        className="h-5 text-[10px] text-indigo-400 hover:text-indigo-300 p-0 underline"
+                        className="h-5 text-[10px] text-primary hover:text-primary-hover p-0 underline"
                       >
                         Retry
                       </Button>
                     </div>
                   ) : state.mic.status === 'denied' ? (
-                    <Badge variant="outline" className="bg-rose-950/80 text-rose-300 border-rose-700 text-[11px] gap-1 py-0.5">
+                    <Badge variant="outline" className="bg-danger/10 text-danger border-danger/30 text-[11px] gap-1 py-0.5">
                       Permission Blocked
                     </Badge>
                   ) : (
-                    <span className="text-slate-500 font-mono text-[11px]">Not Connected</span>
+                    <span className="text-text-faint font-mono text-[11px]">Not Connected</span>
                   )}
                 </div>
 
                 {state.mic.status === 'idle' ? (
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800">
-                    <span className="text-xs text-slate-400">Connect microphone to verify voice input</span>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-bg-subtle border border-card-border">
+                    <span className="text-xs text-text-muted">Connect microphone to verify voice input</span>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => void handleStartMic()}
-                      className="text-xs border-indigo-800 text-indigo-300 hover:bg-indigo-950/60 h-7"
+                      className="text-xs border-primary/30 text-primary hover:bg-mint/40 h-7"
                     >
                       Connect Mic
                     </Button>
                   </div>
                 ) : state.mic.status === 'denied' || state.mic.status === 'error' ? (
-                  <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-900/60 space-y-2">
+                  <div className="p-3.5 rounded-xl bg-danger/10 border border-danger/25 space-y-2">
                     <div className="flex items-start gap-2">
-                      <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0 mt-0.5" />
+                      <AlertTriangle className="h-4 w-4 text-danger shrink-0 mt-0.5" />
                       <div className="space-y-1 flex-1">
-                        <p className="text-xs text-rose-200 font-medium leading-relaxed">
+                        <p className="text-xs text-danger font-medium leading-relaxed">
                           {state.mic.error}
                         </p>
                         {state.mic.status === 'error' && state.mic.speechError && (
-                          <p className="text-[11px] text-rose-300/80">
+                          <p className="text-[11px] text-danger/80">
                             Speech engine: {state.mic.speechError}
                           </p>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center flex-wrap gap-2 pt-1 border-t border-rose-900/40">
+                    <div className="flex items-center flex-wrap gap-2 pt-1 border-t border-danger/20">
                       {state.mic.cause === 'not_found' ? (
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => void handleCheckDevices()}
-                          className="text-xs border-rose-700 bg-rose-950/60 text-rose-200 hover:bg-rose-900/70 h-7"
+                          className="text-xs border-danger/30 bg-card text-danger hover:bg-danger/10 h-7"
                         >
                           <RefreshCw className="h-3 w-3 mr-1" />
                           Check Devices
@@ -1854,7 +1858,7 @@ export function PreInterviewSetup({
                           size="sm"
                           variant="outline"
                           onClick={handleRetestMic}
-                          className="text-xs border-rose-700 bg-rose-950/60 text-rose-200 hover:bg-rose-900/70 h-7"
+                          className="text-xs border-danger/30 bg-card text-danger hover:bg-danger/10 h-7"
                         >
                           Switch to Defaults
                         </Button>
@@ -1863,7 +1867,7 @@ export function PreInterviewSetup({
                           size="sm"
                           variant="outline"
                           onClick={handleRetestMic}
-                          className="text-xs border-rose-700 bg-rose-950/60 text-rose-200 hover:bg-rose-900/70 h-7"
+                          className="text-xs border-danger/30 bg-card text-danger hover:bg-danger/10 h-7"
                         >
                           Try Again
                         </Button>
@@ -1874,7 +1878,7 @@ export function PreInterviewSetup({
                           size="sm"
                           variant="outline"
                           onClick={() => setIsHelpModalOpen(true)}
-                          className="h-7 text-xs border-indigo-800 text-indigo-300 hover:bg-indigo-950/60"
+                          className="h-7 text-xs border-card-border text-text hover:bg-bg-subtle"
                         >
                           Permission Help
                         </Button>
@@ -1884,17 +1888,17 @@ export function PreInterviewSetup({
                         size="sm"
                         variant="ghost"
                         onClick={handleCopyDiagnostics}
-                        className="h-7 text-xs text-slate-300 hover:text-white hover:bg-slate-900/60 gap-1 ml-auto"
+                        className="h-7 text-xs text-text-muted hover:text-text gap-1 ml-auto"
                         title="Copy diagnostic report for support"
                       >
                         {diagnosticsCopied ? (
                           <>
-                            <Check className="h-3 w-3 text-emerald-400" />
-                            <span className="text-emerald-400">Copied!</span>
+                            <Check className="h-3 w-3 text-success" />
+                            <span className="text-success font-medium">Copied!</span>
                           </>
                         ) : (
                           <>
-                            <Copy className="h-3 w-3 text-slate-400" />
+                            <Copy className="h-3 w-3 text-text-faint" />
                             <span>Copy Diagnostics</span>
                           </>
                         )}
@@ -1904,14 +1908,14 @@ export function PreInterviewSetup({
                 ) : (
                   <div className="space-y-2">
                     {/* Live audio level meter bar */}
-                    <div className="h-3 w-full rounded-full bg-slate-950 border border-slate-800 overflow-hidden p-0.5">
+                    <div className="h-3 w-full rounded-full bg-card border border-card-border overflow-hidden p-0.5">
                       <div
                         className={`h-full rounded-full transition-all duration-75 ${
                           audioLevel > 60
-                            ? 'bg-rose-500'
+                            ? 'bg-danger'
                             : audioLevel > 20
-                            ? 'bg-emerald-400'
-                            : 'bg-indigo-500'
+                            ? 'bg-success'
+                            : 'bg-primary'
                         }`}
                         style={{ width: `${audioLevel}%` }}
                       />
@@ -1922,9 +1926,9 @@ export function PreInterviewSetup({
                       <div
                         aria-live="polite"
                         role="status"
-                        className="p-2.5 rounded-xl bg-amber-950/30 border border-amber-900/50 flex items-center gap-2 text-xs text-amber-300"
+                        className="p-3 rounded-xl bg-amber-500/10 border border-warning/30 flex items-center gap-2 text-xs text-warning"
                       >
-                        <RefreshCw className="h-3.5 w-3.5 animate-spin text-amber-400 shrink-0" />
+                        <RefreshCw className="h-3.5 w-3.5 animate-spin text-warning shrink-0" />
                         <span>Measuring ambient noise floor... Please stay quiet for 1 second.</span>
                       </div>
                     )}
@@ -1933,7 +1937,7 @@ export function PreInterviewSetup({
                       <div
                         aria-live="polite"
                         role="status"
-                        className="p-3 rounded-xl bg-indigo-950/40 border border-indigo-800/60 flex items-center gap-3.5 animate-in fade-in"
+                        className="p-3 rounded-xl bg-mint/30 border border-primary/30 flex items-center gap-3.5 animate-in fade-in"
                       >
                         {/* Circular Progress Ring */}
                         <div className="relative shrink-0 flex items-center justify-center">
@@ -1943,7 +1947,7 @@ export function PreInterviewSetup({
                               cx="20"
                               cy="20"
                               r="16"
-                              className="stroke-slate-800 fill-none"
+                              className="stroke-card-border fill-none"
                               strokeWidth="3.5"
                             />
                             {/* Animated Progress Stroke */}
@@ -1951,35 +1955,35 @@ export function PreInterviewSetup({
                               cx="20"
                               cy="20"
                               r="16"
-                              className="stroke-indigo-400 fill-none transition-all duration-100 ease-out"
+                              className="stroke-primary fill-none transition-all duration-100 ease-out"
                               strokeWidth="3.5"
                               strokeDasharray={100.53}
                               strokeDashoffset={100.53 * (1 - Math.min(1, state.mic.voicedSeconds / 1.5))}
                               strokeLinecap="round"
                             />
                           </svg>
-                          <span className="absolute text-[10px] font-mono font-bold text-white">
+                          <span className="absolute text-[10px] font-mono font-bold text-primary">
                             {state.mic.voicedSeconds.toFixed(1)}s
                           </span>
                         </div>
 
                         {/* Speech Sentence Prompt & Live Status */}
                         <div className="space-y-1.5 flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-white">
+                          <p className="text-xs font-semibold text-text">
                             Say: &apos;My name is ___ and I&apos;m ready for the interview&apos; (or &apos;testing one two three&apos;)
                           </p>
                           {liveSpeechTranscript ? (
-                            <div className="p-1.5 rounded-md bg-indigo-950/80 border border-indigo-700/60 font-mono text-[11px] text-white">
-                              <span className="text-indigo-400 font-semibold mr-1">Heard:</span>
+                            <div className="p-1.5 rounded-lg bg-card border border-card-border font-mono text-[11px] text-text">
+                              <span className="text-primary font-semibold mr-1">Heard:</span>
                               &ldquo;{liveSpeechTranscript}&rdquo;
                             </div>
                           ) : (
-                            <p className="text-[11px] text-indigo-300">
+                            <p className="text-[11px] text-text-muted">
                               {micReport?.primaryHint || state.mic.hint || `Listening… speak test phrase (${state.mic.voicedSeconds.toFixed(1)} / 1.5 s)`}
                             </p>
                           )}
                           {sttNotice && (
-                            <p className="text-[10px] text-amber-300">
+                            <p className="text-[10px] text-warning">
                               {sttNotice}
                             </p>
                           )}
@@ -1991,26 +1995,26 @@ export function PreInterviewSetup({
                       <div
                         aria-live="polite"
                         role="status"
-                        className="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-900/50 flex flex-col gap-1.5 text-xs text-emerald-300"
+                        className="p-3 rounded-xl bg-mint/40 border border-success/30 flex flex-col gap-1.5 text-xs text-success"
                       >
                         <div className="flex items-center justify-between">
                           <span className="flex items-center gap-1.5 font-medium">
-                            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                            <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                             Clear voice detected ✓ (SNR: {state.mic.snrDb ? `${state.mic.snrDb.toFixed(1)} dB` : '15+ dB'}). Input latched.
                           </span>
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={handleRetestMic}
-                            className="h-6 text-[10px] text-emerald-400 hover:text-emerald-200 hover:bg-emerald-900/40 underline shrink-0"
+                            className="h-6 text-[10px] text-primary hover:underline shrink-0"
                             aria-label="Re-test microphone"
                           >
                             Re-test
                           </Button>
                         </div>
                         {liveSpeechTranscript && (
-                          <div className="pl-5 text-[11px] text-emerald-200/90 font-mono">
-                            <span className="text-emerald-400 font-semibold mr-1">Recognized:</span>
+                          <div className="pl-5 text-[11px] text-text-muted font-mono">
+                            <span className="text-primary font-semibold mr-1">Recognized:</span>
                             &ldquo;{liveSpeechTranscript}&rdquo;
                           </div>
                         )}
@@ -2018,7 +2022,7 @@ export function PreInterviewSetup({
                     )}
 
                     {noiseDetected && (
-                      <p className="text-[11px] text-amber-400 flex items-center gap-1">
+                      <p className="text-[11px] text-warning flex items-center gap-1 font-medium">
                         <AlertTriangle className="h-3 w-3 shrink-0" />
                         High background noise detected. Quiet environment recommended.
                       </p>
@@ -2027,16 +2031,16 @@ export function PreInterviewSetup({
                 )}
 
                 {/* Microphone Device Selector */}
-                <div className="flex items-center justify-between text-[11px] text-slate-400 px-1 pt-1 border-t border-slate-900">
+                <div className="flex items-center justify-between text-[11px] text-text-muted px-1 pt-1 border-t border-card-border">
                   <div className="flex items-center gap-2 truncate max-w-[280px]">
                     <span className="truncate" title={activeMicLabel || availableMicrophones[0]?.label}>
-                      Mic: <strong className="text-slate-300">{activeMicLabel || availableMicrophones[0]?.label || 'Default Microphone'}</strong>
+                      Mic: <strong className="text-text">{activeMicLabel || availableMicrophones[0]?.label || 'Default Microphone'}</strong>
                     </span>
                     {availableMicrophones.length > 1 && (
                       <select
                         value={selectedMicDeviceId}
                         onChange={(e) => void handleSwitchMicrophone(e.target.value)}
-                        className="bg-slate-900 border border-slate-800 text-slate-300 rounded px-1.5 py-0.5 text-[10px] max-w-[150px] truncate"
+                        className="bg-bg-subtle border border-card-border text-text rounded px-1.5 py-0.5 text-[10px] max-w-[150px] truncate"
                         aria-label="Select microphone"
                       >
                         {availableMicrophones.map((m, i) => (
@@ -2048,43 +2052,43 @@ export function PreInterviewSetup({
                     )}
                   </div>
                   {state.mic.status === 'verified' && (
-                    <span className="text-[10px] text-emerald-400 font-mono">Active</span>
+                    <span className="text-[10px] text-success font-mono font-medium">Active</span>
                   )}
                 </div>
 
-                <p className="text-[10px] text-slate-500 pt-1 leading-relaxed border-t border-slate-900/60">
+                <p className="text-[10px] text-text-faint pt-1 leading-relaxed border-t border-card-border">
                   Your camera and microphone are on during the interview. Camera monitoring and facial analysis run entirely on your device. Spoken answers are transcribed using your browser’s speech recognition service. Only numeric behavior signals and the transcribed text of your answers are saved. No raw audio or video recordings are stored on our servers.
                 </p>
               </div>
 
               {/* 4. Speaker Output & Verification Code Test */}
-              <div className="space-y-2 pt-2 border-t border-slate-800/80">
+              <div className="space-y-2 pt-2 border-t border-card-border">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-300 flex items-center gap-1.5">
-                    <Volume2 className="h-3.5 w-3.5 text-indigo-400" />
+                  <span className="font-semibold text-text flex items-center gap-1.5 font-mono uppercase tracking-wider text-[11px]">
+                    <Volume2 className="h-3.5 w-3.5 text-primary" />
                     3. Speaker / Audio Output
                   </span>
                   {state.speaker.status === 'verified' ? (
-                    <span className="text-emerald-400 flex items-center gap-1 font-mono text-[11px]">
+                    <span className="text-success flex items-center gap-1 font-mono text-[11px] font-semibold">
                       <Check className="h-3 w-3" /> Verified (Code Confirmed)
                     </span>
                   ) : (
-                    <span className="text-slate-500 font-mono text-[11px]">Unverified</span>
+                    <span className="text-text-faint font-mono text-[11px]">Unverified</span>
                   )}
                 </div>
 
-                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2.5">
+                <div className="p-3.5 rounded-xl bg-bg-subtle border border-card-border space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <span className="text-xs text-slate-300 font-medium block">Spoken Code Test</span>
-                      <span className="text-[11px] text-slate-500">Listen to 3-digit code and enter below</span>
+                      <span className="text-xs text-text font-medium block">Spoken Code Test</span>
+                      <span className="text-[11px] text-text-muted">Listen to 3-digit code and enter below</span>
                     </div>
                     <Button
                       size="sm"
                       variant="outline"
                       disabled={isSpeakingTest}
                       onClick={handlePlaySpeakerTest}
-                      className="border-indigo-800 text-indigo-300 hover:bg-indigo-950/60 text-xs gap-1.5 cursor-pointer h-7"
+                      className="border-primary/30 text-primary hover:bg-mint/40 text-xs gap-1.5 cursor-pointer h-7"
                     >
                       <Play className="h-3 w-3" />
                       {isSpeakingTest ? 'Speaking...' : speakerTestCode ? 'Replay Code' : 'Play Test Code'}
@@ -2096,7 +2100,7 @@ export function PreInterviewSetup({
                     state.speaker.status === 'playing_test' ||
                     state.speaker.status === 'failed' ||
                     speakerTestCode) && (
-                    <div className="pt-2 border-t border-slate-900 flex items-center gap-2">
+                    <div className="pt-2 border-t border-card-border flex items-center gap-2">
                       <input
                         type="text"
                         maxLength={3}
@@ -2104,18 +2108,18 @@ export function PreInterviewSetup({
                         onChange={(e) => setSpeakerCodeInput(e.target.value)}
                         placeholder="3-digit code"
                         data-expected-code={speakerTestCode}
-                        className="h-8 w-28 bg-slate-900 border border-slate-700 text-white text-xs text-center font-mono rounded focus:border-indigo-500 focus:outline-none"
+                        className="h-8 w-28 bg-card border border-card-border text-text text-xs text-center font-mono rounded-lg focus:border-primary focus:outline-none"
                       />
                       <Button
                         size="sm"
                         onClick={handleConfirmSpeakerCode}
                         disabled={speakerCodeInput.trim().length !== 3}
-                        className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700 text-white"
+                        className="h-8 text-xs bg-primary hover:bg-primary-hover text-primary-ink font-semibold"
                       >
                         Confirm
                       </Button>
                       {speakerError && (
-                        <span className="text-[10px] text-rose-400 font-medium">
+                        <span className="text-[10px] text-danger font-medium">
                           {speakerError}
                         </span>
                       )}
@@ -2125,11 +2129,11 @@ export function PreInterviewSetup({
               </div>
 
               {/* Start Interview CTA */}
-              <div className="pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="pt-4 border-t border-card-border flex flex-col sm:flex-row items-center justify-between gap-3">
                 <Button
                   variant="ghost"
                   onClick={onCancel}
-                  className="text-xs text-slate-400 hover:text-white"
+                  className="text-xs text-text-muted hover:text-text"
                 >
                   Cancel
                 </Button>
@@ -2138,10 +2142,10 @@ export function PreInterviewSetup({
                   <Button
                     disabled={!isAllReady || !consentAccepted}
                     onClick={handleStart}
-                    className={`px-6 text-xs font-semibold gap-2 shadow-lg transition-all cursor-pointer ${
+                    className={`px-6 text-xs font-semibold gap-2 shadow-md transition-all cursor-pointer rounded-xl h-10 ${
                       isAllReady && consentAccepted
-                        ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/30'
-                        : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                        ? 'bg-primary hover:bg-primary-hover text-primary-ink shadow-primary/20'
+                        : 'bg-card text-text-faint border border-card-border cursor-not-allowed'
                     }`}
                   >
                     <span>Start {durationMinutes}-Min Interview</span>
@@ -2149,7 +2153,7 @@ export function PreInterviewSetup({
                   </Button>
 
                   {(!isAllReady || !consentAccepted) && (
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[10px] text-text-faint font-mono">
                       {state.camera.status !== 'verified'
                         ? 'Physical camera verification required'
                         : state.liveness.status !== 'passed'

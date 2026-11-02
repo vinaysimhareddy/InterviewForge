@@ -36,7 +36,7 @@ export function Tooltip({
         <div
           role="tooltip"
           className={cn(
-            'absolute z-50 px-2.5 py-1.5 text-[11px] font-medium text-slate-100 bg-slate-900 border border-slate-700/80 rounded-lg shadow-xl pointer-events-none whitespace-normal max-w-xs animate-in fade-in zoom-in-95 duration-150',
+            'absolute z-50 px-2.5 py-1.5 text-[11px] font-medium text-primary-ink bg-text border border-text/20 rounded-md shadow-elevated pointer-events-none whitespace-normal max-w-xs animate-in fade-in zoom-in-95 duration-150',
             sideClasses,
             className
           )}
@@ -47,4 +47,3 @@ export function Tooltip({
     </div>
   );
 }
-

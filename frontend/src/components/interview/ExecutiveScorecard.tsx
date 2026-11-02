@@ -49,20 +49,20 @@ export function ExecutiveScorecard({
     const lower = rec.toLowerCase();
     if (lower.includes('strong hire') || lower.includes('hire')) {
       return (
-        <span className="text-xl sm:text-2xl font-bold text-emerald-400 font-mono mt-0.5 block">
+        <span className="text-xl sm:text-2xl font-display font-bold text-primary mt-0.5 block">
           {rec}
         </span>
       );
     }
     if (lower.includes('consider') || lower.includes('hold')) {
       return (
-        <span className="text-xl sm:text-2xl font-bold text-amber-400 font-mono mt-0.5 block">
+        <span className="text-xl sm:text-2xl font-display font-bold text-accent mt-0.5 block">
           {rec}
         </span>
       );
     }
     return (
-      <span className="text-xl sm:text-2xl font-bold text-rose-400 font-mono mt-0.5 block">
+      <span className="text-xl sm:text-2xl font-display font-bold text-destructive mt-0.5 block">
         {rec}
       </span>
     );
@@ -72,34 +72,34 @@ export function ExecutiveScorecard({
     const v = verdict || 'Verified';
     if (v === 'Verified') {
       return {
-        badgeClass: 'bg-emerald-950/80 text-emerald-300 border-emerald-600/50 text-xs px-3 py-1 gap-1.5',
-        dotClass: 'bg-emerald-400',
+        badgeClass: 'bg-mint text-primary border-primary/20 text-xs px-3 py-1 gap-1.5 font-mono',
+        dotClass: 'bg-primary',
       };
     }
     if (v === 'Verified with warnings') {
       return {
-        badgeClass: 'bg-amber-950/80 text-amber-300 border-amber-600/50 text-xs px-3 py-1 gap-1.5',
-        dotClass: 'bg-amber-400',
+        badgeClass: 'bg-peach text-accent border-accent/20 text-xs px-3 py-1 gap-1.5 font-mono',
+        dotClass: 'bg-accent',
       };
     }
     return {
-      badgeClass: 'bg-rose-950/80 text-rose-300 border-rose-600/50 text-xs px-3 py-1 gap-1.5',
-      dotClass: 'bg-rose-500',
+      badgeClass: 'bg-peach text-destructive border-destructive/20 text-xs px-3 py-1 gap-1.5 font-mono',
+      dotClass: 'bg-destructive',
     };
   };
 
   const verdictStyle = getVerdictStyle(report.integrity_summary?.verdict);
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in py-6 sm:py-8 px-4">
+    <div className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in py-4 sm:py-8 px-2 sm:px-4 text-text overflow-x-hidden">
       {/* Top Navigation Bar */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {onBack ? (
           <Button
             variant="ghost"
             size="sm"
             onClick={onBack}
-            className="text-xs text-muted-foreground hover:text-foreground gap-1.5 cursor-pointer rounded-full"
+            className="text-xs text-text-muted hover:text-text hover:bg-bg-subtle gap-1.5 cursor-pointer rounded-full self-start sm:self-auto"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Back to Completion Overview</span>
@@ -113,7 +113,7 @@ export function ExecutiveScorecard({
           disabled={isDownloadingPdf}
           variant="outline"
           size="sm"
-          className="border-indigo-700/60 bg-indigo-950/30 hover:bg-indigo-900/40 text-indigo-300 font-semibold text-xs px-4 h-9 gap-2 cursor-pointer rounded-full ml-auto"
+          className="border-card-border bg-card hover:bg-bg-subtle text-text font-semibold text-xs px-4 h-9 gap-2 cursor-pointer rounded-full ml-auto shadow-sm"
         >
           {isDownloadingPdf ? (
             <>
@@ -122,42 +122,42 @@ export function ExecutiveScorecard({
             </>
           ) : (
             <>
-              <Download className="h-3.5 w-3.5" />
+              <Download className="h-3.5 w-3.5 text-primary" />
               <span>Download PDF Report</span>
             </>
           )}
         </Button>
       </div>
 
-      <Card className="border-border bg-card shadow-2xl backdrop-blur-xl rounded-3xl overflow-hidden">
+      <Card className="border-card-border bg-card shadow-soft rounded-3xl overflow-hidden border w-full max-w-full">
         {/* Subtle accent header line */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-primary via-indigo-500 to-emerald-400" />
+        <div className="h-1 w-full bg-primary" />
 
-        <CardHeader className="text-center pb-6 border-b border-border">
-          <div className="mx-auto p-3.5 rounded-2xl bg-primary/15 border border-primary/30 text-primary w-fit mb-2">
+        <CardHeader className="text-center pb-6 border-b border-card-border px-3 sm:px-6">
+          <div className="mx-auto p-3.5 rounded-2xl bg-mint border border-primary/20 text-primary w-fit mb-2 shadow-sm">
             <Award className="h-8 w-8" />
           </div>
-          <CardTitle className="text-2xl sm:text-3xl text-foreground font-bold tracking-tight">
+          <CardTitle className="text-2xl sm:text-3xl text-text font-display font-medium tracking-tight">
             Interview Completed: Executive Scorecard
           </CardTitle>
-          <CardDescription className="text-muted-foreground text-xs font-mono">
+          <CardDescription className="text-text-muted text-xs font-mono">
             Role: {session.seniority} {session.role} • Evaluated by LangGraph Adaptive Engine
           </CardDescription>
 
           {/* Overall Score and Recommendation Display */}
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-5">
-            <div className="text-center px-6 py-3 rounded-2xl bg-muted/60 border border-border min-w-[150px]">
-              <span className="text-[11px] text-muted-foreground uppercase tracking-wider block font-medium">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-5 w-full">
+            <div className="text-center px-4 sm:px-6 py-3 rounded-2xl bg-bg-subtle border border-card-border w-full sm:w-auto min-w-[140px]">
+              <span className="text-[11px] text-text-muted uppercase tracking-wider block font-mono font-medium">
                 Overall Score
               </span>
-              <span className="text-3xl sm:text-4xl font-extrabold text-foreground font-mono">
+              <span className="text-3xl sm:text-4xl font-extrabold text-primary font-display">
                 {report.overall_score}
-                <span className="text-sm text-muted-foreground font-normal">/100</span>
+                <span className="text-sm text-text-muted font-normal font-sans">/100</span>
               </span>
             </div>
 
-            <div className="text-center px-6 py-3 rounded-2xl bg-muted/60 border border-border min-w-[170px]">
-              <span className="text-[11px] text-muted-foreground uppercase tracking-wider block font-medium">
+            <div className="text-center px-4 sm:px-6 py-3 rounded-2xl bg-bg-subtle border border-card-border w-full sm:w-auto min-w-[140px]">
+              <span className="text-[11px] text-text-muted uppercase tracking-wider block font-mono font-medium">
                 Recommendation
               </span>
               {getRecommendationBadge(report.hiring_recommendation)}
@@ -165,48 +165,48 @@ export function ExecutiveScorecard({
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-6 pt-6 sm:p-8">
+        <CardContent className="space-y-6 pt-6 p-3.5 sm:p-8 overflow-hidden">
           {/* Category Breakdown (Technical Depth 60%, Communication 25%, Biometric Composure 15%) */}
           <div>
-            <h3 className="text-xs uppercase font-semibold text-muted-foreground tracking-wider mb-3 flex items-center gap-1.5">
+            <h3 className="text-xs uppercase font-mono font-semibold text-text-muted tracking-wider mb-3 flex items-center gap-1.5">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
               Evaluation Category Breakdown
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-4 rounded-2xl bg-muted/40 border border-border text-center space-y-1">
-                <span className="text-xs text-muted-foreground block">Technical Depth (60%)</span>
-                <p className="text-2xl font-bold text-indigo-400 font-mono">
+              <div className="p-4 rounded-2xl bg-bg-subtle border border-card-border text-center space-y-1">
+                <span className="text-xs text-text-muted block">Technical Depth (60%)</span>
+                <p className="text-2xl font-bold text-primary font-mono">
                   {report.category_scores.technical}%
                 </p>
-                <div className="w-full bg-muted rounded-full h-1.5 mt-2 overflow-hidden">
+                <div className="w-full bg-muted-surface rounded-full h-1.5 mt-2 overflow-hidden">
                   <div
-                    className="bg-indigo-500 h-full rounded-full transition-all"
+                    className="bg-primary h-full rounded-full transition-all"
                     style={{ width: `${Math.min(100, Math.max(0, report.category_scores.technical))}%` }}
                   />
                 </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-muted/40 border border-border text-center space-y-1">
-                <span className="text-xs text-muted-foreground block">Communication (25%)</span>
-                <p className="text-2xl font-bold text-sky-400 font-mono">
+              <div className="p-4 rounded-2xl bg-bg-subtle border border-card-border text-center space-y-1">
+                <span className="text-xs text-text-muted block">Communication (25%)</span>
+                <p className="text-2xl font-bold text-primary font-mono">
                   {report.category_scores.communication}%
                 </p>
-                <div className="w-full bg-muted rounded-full h-1.5 mt-2 overflow-hidden">
+                <div className="w-full bg-muted-surface rounded-full h-1.5 mt-2 overflow-hidden">
                   <div
-                    className="bg-sky-500 h-full rounded-full transition-all"
+                    className="bg-primary h-full rounded-full transition-all"
                     style={{ width: `${Math.min(100, Math.max(0, report.category_scores.communication))}%` }}
                   />
                 </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-muted/40 border border-border text-center space-y-1">
-                <span className="text-xs text-muted-foreground block">Biometric Composure (15%)</span>
-                <p className="text-2xl font-bold text-emerald-400 font-mono">
+              <div className="p-4 rounded-2xl bg-bg-subtle border border-card-border text-center space-y-1">
+                <span className="text-xs text-text-muted block">Biometric Composure (15%)</span>
+                <p className="text-2xl font-bold text-primary font-mono">
                   {report.category_scores.composure}%
                 </p>
-                <div className="w-full bg-muted rounded-full h-1.5 mt-2 overflow-hidden">
+                <div className="w-full bg-muted-surface rounded-full h-1.5 mt-2 overflow-hidden">
                   <div
-                    className="bg-emerald-500 h-full rounded-full transition-all"
+                    className="bg-primary h-full rounded-full transition-all"
                     style={{ width: `${Math.min(100, Math.max(0, report.category_scores.composure))}%` }}
                   />
                 </div>
@@ -216,12 +216,12 @@ export function ExecutiveScorecard({
 
           {/* Key Strengths & Growth Opportunities */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 sm:p-5 rounded-2xl bg-emerald-950/20 border border-emerald-900/40 space-y-2.5">
-              <span className="text-xs font-semibold text-emerald-300 flex items-center gap-1.5">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+            <div className="p-4 sm:p-5 rounded-2xl bg-mint/35 border border-primary/20 space-y-2.5">
+              <span className="text-xs font-semibold text-primary flex items-center gap-1.5">
+                <CheckCircle2 className="h-4 w-4 text-primary" />
                 Key Strengths
               </span>
-              <ul className="text-xs text-muted-foreground space-y-2 list-disc list-inside">
+              <ul className="text-xs text-text space-y-2 list-disc list-inside">
                 {report.strengths.map((str, i) => (
                   <li key={i} className="leading-relaxed">
                     {str}
@@ -230,12 +230,12 @@ export function ExecutiveScorecard({
               </ul>
             </div>
 
-            <div className="p-4 sm:p-5 rounded-2xl bg-amber-950/20 border border-amber-900/40 space-y-2.5">
-              <span className="text-xs font-semibold text-amber-300 flex items-center gap-1.5">
-                <AlertCircle className="h-4 w-4 text-amber-400" />
+            <div className="p-4 sm:p-5 rounded-2xl bg-peach/35 border border-accent/20 space-y-2.5">
+              <span className="text-xs font-semibold text-accent flex items-center gap-1.5">
+                <AlertCircle className="h-4 w-4 text-accent" />
                 Growth Opportunities
               </span>
-              <ul className="text-xs text-muted-foreground space-y-2 list-disc list-inside">
+              <ul className="text-xs text-text space-y-2 list-disc list-inside">
                 {report.weaknesses.map((w, i) => (
                   <li key={i} className="leading-relaxed">
                     {w}
@@ -246,21 +246,21 @@ export function ExecutiveScorecard({
           </div>
 
           {/* Executive Summary */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-muted/40 border border-border text-xs text-muted-foreground leading-relaxed space-y-1.5">
-            <span className="font-semibold text-foreground block text-sm">Executive Summary:</span>
+          <div className="p-4 sm:p-5 rounded-2xl bg-bg-subtle border border-card-border text-xs text-text-muted leading-relaxed space-y-1.5">
+            <span className="font-semibold text-text block text-sm font-display">Executive Summary:</span>
             <p className="leading-relaxed">{report.executive_summary}</p>
           </div>
 
           {/* Adaptive Difficulty Progression Timeline (§Q7) */}
           {report.difficulty_progression && report.difficulty_progression.length > 0 && (
-            <div className="p-5 rounded-2xl bg-muted/30 border border-border space-y-3" data-testid="difficulty-progression-timeline">
+            <div className="p-5 rounded-2xl bg-bg-subtle border border-card-border space-y-3" data-testid="difficulty-progression-timeline">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 text-primary">
+                <div className="p-1.5 rounded-lg bg-mint border border-primary/20 text-primary">
                   <TrendingUp className="h-4 w-4" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-foreground">Adaptive Difficulty Progression</h4>
-                  <p className="text-[11px] text-muted-foreground">
+                  <h4 className="text-sm font-display font-semibold text-text">Adaptive Difficulty Progression</h4>
+                  <p className="text-[11px] text-text-muted">
                     Dynamically adjusted per turn based on candidate answer technical accuracy and depth
                   </p>
                 </div>
@@ -270,29 +270,29 @@ export function ExecutiveScorecard({
               <div className="flex flex-wrap items-center gap-2 pt-2">
                 {report.difficulty_progression.map((p, idx) => (
                   <React.Fragment key={idx}>
-                    <div className="flex items-center gap-1.5 p-2 rounded-xl bg-card border border-border/80 text-xs">
-                      <span className="font-semibold text-muted-foreground font-mono">Q{p.question_index}</span>
-                      <span className="px-2 py-0.5 rounded-full font-medium text-[11px] bg-primary/15 text-primary">
+                    <div className="flex items-center gap-1.5 p-2 rounded-xl bg-card border border-card-border text-xs shadow-sm">
+                      <span className="font-semibold text-text-muted font-mono">Q{p.question_index}</span>
+                      <span className="px-2 py-0.5 rounded-full font-medium text-[11px] bg-mint text-primary border border-primary/20 font-mono">
                         {p.difficulty_label} ({p.difficulty_tier.toFixed(1)})
                       </span>
                       {p.change === 'UPGRADE' && (
-                        <span className="flex items-center text-emerald-400 font-semibold text-[10px] gap-0.5" title="Stepped up difficulty">
+                        <span className="flex items-center text-success font-semibold text-[10px] gap-0.5" title="Stepped up difficulty">
                           <ArrowUpRight className="h-3.5 w-3.5" />
                         </span>
                       )}
                       {p.change === 'DOWNGRADE' && (
-                        <span className="flex items-center text-amber-400 font-semibold text-[10px] gap-0.5" title="Stepped down difficulty">
+                        <span className="flex items-center text-accent font-semibold text-[10px] gap-0.5" title="Stepped down difficulty">
                           <ArrowDownRight className="h-3.5 w-3.5" />
                         </span>
                       )}
                       {p.change === 'UNCHANGED' && (
-                        <span className="text-muted-foreground/60 text-[10px]" title="Maintained difficulty">
+                        <span className="text-text-muted/60 text-[10px]" title="Maintained difficulty">
                           <Minus className="h-3 w-3" />
                         </span>
                       )}
                     </div>
                     {idx < (report.difficulty_progression?.length ?? 0) - 1 && (
-                      <ArrowRight className="h-3 w-3 text-muted-foreground/50 shrink-0" />
+                      <ArrowRight className="h-3 w-3 text-text-muted/40 shrink-0" />
                     )}
                   </React.Fragment>
                 ))}
@@ -302,14 +302,14 @@ export function ExecutiveScorecard({
 
           {/* Question Coverage & RAG Grounding Audit (§Q7) */}
           {report.question_coverage && report.question_coverage.length > 0 && (
-            <div className="p-5 rounded-2xl bg-muted/30 border border-border space-y-4" data-testid="question-coverage-section">
-              <div className="flex items-center gap-2 border-b border-border pb-3">
-                <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 text-primary">
+            <div className="p-5 rounded-2xl bg-bg-subtle border border-card-border space-y-4" data-testid="question-coverage-section">
+              <div className="flex items-center gap-2 border-b border-card-border pb-3">
+                <div className="p-1.5 rounded-lg bg-mint border border-primary/20 text-primary">
                   <Layers className="h-4 w-4" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-foreground">Question Coverage & Grounding Audit</h4>
-                  <p className="text-[11px] text-muted-foreground">
+                  <h4 className="text-sm font-display font-semibold text-text">Question Coverage & Grounding Audit</h4>
+                  <p className="text-[11px] text-text-muted">
                     Verifiable provenance: questions derived from candidate resume, role knowledge base, and adaptive follow-up probes
                   </p>
                 </div>
@@ -324,22 +324,22 @@ export function ExecutiveScorecard({
                   return (
                     <div
                       key={idx}
-                      className="p-3.5 rounded-xl bg-card border border-border/80 space-y-2.5 text-xs transition-all hover:border-border"
+                      className="p-3.5 rounded-xl bg-card border border-card-border space-y-2.5 text-xs transition-all hover:border-primary/40 shadow-sm"
                       data-testid={`question-coverage-item-${qc.question_index}`}
                     >
                       {/* Item Header */}
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-foreground">Q{qc.question_index}</span>
+                          <span className="font-mono font-bold text-text">Q{qc.question_index}</span>
                           <span
                             className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${
                               isResume
-                                ? 'bg-indigo-950/40 text-indigo-300 border-indigo-700/40'
+                                ? 'bg-sky text-[#2B5C8A] border-[#2B5C8A]/20'
                                 : isKB
-                                ? 'bg-blue-950/40 text-blue-300 border-blue-700/40'
+                                ? 'bg-sand text-[#B7791F] border-[#B7791F]/20'
                                 : isFollowUp
-                                ? 'bg-emerald-950/40 text-emerald-300 border-emerald-700/40'
-                                : 'bg-purple-950/40 text-purple-300 border-purple-700/40'
+                                ? 'bg-mint text-primary border-primary/20'
+                                : 'bg-bg-subtle text-text border-card-border'
                             }`}
                           >
                             {isResume ? (
@@ -354,17 +354,17 @@ export function ExecutiveScorecard({
                         </div>
 
                         <div className="flex items-center gap-1.5">
-                          <span className="px-2 py-0.5 rounded-md bg-muted/60 text-muted-foreground font-mono text-[11px]">
+                          <span className="px-2 py-0.5 rounded-md bg-bg-subtle text-text-muted font-mono text-[11px] border border-card-border">
                             {qc.difficulty_label} ({qc.difficulty_tier.toFixed(1)})
                           </span>
                           {qc.score !== undefined && qc.score !== null && (
                             <span
-                              className={`px-2 py-0.5 rounded-md font-mono text-[11px] font-semibold ${
+                              className={`px-2 py-0.5 rounded-md font-mono text-[11px] font-semibold border ${
                                 qc.score >= 8.0
-                                  ? 'bg-emerald-500/15 text-emerald-400'
+                                  ? 'bg-mint text-primary border-primary/20'
                                   : qc.score >= 5.0
-                                  ? 'bg-blue-500/15 text-blue-400'
-                                  : 'bg-amber-500/15 text-amber-400'
+                                  ? 'bg-sky text-[#2B5C8A] border-[#2B5C8A]/20'
+                                  : 'bg-peach text-accent border-accent/20'
                               }`}
                             >
                               {qc.score.toFixed(1)}/10
@@ -374,22 +374,22 @@ export function ExecutiveScorecard({
                       </div>
 
                       {/* Question Text */}
-                      <div className="text-foreground font-medium text-xs leading-relaxed">
+                      <div className="text-text font-serif font-medium text-xs leading-relaxed">
                         {qc.question}
                       </div>
 
                       {/* Candidate Answer Excerpt */}
                       {qc.candidate_answer && (
-                        <div className="p-2.5 rounded-lg bg-muted/40 border border-border/40 text-[11px] text-muted-foreground leading-relaxed">
-                          <span className="font-semibold text-foreground/80 block mb-0.5">Candidate Response:</span>
+                        <div className="p-2.5 rounded-lg bg-bg-subtle border border-card-border text-[11px] text-text-muted leading-relaxed">
+                          <span className="font-semibold text-text block mb-0.5">Candidate Response:</span>
                           "{qc.candidate_answer}"
                         </div>
                       )}
 
                       {/* Feedback */}
                       {qc.feedback && (
-                        <div className="text-[11px] text-muted-foreground italic">
-                          <span className="font-medium text-foreground/70 not-italic">Evaluation: </span>
+                        <div className="text-[11px] text-text-muted italic">
+                          <span className="font-medium text-text not-italic">Evaluation: </span>
                           {qc.feedback}
                         </div>
                       )}
@@ -401,17 +401,17 @@ export function ExecutiveScorecard({
           )}
 
           {/* Physical Camera Integrity & Biometric Verification (§7) */}
-          <div className="p-5 rounded-2xl bg-muted/30 border border-border space-y-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-border pb-3">
+          <div className="p-5 rounded-2xl bg-bg-subtle border border-card-border space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-card-border pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-indigo-950/60 border border-indigo-700/50 text-indigo-400">
+                <div className="p-2 rounded-xl bg-mint border border-primary/20 text-primary">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-foreground tracking-wide">
+                  <h4 className="text-sm font-display font-semibold text-text tracking-wide">
                     Physical Camera Integrity & Biometric Verification (§7)
                   </h4>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-[11px] text-text-muted">
                     Validated by client-side WebAssembly heuristics and server plausibility checks
                   </p>
                 </div>
@@ -423,52 +423,52 @@ export function ExecutiveScorecard({
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-              <div className="p-3 rounded-xl bg-card border border-border space-y-1">
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">
+              <div className="p-3 rounded-xl bg-card border border-card-border space-y-1">
+                <span className="text-[10px] text-text-muted uppercase tracking-wider block font-mono">
                   Integrity Score
                 </span>
-                <span className="text-lg font-bold font-mono text-emerald-400">
+                <span className="text-lg font-bold font-mono text-primary">
                   {report.integrity_summary?.integrity_score ?? 100}/100
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-card border border-border space-y-1">
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">
+              <div className="p-3 rounded-xl bg-card border border-card-border space-y-1">
+                <span className="text-[10px] text-text-muted uppercase tracking-wider block font-mono">
                   Face Present Rate
                 </span>
-                <span className="text-lg font-bold font-mono text-foreground">
+                <span className="text-lg font-bold font-mono text-text">
                   {report.integrity_summary?.face_present_percentage ?? 100}%
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-card border border-border space-y-1">
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">
+              <div className="p-3 rounded-xl bg-card border border-card-border space-y-1">
+                <span className="text-[10px] text-text-muted uppercase tracking-wider block font-mono">
                   Challenges Passed
                 </span>
-                <span className="text-lg font-bold font-mono text-indigo-300">
+                <span className="text-lg font-bold font-mono text-primary">
                   {report.integrity_summary?.challenges_passed ?? 1} /{' '}
                   {(report.integrity_summary?.challenges_passed ?? 1) +
                     (report.integrity_summary?.challenges_failed ?? 0)}
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-card border border-border space-y-1">
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">
+              <div className="p-3 rounded-xl bg-card border border-card-border space-y-1">
+                <span className="text-[10px] text-text-muted uppercase tracking-wider block font-mono">
                   Pause / Loss Incidents
                 </span>
-                <span className="text-lg font-bold font-mono text-muted-foreground">
+                <span className="text-lg font-bold font-mono text-text-muted">
                   {report.integrity_summary?.pauses_count ?? 0} incidents
                 </span>
               </div>
             </div>
 
-            <div className="text-[11px] text-muted-foreground bg-card/60 p-3.5 rounded-xl border border-border space-y-1">
-              <p className="text-indigo-400 font-medium">
+            <div className="text-[11px] text-text-muted bg-card p-3.5 rounded-xl border border-card-border space-y-1">
+              <p className="text-primary font-medium">
                 •{' '}
                 {report.integrity_summary?.non_verbal_excluded_note ||
                   'Non-verbal scores (eye contact, posture) are computed only from verified-live segments; segments with active integrity flags were excluded.'}
                 {' '}({report.integrity_summary?.excluded_segments_count ?? 0} flagged segments excluded).
               </p>
-              <p className="text-muted-foreground">
+              <p className="text-text-muted break-words">
                 • Active Camera Device:{' '}
-                <span className="font-mono text-foreground">
+                <span className="font-mono text-text break-all">
                   {report.integrity_summary?.camera_device_name || 'Physical Hardware Webcam Verified'}
                 </span>
               </p>
@@ -481,7 +481,7 @@ export function ExecutiveScorecard({
               onClick={onDownloadPdf}
               disabled={isDownloadingPdf}
               variant="outline"
-              className="w-full sm:w-auto border-indigo-700/60 bg-indigo-950/30 hover:bg-indigo-900/40 text-indigo-300 font-semibold text-xs px-5 h-10 gap-2 cursor-pointer rounded-full"
+              className="w-full sm:w-auto border-card-border bg-card hover:bg-bg-subtle text-text font-semibold text-xs px-5 h-10 gap-2 cursor-pointer rounded-full shadow-sm"
             >
               {isDownloadingPdf ? (
                 <>
@@ -490,7 +490,7 @@ export function ExecutiveScorecard({
                 </>
               ) : (
                 <>
-                  <Download className="h-4 w-4" />
+                  <Download className="h-4 w-4 text-primary" />
                   <span>Download PDF Report</span>
                 </>
               )}
@@ -498,7 +498,7 @@ export function ExecutiveScorecard({
 
             <Button
               onClick={onReturnHome}
-              className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs px-6 h-10 gap-2 cursor-pointer rounded-full"
+              className="w-full sm:w-auto bg-primary hover:bg-primary-hover text-primary-ink font-semibold text-xs px-6 h-10 gap-2 cursor-pointer rounded-full shadow-sm"
             >
               <span>Return to Dashboard</span>
               <ArrowRight className="h-4 w-4" />

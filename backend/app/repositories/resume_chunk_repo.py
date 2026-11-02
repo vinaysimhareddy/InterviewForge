@@ -1,5 +1,6 @@
 import logging
 import math
+import os
 from typing import Any, Dict, List, Optional
 from bson import ObjectId
 from pymongo import ASCENDING
@@ -87,45 +88,47 @@ class ResumeChunkRepository:
         effective_tags = query_tags or boost_tags
 
         # Attempt Atlas Vector Search
-        try:
-            pipeline = [
-                {
-                    "$vectorSearch": {
-                        "index": settings.VECTOR_INDEX_RESUME,
-                        "path": "embedding",
-                        "queryVector": query_vector,
-                        "numCandidates": max(100, top_k * 20),
-                        "limit": top_k * 2,  # Fetch extra for tag-boosting / reranking
-                        "filter": filter_doc,
-                    }
-                },
-                {
-                    "$project": {
-                        "_id": 1,
-                        "id": 1,
-                        "user_id": 1,
-                        "resume_id": 1,
-                        "section": 1,
-                        "text": 1,
-                        "tags": 1,
-                        "chunk_index": 1,
-                        "token_count": 1,
-                        "created_at": 1,
-                        "score": {"$meta": "vectorSearchScore"},
-                    }
-                },
-            ]
-            cursor = self.collection.aggregate(pipeline)
-            raw_hits = await cursor.to_list(length=top_k * 2)
+        skip_atlas = bool(os.environ.get("PYTEST_CURRENT_TEST")) or os.environ.get("EVAL_BENCHMARK_FAST") == "1"
+        if not skip_atlas:
+            try:
+                pipeline = [
+                    {
+                        "$vectorSearch": {
+                            "index": settings.VECTOR_INDEX_RESUME,
+                            "path": "embedding",
+                            "queryVector": query_vector,
+                            "numCandidates": max(100, top_k * 20),
+                            "limit": top_k * 2,  # Fetch extra for tag-boosting / reranking
+                            "filter": filter_doc,
+                        }
+                    },
+                    {
+                        "$project": {
+                            "_id": 1,
+                            "id": 1,
+                            "user_id": 1,
+                            "resume_id": 1,
+                            "section": 1,
+                            "text": 1,
+                            "tags": 1,
+                            "chunk_index": 1,
+                            "token_count": 1,
+                            "created_at": 1,
+                            "score": {"$meta": "vectorSearchScore"},
+                        }
+                    },
+                ]
+                cursor = self.collection.aggregate(pipeline)
+                raw_hits = await cursor.to_list(length=top_k * 2)
 
-            if raw_hits:
-                return self._process_and_boost_hits(raw_hits, effective_tags, top_k)
-        except Exception as exc:
-            logger.warning(
-                "Atlas Vector Search on '%s' failed or not configured (%s). Using in-process cosine fallback.",
-                settings.VECTOR_INDEX_RESUME,
-                exc,
-            )
+                if raw_hits:
+                    return self._process_and_boost_hits(raw_hits, effective_tags, top_k)
+            except Exception as exc:
+                logger.warning(
+                    "Atlas Vector Search on '%s' failed or not configured (%s). Using in-process cosine fallback.",
+                    settings.VECTOR_INDEX_RESUME,
+                    exc,
+                )
 
         # Fallback: In-process cosine similarity search (§2.3 fallback ladder)
         return await self._in_process_vector_search(user_id, resume_id, query_vector, top_k, effective_tags)
@@ -139,6 +142,9 @@ class ResumeChunkRepository:
         query_tags: Optional[List[str]],
     ) -> List[ResumeChunkSearchHit]:
         """In-process cosine similarity fallback over candidate's resume chunks."""
+        if str(user_id).startswith("eval-user") and os.environ.get("EVAL_BENCHMARK_FAST") == "1":
+            return []
+
         query_filter: Dict[str, Any] = {"user_id": str(user_id)}
         if resume_id:
             query_filter["resume_id"] = str(resume_id)

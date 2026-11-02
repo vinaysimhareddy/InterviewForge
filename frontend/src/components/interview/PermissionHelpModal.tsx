@@ -36,21 +36,23 @@ export function PermissionHelpModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-      <Card className="w-full max-w-lg border-slate-800 bg-slate-900 shadow-2xl flex flex-col max-h-[90vh]">
-        <CardHeader className="pb-3 border-b border-slate-800 flex flex-row items-center justify-between shrink-0">
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="h-5 w-5 text-indigo-400" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-deep-1/60 backdrop-blur-sm p-4 animate-in fade-in">
+      <Card className="w-full max-w-lg card-editorial shadow-2xl flex flex-col max-h-[90vh]">
+        <CardHeader className="pb-3 border-b border-card-border flex flex-row items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-lg bg-peach border border-accent/20 flex items-center justify-center text-accent">
+              <ShieldAlert className="h-4 w-4" />
+            </div>
             <div>
-              <CardTitle className="text-base text-white">How to Unblock Microphone & Camera</CardTitle>
-              <p className="text-[11px] text-slate-400">Step-by-step permission instructions by browser</p>
+              <CardTitle className="text-base text-text font-display font-bold">How to Unblock Microphone & Camera</CardTitle>
+              <p className="text-[11px] text-text-muted">Step-by-step permission instructions by browser</p>
             </div>
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="h-8 w-8 p-0 text-slate-400 hover:text-white"
+            className="h-8 w-8 p-0 text-text-muted hover:text-text"
             aria-label="Close permission help"
           >
             <X className="h-4 w-4" />
@@ -58,7 +60,7 @@ export function PermissionHelpModal({
         </CardHeader>
 
         {/* Browser Selector Tabs */}
-        <div className="flex border-b border-slate-800 bg-slate-950/60 px-4 pt-2 gap-1 text-xs shrink-0">
+        <div className="flex border-b border-card-border bg-bg-subtle px-4 pt-2 gap-1 text-xs shrink-0">
           {(
             [
               { id: 'chrome', label: 'Google Chrome' },
@@ -71,10 +73,10 @@ export function PermissionHelpModal({
               key={t.id}
               type="button"
               onClick={() => setActiveTab(t.id)}
-              className={`px-3 py-1.5 font-medium rounded-t-lg transition-colors border-b-2 text-[11px] ${
+              className={`px-3 py-1.5 font-medium rounded-t-lg transition-colors border-b-2 text-[11px] cursor-pointer ${
                 activeTab === t.id
-                  ? 'border-indigo-500 text-white bg-slate-900'
-                  : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
+                  ? 'border-primary text-primary font-bold bg-card'
+                  : 'border-transparent text-text-muted hover:text-text hover:bg-card/40'
               }`}
             >
               {t.label}
@@ -82,31 +84,31 @@ export function PermissionHelpModal({
           ))}
         </div>
 
-        <CardContent className="pt-4 space-y-4 text-xs text-slate-300 overflow-y-auto flex-1">
+        <CardContent className="pt-4 space-y-4 text-xs text-text overflow-y-auto flex-1">
           {activeTab === 'chrome' && (
             <div className="space-y-3.5">
-              <div className="p-2.5 rounded-lg bg-indigo-950/30 border border-indigo-900/50 space-y-1">
-                <span className="font-semibold text-indigo-300 flex items-center gap-1.5 text-xs">
+              <div className="p-3 rounded-xl bg-mint/40 border border-primary/20 space-y-1">
+                <span className="font-semibold text-primary flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider">
                   <Settings className="h-3.5 w-3.5" />
                   Address Bar Shortcut
                 </span>
-                <p className="text-slate-300 text-[11px] leading-relaxed">
+                <p className="text-text text-[11px] leading-relaxed">
                   Click the <strong>tune/lock icon</strong> to the immediate left of the URL in Chrome, then toggle <strong>Microphone</strong> to <strong>Allow</strong>.
                 </p>
               </div>
 
               <div className="space-y-1.5">
-                <h4 className="font-semibold text-white">Full Settings Path:</h4>
-                <ol className="list-decimal pl-5 space-y-1 text-slate-400 text-[11px] leading-relaxed">
+                <h4 className="font-semibold text-text font-display">Full Settings Path:</h4>
+                <ol className="list-decimal pl-5 space-y-1 text-text-muted text-[11px] leading-relaxed font-sans">
                   <li>Open Chrome <strong>Settings → Privacy and security → Site Settings</strong>.</li>
-                  <li>Click <strong>Microphone</strong> (or visit <code className="text-indigo-300 bg-slate-950 px-1 py-0.5 rounded">chrome://settings/content/microphone</code>).</li>
+                  <li>Click <strong>Microphone</strong> (or visit <code className="text-primary bg-bg-subtle border border-card-border px-1 py-0.5 rounded font-mono">chrome://settings/content/microphone</code>).</li>
                   <li>Ensure <strong>&quot;Sites can ask to use your microphone&quot;</strong> is selected and this site is not in the &quot;Not allowed&quot; list.</li>
                 </ol>
               </div>
 
-              <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 space-y-1">
-                <h5 className="font-semibold text-amber-300 text-[11px]">Windows / macOS System Permissions:</h5>
-                <p className="text-slate-400 text-[11px] leading-relaxed">
+              <div className="p-3 rounded-xl bg-bg-subtle border border-card-border space-y-1">
+                <h5 className="font-semibold text-warning text-[11px]">Windows / macOS System Permissions:</h5>
+                <p className="text-text-muted text-[11px] leading-relaxed">
                   If Chrome shows permission allowed but audio is still blocked: Open <strong>Windows Settings → Privacy &amp; security → Microphone</strong> and make sure <strong>&quot;Let desktop apps access your microphone&quot;</strong> is turned <strong>On</strong>.
                 </p>
               </div>
@@ -115,20 +117,20 @@ export function PermissionHelpModal({
 
           {activeTab === 'edge' && (
             <div className="space-y-3.5">
-              <div className="p-2.5 rounded-lg bg-indigo-950/30 border border-indigo-900/50 space-y-1">
-                <span className="font-semibold text-indigo-300 flex items-center gap-1.5 text-xs">
+              <div className="p-3 rounded-xl bg-mint/40 border border-primary/20 space-y-1">
+                <span className="font-semibold text-primary flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider">
                   <Settings className="h-3.5 w-3.5" />
                   Address Bar Shortcut
                 </span>
-                <p className="text-slate-300 text-[11px] leading-relaxed">
+                <p className="text-text text-[11px] leading-relaxed">
                   Click the <strong>Lock icon</strong> in the address bar, find <strong>Microphone</strong>, and switch it from <em>Block</em> to <strong>Allow</strong>.
                 </p>
               </div>
 
               <div className="space-y-1.5">
-                <h4 className="font-semibold text-white">Full Settings Path:</h4>
-                <ol className="list-decimal pl-5 space-y-1 text-slate-400 text-[11px] leading-relaxed">
-                  <li>Navigate to <code className="text-indigo-300 bg-slate-950 px-1 py-0.5 rounded">edge://settings/content/microphone</code>.</li>
+                <h4 className="font-semibold text-text font-display">Full Settings Path:</h4>
+                <ol className="list-decimal pl-5 space-y-1 text-text-muted text-[11px] leading-relaxed font-sans">
+                  <li>Navigate to <code className="text-primary bg-bg-subtle border border-card-border px-1 py-0.5 rounded font-mono">edge://settings/content/microphone</code>.</li>
                   <li>Verify <strong>&quot;Ask before accessing&quot;</strong> is enabled and remove any block entry for this address.</li>
                 </ol>
               </div>
@@ -137,19 +139,19 @@ export function PermissionHelpModal({
 
           {activeTab === 'firefox' && (
             <div className="space-y-3.5">
-              <div className="p-2.5 rounded-lg bg-indigo-950/30 border border-indigo-900/50 space-y-1">
-                <span className="font-semibold text-indigo-300 flex items-center gap-1.5 text-xs">
+              <div className="p-3 rounded-xl bg-mint/40 border border-primary/20 space-y-1">
+                <span className="font-semibold text-primary flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider">
                   <Settings className="h-3.5 w-3.5" />
                   Address Bar Shortcut
                 </span>
-                <p className="text-slate-300 text-[11px] leading-relaxed">
+                <p className="text-text text-[11px] leading-relaxed">
                   Click the <strong>Microphone icon</strong> next to the URL, clear the <strong>Blocked Temporarily</strong> flag, and click <strong>Allow</strong> when prompted.
                 </p>
               </div>
 
               <div className="space-y-1.5">
-                <h4 className="font-semibold text-white">Full Settings Path:</h4>
-                <ol className="list-decimal pl-5 space-y-1 text-slate-400 text-[11px] leading-relaxed">
+                <h4 className="font-semibold text-text font-display">Full Settings Path:</h4>
+                <ol className="list-decimal pl-5 space-y-1 text-text-muted text-[11px] leading-relaxed font-sans">
                   <li>Go to <strong>Settings → Privacy &amp; Security → Permissions → Microphone</strong>.</li>
                   <li>Click <strong>Settings…</strong> and ensure this website is set to <strong>Allow</strong>.</li>
                 </ol>
@@ -159,19 +161,19 @@ export function PermissionHelpModal({
 
           {activeTab === 'safari' && (
             <div className="space-y-3.5">
-              <div className="p-2.5 rounded-lg bg-indigo-950/30 border border-indigo-900/50 space-y-1">
-                <span className="font-semibold text-indigo-300 flex items-center gap-1.5 text-xs">
+              <div className="p-3 rounded-xl bg-mint/40 border border-primary/20 space-y-1">
+                <span className="font-semibold text-primary flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider">
                   <Settings className="h-3.5 w-3.5" />
                   Website Preferences
                 </span>
-                <p className="text-slate-300 text-[11px] leading-relaxed">
+                <p className="text-text text-[11px] leading-relaxed">
                   Select <strong>Safari → Settings for This Website…</strong> from the top menu, then set <strong>Microphone</strong> to <strong>Allow</strong>.
                 </p>
               </div>
 
               <div className="space-y-1.5">
-                <h4 className="font-semibold text-white">macOS System Privacy:</h4>
-                <ol className="list-decimal pl-5 space-y-1 text-slate-400 text-[11px] leading-relaxed">
+                <h4 className="font-semibold text-text font-display">macOS System Privacy:</h4>
+                <ol className="list-decimal pl-5 space-y-1 text-text-muted text-[11px] leading-relaxed font-sans">
                   <li>Open <strong>System Settings → Privacy &amp; Security → Microphone</strong>.</li>
                   <li>Check that <strong>Safari</strong> is enabled in the list.</li>
                 </ol>
@@ -179,21 +181,21 @@ export function PermissionHelpModal({
             </div>
           )}
 
-          <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
-            <span className="text-[11px] text-slate-500">Local processing: Audio is not stored</span>
+          <div className="pt-3 border-t border-card-border flex items-center justify-between">
+            <span className="text-[11px] text-text-faint font-mono">Local processing: Audio is not stored</span>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={onClose}
-                className="text-xs border-slate-700 text-slate-300 h-7"
+                className="text-xs border-card-border text-text hover:bg-bg-subtle h-8 px-3"
               >
                 Close
               </Button>
               <Button
                 size="sm"
                 onClick={handleRetry}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs h-7"
+                className="bg-primary hover:bg-primary-hover text-primary-ink text-xs h-8 px-3.5 font-medium"
               >
                 Try Again
               </Button>

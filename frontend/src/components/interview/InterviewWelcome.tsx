@@ -105,27 +105,27 @@ export function InterviewWelcome({
       </div>
 
       {/* Main Welcome Hero Card */}
-      <Card className="border-border bg-card shadow-xl overflow-hidden rounded-3xl">
+      <Card className="border-card-border bg-card shadow-soft overflow-hidden rounded-3xl">
         <div className="p-6 sm:p-8 space-y-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <div className="h-10 w-10 rounded-2xl bg-primary/15 border border-primary/30 flex items-center justify-center text-primary shadow-inner">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-2xl bg-mint border border-primary/20 flex items-center justify-center text-primary shadow-sm">
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
+                  <h1 className="text-2xl sm:text-3xl font-display font-medium text-text tracking-tight">
                     Welcome to Your Technical Interview
                   </h1>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    Prepared for <span className="font-semibold text-foreground">{seniority} {role}</span>
+                  <p className="text-xs sm:text-sm text-text-muted">
+                    Prepared for <span className="font-semibold text-text">{seniority} {role}</span>
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-2 self-start sm:self-auto">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-mint/50 border border-primary/20 text-xs font-mono font-medium text-primary">
                 <Clock className="h-3.5 w-3.5" />
                 <span>{durationMinutes} min session</span>
               </div>
@@ -134,36 +134,36 @@ export function InterviewWelcome({
 
           {/* Section 1: What to Expect */}
           <div className="space-y-3 pt-2">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-              What to Expect
+            <h2 className="text-xs font-mono font-semibold uppercase tracking-wider text-text-muted">
+              01 // WHAT TO EXPECT
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="p-4 rounded-2xl bg-muted/40 border border-border/70 space-y-1.5">
-                <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <div className="p-4 rounded-2xl bg-bg-subtle border border-card-border space-y-1.5">
+                <span className="text-xs font-semibold text-text flex items-center gap-1.5">
                   <Mic className="h-4 w-4 text-primary" />
                   Voice Conversation
                 </span>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-xs text-text-muted leading-relaxed">
                   Questions are delivered aloud by your {interviewerName}, and you respond by speaking naturally. No typing is required.
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-muted/40 border border-border/70 space-y-1.5">
-                <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <div className="p-4 rounded-2xl bg-bg-subtle border border-card-border space-y-1.5">
+                <span className="text-xs font-semibold text-text flex items-center gap-1.5">
                   <Compass className="h-4 w-4 text-primary" />
                   Adaptive Questions
                 </span>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-xs text-text-muted leading-relaxed">
                   The AI dynamically probes deeper based on specific concepts, tools, and technical decisions you highlight in your answers.
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-muted/40 border border-border/70 space-y-1.5">
-                <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <div className="p-4 rounded-2xl bg-bg-subtle border border-card-border space-y-1.5">
+                <span className="text-xs font-semibold text-text flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4 text-primary" />
                   Unbiased Assessment
                 </span>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-xs text-text-muted leading-relaxed">
                   No scores, grades, or critiques are revealed mid-interview. Your complete performance report is generated after completion.
                 </p>
               </div>
@@ -172,21 +172,21 @@ export function InterviewWelcome({
 
           {/* Section 2: Preparation Checklist */}
           <div className="space-y-3 pt-2">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-              Preparation Checklist
+            <h2 className="text-xs font-mono font-semibold uppercase tracking-wider text-text-muted">
+              02 // PREPARATION CHECKLIST
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {checklistItems.map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex items-start gap-3 p-3.5 rounded-2xl bg-muted/30 border border-border/50 hover:border-border transition-colors"
+                  className="flex items-start gap-3 p-3.5 rounded-2xl bg-bg-subtle border border-card-border hover:border-primary/30 transition-colors"
                 >
-                  <div className="p-2 rounded-xl bg-background border border-border shrink-0 mt-0.5">
+                  <div className="p-2 rounded-xl bg-card border border-card-border shrink-0 mt-0.5">
                     {item.icon}
                   </div>
                   <div className="space-y-0.5">
-                    <h3 className="text-xs font-semibold text-foreground">{item.title}</h3>
-                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    <h3 className="text-xs font-semibold text-text">{item.title}</h3>
+                    <p className="text-[11px] text-text-muted leading-relaxed">
                       {item.description}
                     </p>
                   </div>
@@ -196,23 +196,23 @@ export function InterviewWelcome({
           </div>
 
           {/* Section 3: Privacy Notice & Required Consent */}
-          <div className="p-5 rounded-2xl bg-primary/5 border border-primary/20 space-y-4">
+          <div className="p-5 rounded-2xl bg-bg-subtle border border-card-border space-y-4">
             <div className="flex items-start gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/30 text-primary shrink-0 mt-0.5">
+              <div className="p-2.5 rounded-xl bg-mint border border-primary/20 text-primary shrink-0 mt-0.5 shadow-sm">
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-xs sm:text-sm font-bold text-foreground">
+                <h3 className="text-xs sm:text-sm font-bold text-text">
                   Privacy & On-Device Processing
                 </h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-xs text-text-muted leading-relaxed">
                   Your camera and microphone are on during the interview. Camera monitoring and facial analysis run entirely on your device. Spoken answers are transcribed using your browser’s speech recognition service. Only numeric behavior signals and the transcribed text of your answers are saved. No raw audio or video recordings are stored on our servers.
                 </p>
               </div>
             </div>
 
             {/* Required Consent Checkbox */}
-            <div className="pt-2 border-t border-primary/15 flex items-start gap-3">
+            <div className="pt-2 border-t border-card-border flex items-start gap-3">
               <Checkbox
                 id="interview-consent"
                 checked={hasConsented}
@@ -221,7 +221,7 @@ export function InterviewWelcome({
               />
               <label
                 htmlFor="interview-consent"
-                className="text-xs text-foreground font-medium leading-relaxed cursor-pointer select-none"
+                className="text-xs text-text font-medium leading-relaxed cursor-pointer select-none"
               >
                 I understand that my camera and microphone will be active for local privacy-preserving assessment, and I consent to start this interview session.
               </label>
@@ -229,8 +229,8 @@ export function InterviewWelcome({
           </div>
 
           {/* Action Row */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-border">
-            <p className="text-[11px] text-muted-foreground text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-card-border">
+            <p className="text-[11px] text-text-muted text-center sm:text-left font-mono">
               Next step: Device verification and camera setup.
             </p>
 
@@ -238,14 +238,14 @@ export function InterviewWelcome({
               <Button
                 variant="outline"
                 onClick={onBack}
-                className="w-full sm:w-auto rounded-full text-xs h-10 px-5"
+                className="w-full sm:w-auto rounded-full text-xs h-10 px-5 border-card-border bg-card hover:bg-bg-subtle text-text"
               >
                 Cancel
               </Button>
               <Button
                 onClick={onContinue}
                 disabled={!hasConsented}
-                className="w-full sm:w-auto rounded-full text-xs font-semibold h-10 px-7 gap-2 shadow-lg shadow-primary/20 transition-all disabled:opacity-40"
+                className="w-full sm:w-auto rounded-full text-xs font-semibold h-10 px-7 gap-2 bg-primary hover:bg-primary-hover text-primary-ink shadow-sm transition-all disabled:opacity-40"
               >
                 <span>Continue to Device Check</span>
                 <ChevronRight className="h-3.5 w-3.5" />

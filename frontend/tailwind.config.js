@@ -8,49 +8,93 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+        /* Core editorial tokens */
+        bg: {
+          DEFAULT: "var(--bg)",
+          subtle: "var(--bg-subtle)",
         },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+        "bg-subtle": "var(--bg-subtle)",
+        card: {
+          DEFAULT: "var(--card)",
+          border: "var(--card-border)",
+          foreground: "var(--text)",
+        },
+        "card-border": "var(--card-border)",
+        "muted-surface": "var(--muted-surface)",
+        text: {
+          DEFAULT: "var(--text)",
+          muted: "var(--text-muted)",
+          faint: "var(--text-faint)",
         },
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "var(--primary)",
+          hover: "var(--primary-hover)",
+          ink: "var(--primary-ink)",
+          foreground: "var(--primary-ink)",
         },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+        deep: {
+          1: "var(--deep-1)",
+          2: "var(--deep-2)",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "var(--accent)",
+          dark: "var(--accent-dark)",
+          soft: "var(--accent-soft)",
+          foreground: "var(--accent)",
+        },
+        "accent-dark": "var(--accent-dark)",
+        mint: "var(--mint)",
+        peach: "var(--peach)",
+        sky: "var(--sky)",
+        sand: "var(--sand)",
+        success: "var(--success)",
+        warning: "var(--warning)",
+        danger: "var(--danger)",
+        info: "var(--info)",
+
+        /* shadcn/ui mappings */
+        background: "var(--bg)",
+        foreground: "var(--text)",
+        popover: {
+          DEFAULT: "var(--card)",
+          foreground: "var(--text)",
+        },
+        secondary: {
+          DEFAULT: "var(--bg-subtle)",
+          foreground: "var(--text)",
+        },
+        muted: {
+          DEFAULT: "var(--muted-surface)",
+          foreground: "var(--text-muted)",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "var(--danger)",
+          foreground: "var(--primary-ink)",
         },
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
+        border: "var(--card-border)",
+        input: "var(--card-border)",
+        ring: "var(--primary)",
+      },
+      fontFamily: {
+        display: ['"Newsreader"', 'Georgia', 'serif'],
+        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        'mono-label': ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
-        '2xl': '1rem',
-        '3xl': '1.5rem',
-        full: '9999px',
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        sm: "8px",
+        md: "12px",
+        lg: "16px",
+        xl: "20px",
+        "2xl": "24px",
+        full: "9999px",
+      },
+      boxShadow: {
+        card: "0 1px 2px rgba(20, 30, 25, 0.04), 0 8px 24px rgba(20, 30, 25, 0.05)",
+        soft: "0 2px 8px rgba(20, 30, 25, 0.04)",
+        elevated: "0 12px 32px rgba(20, 30, 25, 0.08)",
       },
     },
   },
   plugins: [],
-}
+};

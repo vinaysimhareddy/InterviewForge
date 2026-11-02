@@ -4,62 +4,121 @@
 
 @layer base {
   :root {
-    --background: 220 20% 98%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 238 84% 59%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 214 32% 91%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 214 32% 93%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 214 32% 91%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214 32% 88%;
-    --input: 214 32% 88%;
-    --ring: 238 84% 59%;
-    --radius: 1rem;
+    /* Surfaces */
+    --bg: #F4F1EA;
+    --bg-subtle: #EFEBE2;
+    --card: #FBFAF6;
+    --card-border: #E3DED2;
+    --muted-surface: #F1EEE6;
+
+    /* Text */
+    --text: #1C2420;
+    --text-muted: #5F6B64;
+    --text-faint: #8A948D;
+
+    /* Brand */
+    --primary: #0F4A3A;
+    --primary-hover: #0B3A2D;
+    --primary-ink: #F4F1EA;
+    --deep-1: #0A2E24;
+    --deep-2: #14503F;
+
+    /* Accent */
+    --accent: #C2410C;
+    --accent-dark: #A8360A;
+    --accent-soft: #F8E7DC;
+
+    /* Tints for icon tiles and badges */
+    --mint: #E3EFE8;
+    --peach: #F8E7DC;
+    --sky: #E4ECF5;
+    --sand: #F0E9D8;
+
+    /* Status */
+    --success: #1F7A55;
+    --warning: #B7791F;
+    --danger: #B42318;
+    --info: #2B5C8A;
+
+    /* Geometry */
+    --radius: 16px;
     color-scheme: light;
   }
 
   .dark {
-    --background: 224 71% 4%;
-    --foreground: 210 40% 98%;
-    --card: 224 71% 7%;
-    --card-foreground: 210 40% 98%;
-    --popover: 224 71% 7%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 238 84% 67%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 14%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 18%;
-    --input: 217 33% 18%;
-    --ring: 238 84% 67%;
-    --radius: 1rem;
+    --bg: #0A1713;
+    --bg-subtle: #0F211C;
+    --card: #122620;
+    --card-border: #1C3830;
+    --muted-surface: #152E27;
+
+    --text: #F4F1EA;
+    --text-muted: #A3B0A8;
+    --text-faint: #6E7D75;
+
+    --primary: #1F6B55;
+    --primary-hover: #29856A;
+    --primary-ink: #F4F1EA;
+    --deep-1: #071C16;
+    --deep-2: #0E2E25;
+
+    --accent: #EA580C;
+    --accent-dark: #FB923C;
+    --accent-soft: #2E1810;
+
+    --mint: #17382B;
+    --peach: #331E15;
+    --sky: #132B3E;
+    --sand: #2A261A;
+
+    --success: #27A070;
+    --warning: #D99229;
+    --danger: #D93829;
+    --info: #3D7EBA;
+
     color-scheme: dark;
   }
 
   * {
-    @apply border-border;
+    border-color: var(--card-border);
   }
 
   body {
-    @apply bg-background text-foreground transition-colors duration-200;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    background-color: var(--bg);
+    color: var(--text);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    transition: background-color 200ms ease, color 200ms ease;
   }
+}
+
+/* Background Patterns & Hero Treatments */
+.bg-deep-band {
+  background: radial-gradient(circle at 50% 0%, rgba(20, 80, 63, 0.45), transparent 75%),
+              linear-gradient(135deg, var(--deep-1) 0%, var(--deep-2) 100%);
+}
+
+.bg-hero-wash {
+  background: radial-gradient(circle at 50% 15%, rgba(15, 74, 58, 0.05), transparent 65%),
+              var(--bg);
+}
+
+/* Monospace section label (e.g. 01 // WHY IT WORKS) */
+.label-mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-weight: 600;
+}
+
+/* Editorial Card */
+.card-editorial {
+  background-color: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(20, 30, 25, 0.04), 0 8px 24px rgba(20, 30, 25, 0.05);
 }
 
 /* Animations for AI Interviewer Stage */

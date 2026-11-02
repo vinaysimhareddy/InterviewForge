@@ -112,29 +112,31 @@ export function CandidateAnswerTranscript({
 
   return (
     <div
-      className={`w-full max-w-2xl mx-auto rounded-2xl border transition-all duration-300 backdrop-blur-md bg-card/90 shadow-lg flex flex-col overflow-hidden ${
+      role="region"
+      aria-label="Live candidate answer transcript"
+      className={`w-full max-w-2xl mx-auto rounded-2xl border transition-all duration-300 backdrop-blur-md bg-[#0A2E24]/65 text-[#FBFAF6] shadow-xl flex flex-col overflow-hidden ${
         isCandidateSpeaking
-          ? 'border-emerald-500/60 shadow-[0_0_20px_rgba(16,185,129,0.18)]'
+          ? 'border-mint/50 shadow-[0_0_25px_rgba(227,239,232,0.15)]'
           : isListening
-          ? 'border-primary/40 shadow-[0_0_15px_rgba(59,130,246,0.10)]'
-          : 'border-border/70'
+          ? 'border-mint/30 shadow-[0_0_15px_rgba(15,74,58,0.25)]'
+          : 'border-[#E3DED2]/15'
       } ${className}`}
       data-testid="candidate-live-transcript"
     >
       {/* Top Header Bar: Status Indicator, Waveform, Word Counter */}
-      <div className="px-4 py-2.5 bg-muted/30 border-b border-border/60 flex items-center justify-between text-xs select-none">
+      <div className="px-4 py-2.5 bg-[#0A2E24]/50 border-b border-[#E3DED2]/10 flex items-center justify-between text-xs select-none">
         {/* Left: State Badge + Live Audio Equalizer */}
         <div className="flex items-center gap-2.5">
           {sttError || !isSpeechSupported ? (
-            <div className="flex items-center gap-1.5 text-amber-500 font-medium">
-              <AlertTriangle className="h-3.5 w-3.5" />
+            <div className="flex items-center gap-1.5 text-accent-soft font-medium">
+              <AlertTriangle className="h-3.5 w-3.5 text-accent" />
               <span>Voice capture unavailable</span>
             </div>
           ) : isCandidateSpeaking ? (
-            <div className="flex items-center gap-2 text-emerald-500 font-medium">
+            <div className="flex items-center gap-2 text-mint font-medium">
               <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-mint opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-mint" />
               </span>
               <span>Speaking</span>
               {/* Dynamic waveform equalizer */}
@@ -146,10 +148,10 @@ export function CandidateAnswerTranscript({
                       key={idx}
                       className={`w-1 rounded-full transition-all duration-75 ${
                         isActive
-                          ? 'bg-emerald-400 h-3 animate-pulse'
+                          ? 'bg-mint h-3 animate-pulse'
                           : audioLevel >= threshold * 0.5
-                          ? 'bg-emerald-500/60 h-2'
-                          : 'bg-muted-foreground/30 h-1'
+                          ? 'bg-mint/60 h-2'
+                          : 'bg-[#E3DED2]/25 h-1'
                       }`}
                     />
                   );
@@ -157,21 +159,21 @@ export function CandidateAnswerTranscript({
               </div>
             </div>
           ) : isListening ? (
-            <div className="flex items-center gap-2 text-primary font-medium">
+            <div className="flex items-center gap-2 text-mint/90 font-medium">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-60" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-mint opacity-60" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-mint" />
               </span>
-              <Mic className="h-3.5 w-3.5 text-primary" />
+              <Mic className="h-3.5 w-3.5 text-mint" />
               <span>Listening for answer...</span>
             </div>
           ) : isAiSpeaking ? (
-            <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
+            <div className="flex items-center gap-1.5 text-[#E3DED2]/70 font-medium">
               <Volume2 className="h-3.5 w-3.5" />
               <span>Interviewer speaking...</span>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
+            <div className="flex items-center gap-1.5 text-[#E3DED2]/60 font-medium">
               <MicOff className="h-3.5 w-3.5" />
               <span>Microphone idle</span>
             </div>
@@ -184,8 +186,8 @@ export function CandidateAnswerTranscript({
             <span
               className={`px-2 py-0.5 rounded-full font-mono text-[11px] ${
                 wordCount >= 5
-                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-medium'
-                  : 'bg-muted/60 text-muted-foreground'
+                  ? 'bg-mint/15 text-mint border border-mint/30 font-medium'
+                  : 'bg-white/10 text-[#E3DED2]/80'
               }`}
             >
               {wordCount} {wordCount === 1 ? 'word' : 'words'}
@@ -203,7 +205,7 @@ export function CandidateAnswerTranscript({
                   handleEnterManualMode();
                 }
               }}
-              className="h-6 px-2 text-[11px] font-medium text-muted-foreground hover:text-foreground gap-1"
+              className="h-6 px-2 text-[11px] font-medium text-[#E3DED2]/80 hover:text-white hover:bg-white/10 gap-1 rounded-md"
               title={isManualEditMode ? 'Switch to live speech' : 'Type or edit answer manually'}
             >
               <Edit3 className="h-3 w-3" />
@@ -215,10 +217,10 @@ export function CandidateAnswerTranscript({
 
       {/* Actionable Error Alert Box (from M3) if SpeechRecognition fails or is unsupported */}
       {(sttError || !isSpeechSupported) && (
-        <div className="p-3 mx-4 mt-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs space-y-1.5 animate-in fade-in">
+        <div className="p-3 mx-4 mt-3 rounded-xl bg-peach/20 border border-accent/30 text-accent-soft text-xs space-y-1.5 animate-in fade-in">
           <div className="flex items-center justify-between font-semibold">
-            <span className="flex items-center gap-1.5">
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <span className="flex items-center gap-1.5 text-accent-soft">
+              <AlertTriangle className="h-4 w-4 text-accent" />
               {sttError ? sttError.title : 'Speech Recognition Not Available in This Browser'}
             </span>
             {onRetryMic && (
@@ -226,18 +228,18 @@ export function CandidateAnswerTranscript({
                 variant="outline"
                 size="sm"
                 onClick={onRetryMic}
-                className="h-6 text-[11px] px-2 border-amber-500/40 text-amber-700 dark:text-amber-300 hover:bg-amber-500/15"
+                className="h-6 text-[11px] px-2 border-accent/40 text-accent-soft hover:bg-accent/20"
               >
                 Try Again
               </Button>
             )}
           </div>
-          <p className="text-[11px] leading-relaxed">
+          <p className="text-[11px] text-[#E3DED2]/90 leading-relaxed">
             {sttError
               ? sttError.explanation
               : 'Web Speech API is not supported in this browser. Please use Google Chrome or type your answer below.'}
           </p>
-          <div className="text-[11px] text-amber-700/90 dark:text-amber-300/90 font-medium">
+          <div className="text-[11px] text-accent-soft font-medium">
             Recovery: {sttError ? sttError.recoveryStep : 'Type your answer below and click Submit Answer.'}
           </div>
         </div>
@@ -252,10 +254,10 @@ export function CandidateAnswerTranscript({
               onChange={handleManualTextChange}
               placeholder="Type your response here if microphone recognition is unavailable..."
               rows={4}
-              className="w-full resize-none rounded-xl bg-muted/30 border border-border/80 p-3 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-primary/40 text-foreground placeholder:text-muted-foreground/60 transition-all"
+              className="w-full resize-none rounded-xl bg-[#0A2E24]/50 border border-[#E3DED2]/20 p-3 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-primary text-[#FBFAF6] placeholder:text-[#E3DED2]/40 transition-all"
               data-testid="manual-answer-input"
             />
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
+            <div className="flex items-center justify-between text-[11px] text-[#E3DED2]/70 px-1 font-mono">
               <span>{manualText.length} characters</span>
               <span>Press Submit Answer when ready</span>
             </div>
@@ -263,6 +265,8 @@ export function CandidateAnswerTranscript({
         ) : (
           <div
             ref={scrollRef}
+            aria-live="polite"
+            aria-atomic="false"
             className="max-h-40 min-h-[5.5rem] overflow-y-auto pr-1 text-sm font-sans leading-relaxed scroll-smooth flex flex-col justify-start"
             data-testid="live-transcript-container"
           >
@@ -270,22 +274,22 @@ export function CandidateAnswerTranscript({
               <div className="space-y-1">
                 {/* Finalized speech text in solid foreground */}
                 {transcript && (
-                  <span className="text-foreground font-normal transition-colors duration-150">
+                  <span className="text-[#FBFAF6] font-normal transition-colors duration-150">
                     {transcript}{' '}
                   </span>
                 )}
-                {/* Real-time streaming interim speech in italic gray */}
+                {/* Real-time streaming interim speech in italic */}
                 {interimTranscript && (
-                  <span className="text-muted-foreground italic font-normal animate-pulse">
+                  <span className="text-muted-foreground italic font-normal animate-pulse text-mint/80">
                     {interimTranscript}
                   </span>
                 )}
               </div>
             ) : (
-              <div className="h-full flex items-center justify-center text-center text-xs text-muted-foreground/70 py-4 italic select-none">
+              <div className="h-full flex items-center justify-center text-center text-xs text-[#E3DED2]/60 py-4 italic select-none">
                 {isListening ? (
-                  <span className="flex items-center gap-1.5 animate-pulse">
-                    <Mic className="h-3.5 w-3.5 text-primary/70" />
+                  <span className="flex items-center gap-1.5 animate-pulse text-mint/80">
+                    <Mic className="h-3.5 w-3.5 text-mint" />
                     Speak clearly into your microphone. Your answer will transcribe here in real time...
                   </span>
                 ) : isAiSpeaking ? (
@@ -304,16 +308,16 @@ export function CandidateAnswerTranscript({
       {/* Silence Progress Bar Countdown (visible when silence is detected post-speech) */}
       {silenceProgress > 0 && !isSubmitting && (
         <div className="px-4 pb-2 animate-in fade-in">
-          <div className="flex items-center justify-between text-[11px] text-amber-500 font-medium mb-1">
+          <div className="flex items-center justify-between text-[11px] text-accent-soft font-mono mb-1">
             <span className="flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-ping" />
+              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-ping" />
               Pause detected • Auto-submitting in {silenceSecRemaining}s
             </span>
-            <span>Click Submit now to advance</span>
+            <span className="text-[#E3DED2]/60">Click Submit now to advance</span>
           </div>
-          <div className="w-full h-1.5 rounded-full bg-muted/60 overflow-hidden">
+          <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
             <div
-              className="h-full bg-amber-500 transition-all duration-100 ease-linear rounded-full"
+              className="h-full bg-accent transition-all duration-100 ease-linear rounded-full"
               style={{ width: `${Math.min(100, Math.round(silenceProgress * 100))}%` }}
             />
           </div>
@@ -321,15 +325,17 @@ export function CandidateAnswerTranscript({
       )}
 
       {/* Bottom Controls Bar: Clear/Retry & Done Speaking/Submit Button */}
-      <div className="px-4 py-2.5 bg-muted/20 border-t border-border/60 flex items-center justify-between gap-3 select-none">
+      <div className="px-4 py-2.5 bg-[#0A2E24]/50 border-t border-[#E3DED2]/10 flex items-center justify-between gap-3 select-none">
         {/* Left: Clear and retry button */}
         <Button
           variant="ghost"
           size="sm"
           onClick={handleClear}
           disabled={activeText.length === 0 || isSubmitting}
-          className="h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground gap-1.5 rounded-lg"
+          className="h-8 px-2.5 text-xs text-[#E3DED2]/70 hover:text-white hover:bg-white/10 gap-1.5 rounded-lg disabled:opacity-30"
           title="Clear current transcript and start answering this question fresh"
+          aria-label="Clear answer transcript and retry"
+          data-testid="clear-transcript-button"
         >
           <RotateCcw className="h-3.5 w-3.5" />
           <span>Clear & Retry</span>
@@ -340,10 +346,11 @@ export function CandidateAnswerTranscript({
           onClick={handleSubmit}
           disabled={wordCount < 1 || isSubmitting}
           size="sm"
+          aria-label="Submit recorded answer now"
           className={`h-8 px-4 text-xs font-semibold rounded-lg gap-1.5 transition-all shadow-sm ${
             wordCount >= 5
-              ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/20'
-              : 'bg-muted text-muted-foreground border border-border/80'
+              ? 'bg-primary text-primary-ink hover:bg-primary-hover border border-mint/20 shadow-lg'
+              : 'bg-white/10 text-[#E3DED2]/60 border border-[#E3DED2]/10'
           }`}
           title={
             wordCount < 5
@@ -354,12 +361,12 @@ export function CandidateAnswerTranscript({
         >
           {isSubmitting ? (
             <>
-              <Sparkles className="h-3.5 w-3.5 animate-spin" />
+              <Sparkles className="h-3.5 w-3.5 animate-spin text-mint" />
               <span>Submitting...</span>
             </>
           ) : (
             <>
-              <CheckCircle2 className="h-3.5 w-3.5" />
+              <CheckCircle2 className="h-3.5 w-3.5 text-mint" />
               <span>Submit Answer</span>
               <ArrowRight className="h-3.5 w-3.5 ml-0.5 opacity-70" />
             </>

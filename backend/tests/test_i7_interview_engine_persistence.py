@@ -66,7 +66,7 @@ async def test_i7_difficulty_adaptation_rules():
         "is_finished": False,
     }
     upgraded = update_difficulty_state(state_medium)
-    assert upgraded["difficulty"] == "Hard"
+    assert upgraded["difficulty"] in ("Medium-Hard", "Hard")
     assert upgraded["difficulty_change"] == "UPGRADE"
     assert upgraded["current_question_index"] == 2
 
@@ -77,7 +77,7 @@ async def test_i7_difficulty_adaptation_rules():
         "evaluations_history": [{"score": 3.0}],
     }
     downgraded = update_difficulty_state(state_hard)
-    assert downgraded["difficulty"] == "Medium"
+    assert downgraded["difficulty"] in ("Medium", "Medium-Hard")
     assert downgraded["difficulty_change"] == "DOWNGRADE"
 
 

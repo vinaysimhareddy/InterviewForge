@@ -71,19 +71,19 @@ export function InterviewReady({
       </div>
 
       {/* Main Ready Card */}
-      <Card className="border-border bg-card shadow-2xl rounded-3xl overflow-hidden text-center">
+      <Card className="card-editorial shadow-xl rounded-3xl overflow-hidden text-center">
         <div className="p-8 sm:p-10 space-y-6">
           {/* Animated Avatar / Glow */}
           <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/30 to-indigo-500/20 blur-xl animate-pulse" />
-            <div className="relative h-20 w-20 rounded-full bg-gradient-to-tr from-primary to-indigo-600 flex items-center justify-center text-white shadow-xl shadow-primary/30">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/30 to-mint blur-xl animate-pulse" />
+            <div className="relative h-20 w-20 rounded-full bg-primary flex items-center justify-center text-primary-ink shadow-xl shadow-primary/30">
               <Sparkles className="h-9 w-9" />
             </div>
           </div>
 
           {/* Heading */}
           <div className="space-y-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold font-display text-foreground tracking-tight">
               Ready to Begin
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
@@ -93,8 +93,8 @@ export function InterviewReady({
 
           {/* Interview Details Summary Box */}
           <div className="grid grid-cols-2 gap-3 max-w-md mx-auto text-left">
-            <div className="p-3.5 rounded-2xl bg-muted/40 border border-border space-y-1">
-              <span className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider block">
+            <div className="p-3.5 rounded-2xl bg-muted-surface border border-border space-y-1">
+              <span className="text-[10px] text-muted-foreground uppercase font-semibold font-mono tracking-wider block">
                 Target Role
               </span>
               <p className="text-xs sm:text-sm font-bold text-foreground truncate">
@@ -102,8 +102,8 @@ export function InterviewReady({
               </p>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-muted/40 border border-border space-y-1">
-              <span className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wider block">
+            <div className="p-3.5 rounded-2xl bg-muted-surface border border-border space-y-1">
+              <span className="text-[10px] text-muted-foreground uppercase font-semibold font-mono tracking-wider block">
                 Duration
               </span>
               <p className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-1.5 font-mono">
@@ -114,17 +114,17 @@ export function InterviewReady({
           </div>
 
           {/* Key Quick Reminders */}
-          <div className="space-y-2.5 max-w-md mx-auto text-xs text-muted-foreground text-left py-2">
+          <div className="space-y-2.5 max-w-md mx-auto text-xs text-muted-foreground text-left py-2 font-sans">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+              <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
               <span>Questions are read aloud and shown as text captions.</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+              <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
               <span>Answer naturally by speaking. There is no typing flow.</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+              <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
               <span>A 3-second natural silence ends your answer turn.</span>
             </div>
           </div>
@@ -135,7 +135,7 @@ export function InterviewReady({
               size="lg"
               onClick={handleStartClick}
               disabled={isUnlocking}
-              className="w-full h-14 rounded-full text-base font-bold gap-3 shadow-xl shadow-primary/25 hover:shadow-primary/40 active:scale-[0.98] transition-all cursor-pointer"
+              className="w-full h-14 rounded-full text-base font-bold bg-primary hover:bg-primary-hover text-primary-ink gap-3 shadow-xl shadow-primary/25 hover:shadow-primary/40 active:scale-[0.98] transition-all cursor-pointer"
             >
               <Play className="h-5 w-5 fill-current" />
               <span>Start Interview</span>

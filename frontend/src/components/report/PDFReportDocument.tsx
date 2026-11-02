@@ -15,23 +15,23 @@ export interface PDFReportDocumentProps {
 const styles = StyleSheet.create({
   page: {
     padding: 36,
-    backgroundColor: '#0f172a', // slate-900
-    color: '#f8fafc', // slate-50
+    backgroundColor: '#F4F1EA', // warm cream page background
+    color: '#1C2420', // near-black with green undertone
     fontFamily: 'Helvetica',
     fontSize: 10,
     lineHeight: 1.4,
   },
   header: {
-    borderBottomWidth: 1.5,
-    borderBottomColor: '#334155',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E3DED2',
     borderBottomStyle: 'solid',
     paddingBottom: 16,
     marginBottom: 16,
   },
   platformTitle: {
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: 'bold',
-    color: '#818cf8', // indigo-400
+    color: '#0F4A3A', // deep forest green
     letterSpacing: 1.5,
     textTransform: 'uppercase',
     marginBottom: 4,
@@ -39,14 +39,15 @@ const styles = StyleSheet.create({
   documentTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: '#1C2420',
+    fontFamily: 'Times-Roman',
     marginBottom: 6,
   },
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     fontSize: 8.5,
-    color: '#94a3b8',
+    color: '#5F6B64',
     marginTop: 4,
   },
   // Scorecard Overview Card
@@ -57,16 +58,16 @@ const styles = StyleSheet.create({
   },
   scoreCard: {
     flex: 1,
-    backgroundColor: '#1e293b', // slate-800
-    borderRadius: 6,
+    backgroundColor: '#FBFAF6', // off-white card
+    borderRadius: 8,
     padding: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E3DED2',
   },
   scoreLabel: {
     fontSize: 8,
-    color: '#94a3b8',
+    color: '#5F6B64',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 4,
@@ -74,27 +75,31 @@ const styles = StyleSheet.create({
   scoreValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: '#0F4A3A',
+    fontFamily: 'Times-Roman',
   },
   scoreValueMax: {
     fontSize: 10,
-    color: '#64748b',
+    color: '#8A948D',
+    fontFamily: 'Helvetica',
   },
   recommendationBadge: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
-    color: '#34d399', // emerald-400
+    color: '#0F4A3A',
+    fontFamily: 'Times-Roman',
     marginTop: 4,
   },
   // Competency Breakdown Grid
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
-    color: '#e2e8f0',
+    color: '#1C2420',
     marginBottom: 8,
     borderLeftWidth: 3,
-    borderLeftColor: '#6366f1',
+    borderLeftColor: '#0F4A3A',
     paddingLeft: 6,
+    fontFamily: 'Times-Roman',
   },
   breakdownRow: {
     flexDirection: 'row',
@@ -103,30 +108,30 @@ const styles = StyleSheet.create({
   },
   breakdownCard: {
     flex: 1,
-    backgroundColor: '#1e293b',
-    borderRadius: 4,
+    backgroundColor: '#FBFAF6',
+    borderRadius: 6,
     padding: 8,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E3DED2',
   },
   breakdownLabel: {
     fontSize: 8,
-    color: '#94a3b8',
+    color: '#5F6B64',
     marginBottom: 2,
   },
   breakdownScore: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#c7d2fe',
+    color: '#0F4A3A',
   },
   // Text Boxes (Summary, Strengths, Growth)
   textBox: {
-    backgroundColor: '#1e293b',
-    borderRadius: 6,
+    backgroundColor: '#FBFAF6',
+    borderRadius: 8,
     padding: 10,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E3DED2',
   },
   bulletItem: {
     flexDirection: 'row',
@@ -135,19 +140,19 @@ const styles = StyleSheet.create({
   bulletDot: {
     width: 12,
     fontSize: 10,
-    color: '#818cf8',
+    color: '#0F4A3A',
   },
   bulletText: {
     flex: 1,
     fontSize: 9,
-    color: '#cbd5e1',
+    color: '#1C2420',
   },
   // Integrity Section
   integrityContainer: {
     marginTop: 12,
     paddingTop: 12,
-    borderTopWidth: 1.5,
-    borderTopColor: '#334155',
+    borderTopWidth: 1,
+    borderTopColor: '#E3DED2',
     borderTopStyle: 'solid',
   },
   integrityHeaderRow: {
@@ -157,30 +162,30 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   verdictBadgeVerified: {
-    backgroundColor: '#064e3b',
-    color: '#34d399',
+    backgroundColor: '#E3EFE8', // mint
+    color: '#0F4A3A',
     paddingVertical: 3,
     paddingHorizontal: 8,
     borderRadius: 4,
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: 'bold',
   },
   verdictBadgeWarning: {
-    backgroundColor: '#78350f',
-    color: '#fbbf24',
+    backgroundColor: '#F8E7DC', // peach
+    color: '#C2410C',
     paddingVertical: 3,
     paddingHorizontal: 8,
     borderRadius: 4,
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: 'bold',
   },
   verdictBadgeFailed: {
-    backgroundColor: '#881337',
-    color: '#f43f5e',
+    backgroundColor: '#FDE8E8',
+    color: '#B42318',
     paddingVertical: 3,
     paddingHorizontal: 8,
     borderRadius: 4,
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: 'bold',
   },
   integrityGrid: {
@@ -191,21 +196,21 @@ const styles = StyleSheet.create({
   },
   integrityMetricItem: {
     width: '48%',
-    backgroundColor: '#1e293b',
-    borderRadius: 4,
+    backgroundColor: '#FBFAF6',
+    borderRadius: 6,
     padding: 8,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E3DED2',
   },
   integrityMetricLabel: {
     fontSize: 7.5,
-    color: '#94a3b8',
+    color: '#5F6B64',
     textTransform: 'uppercase',
   },
   integrityMetricValue: {
     fontSize: 11,
     fontWeight: 'bold',
-    color: '#f8fafc',
+    color: '#0F4A3A',
     marginTop: 2,
   },
   // Timeline Table
@@ -213,26 +218,27 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#334155',
-    borderRadius: 4,
+    borderColor: '#E3DED2',
+    borderRadius: 6,
+    overflow: 'hidden',
   },
   timelineHeader: {
     flexDirection: 'row',
-    backgroundColor: '#334155',
+    backgroundColor: '#EFEBE2',
     paddingVertical: 4,
     paddingHorizontal: 6,
     fontSize: 7.5,
     fontWeight: 'bold',
-    color: '#e2e8f0',
+    color: '#1C2420',
   },
   timelineRow: {
     flexDirection: 'row',
     paddingVertical: 4,
     paddingHorizontal: 6,
     borderTopWidth: 1,
-    borderTopColor: '#334155',
+    borderTopColor: '#E3DED2',
     fontSize: 7.5,
-    color: '#cbd5e1',
+    color: '#1C2420',
   },
   colTime: { width: '20%' },
   colFlag: { width: '45%' },
@@ -241,16 +247,16 @@ const styles = StyleSheet.create({
   // Disclaimer & Exclusion Note
   exclusionNote: {
     fontSize: 7.5,
-    color: '#a5b4fc', // indigo-300
+    color: '#5F6B64',
     marginBottom: 6,
     fontStyle: 'italic',
   },
   disclaimerText: {
     fontSize: 7,
-    color: '#64748b',
+    color: '#8A948D',
     marginTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#1e293b',
+    borderTopColor: '#E3DED2',
     paddingTop: 6,
     textAlign: 'center',
   },

@@ -22,10 +22,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }): Reac
         return stored;
       }
     }
-    return 'dark'; // Default dark
+    return 'light'; // Default editorial light theme
   });
 
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('dark');
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('light');
 
   useEffect(() => {
     const root = document.documentElement;

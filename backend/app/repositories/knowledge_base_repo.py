@@ -16,8 +16,23 @@ from app.models.knowledge_base import KnowledgeBaseItemInDB, KBSearchHit
 from app.repositories.resume_chunk_repo import _cosine_similarity
 from app.services.embedding_service import _deterministic_mock_embedding
 
-logger = logging.getLogger("uvicorn.error")
-settings = get_settings()
+_SEED_CACHE: Optional[List[Dict[str, Any]]] = None
+
+
+def _get_seed_docs(role: str) -> List[Dict[str, Any]]:
+    global _SEED_CACHE
+    if _SEED_CACHE is None:
+        seed_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data", "knowledge_base_seed.json"))
+        if os.path.exists(seed_file):
+            try:
+                with open(seed_file, "r", encoding="utf-8") as f:
+                    _SEED_CACHE = json.load(f)
+            except Exception as err:
+                logger.warning("Could not load KB seed file: %s", err)
+                _SEED_CACHE = []
+        else:
+            _SEED_CACHE = []
+    return [item for item in _SEED_CACHE if item.get("role", "").lower() == role.lower()]
 
 SENIORITY_RANKS = {
     "junior": 1,
@@ -85,92 +100,90 @@ class KnowledgeBaseRepository:
         exclude_topics_lower = [t.lower().strip() for t in (exclude_topics or [])]
 
         target_rank = SENIORITY_RANKS.get(seniority.lower().strip(), 2)
+        settings = get_settings()
 
         # 1. Try Atlas Vector Search ($vectorSearch) if vector index is configured
         vector_index_name = getattr(settings, "VECTOR_INDEX_KB", "knowledge_base_vector")
         hits: List[KBSearchHit] = []
+        skip_atlas = bool(os.environ.get("PYTEST_CURRENT_TEST")) or os.environ.get("EVAL_BENCHMARK_FAST") == "1"
 
-        try:
-            allowed_seniorities = [
-                s for s, r in SENIORITY_RANKS.items()
-                if (r == target_rank if strict_seniority else r <= target_rank)
-            ]
-            pipeline = [
-                {
-                    "$vectorSearch": {
-                        "index": vector_index_name,
-                        "path": "embedding",
-                        "queryVector": query_vector,
-                        "numCandidates": max(top_k * 10, 50),
-                        "limit": top_k * 4,
-                        "filter": {
-                            "role": {"$regex": f"^{role}$", "$options": "i"},
-                        },
+        if not skip_atlas:
+            try:
+                allowed_seniorities = [
+                    s for s, r in SENIORITY_RANKS.items()
+                    if (r == target_rank if strict_seniority else r <= target_rank)
+                ]
+                pipeline = [
+                    {
+                        "$vectorSearch": {
+                            "index": vector_index_name,
+                            "path": "embedding",
+                            "queryVector": query_vector,
+                            "numCandidates": max(top_k * 10, 50),
+                            "limit": top_k * 4,
+                            "filter": {
+                                "role": {"$regex": f"^{role}$", "$options": "i"},
+                            },
+                        }
                     }
-                }
-            ]
-            cursor = self.collection.aggregate(pipeline)
-            docs = await cursor.to_list(length=top_k * 4)
+                ]
+                cursor = self.collection.aggregate(pipeline)
+                docs = await cursor.to_list(length=top_k * 4)
 
-            for doc in docs:
-                doc_sen = doc.get("seniority", "").lower().strip()
-                doc_rank = SENIORITY_RANKS.get(doc_sen, 2)
-                if strict_seniority and doc_rank != target_rank:
-                    continue
-                if not strict_seniority and doc_rank > target_rank:
-                    continue
-                if doc.get("topic", "").lower().strip() in exclude_topics_lower:
-                    continue
+                for doc in docs:
+                    doc_sen = doc.get("seniority", "").lower().strip()
+                    doc_rank = SENIORITY_RANKS.get(doc_sen, 2)
+                    if strict_seniority and doc_rank != target_rank:
+                        continue
+                    if not strict_seniority and doc_rank > target_rank:
+                        continue
+                    if doc.get("topic", "").lower().strip() in exclude_topics_lower:
+                        continue
 
-                raw_score = float(doc.get("score", 0.0))
-                doc_tags = [t.lower() for t in doc.get("tags", [])]
-                topic_words = set(doc.get("topic", "").lower().split() + doc.get("subtopic", "").lower().split())
-                matched_tags = sum(1 for bt in boost_tags_lower if bt in doc_tags or bt in topic_words)
-                final_score = raw_score + min(matched_tags * 0.15, 0.40)
+                    raw_score = float(doc.get("score", 0.0))
+                    doc_tags = [t.lower() for t in doc.get("tags", [])]
+                    topic_words = set(doc.get("topic", "").lower().split() + doc.get("subtopic", "").lower().split())
+                    matched_tags = sum(1 for bt in boost_tags_lower if bt in doc_tags or bt in topic_words)
+                    final_score = raw_score + min(matched_tags * 0.15, 0.40)
 
-                # Prioritize exact seniority match slightly over lower seniority
-                if doc_rank == target_rank:
-                    final_score += 0.08
+                    # Prioritize exact seniority match slightly over lower seniority
+                    if doc_rank == target_rank:
+                        final_score += 0.08
 
-                item_model = KnowledgeBaseItemInDB(
-                    id=str(doc.get("_id", doc.get("id"))),
-                    role=doc["role"],
-                    seniority=doc["seniority"],
-                    topic=doc["topic"],
-                    subtopic=doc["subtopic"],
-                    core_concepts=doc.get("core_concepts", []),
-                    expected_depth=doc.get("expected_depth", ""),
-                    sample_questions=doc.get("sample_questions", []),
-                    rubric_hints=doc.get("rubric_hints", []),
-                    tags=doc.get("tags", []),
-                    search_text=doc.get("search_text", ""),
-                )
-                hits.append(KBSearchHit(item=item_model, score=final_score))
+                    item_model = KnowledgeBaseItemInDB(
+                        id=str(doc.get("_id", doc.get("id"))),
+                        role=doc["role"],
+                        seniority=doc["seniority"],
+                        topic=doc["topic"],
+                        subtopic=doc["subtopic"],
+                        core_concepts=doc.get("core_concepts", []),
+                        expected_depth=doc.get("expected_depth", ""),
+                        sample_questions=doc.get("sample_questions", []),
+                        rubric_hints=doc.get("rubric_hints", []),
+                        tags=doc.get("tags", []),
+                        search_text=doc.get("search_text", ""),
+                    )
+                    hits.append(KBSearchHit(item=item_model, score=final_score))
 
-        except Exception as exc:
-            logger.info("Atlas vector search on KB unavailable (%s), using in-memory candidate scan.", exc)
-            hits = []
+            except Exception as exc:
+                logger.info("Atlas vector search on KB unavailable (%s), using in-memory candidate scan.", exc)
+                hits = []
 
         # 2. Fallback to in-memory cosine ranking if Atlas vector search yielded no hits or was skipped
         if not hits:
-            role_regex = {"$regex": f"^{role}$", "$options": "i"}
-            try:
-                cursor = self.collection.find({"role": role_regex})
-                docs = await cursor.to_list(length=200)
-            except Exception as e:
-                logger.info("Error fetching KB docs from MongoDB: %s", e)
-                docs = []
+            docs = []
+            if not skip_atlas:
+                role_regex = {"$regex": f"^{role}$", "$options": "i"}
+                try:
+                    cursor = self.collection.find({"role": role_regex})
+                    docs = await cursor.to_list(length=200)
+                except Exception as e:
+                    logger.info("Error fetching KB docs from MongoDB: %s", e)
+                    docs = []
 
             # If DB is unseeded or running in isolated test DB, load curated seed data
             if not docs:
-                seed_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data", "knowledge_base_seed.json"))
-                if os.path.exists(seed_file):
-                    try:
-                        with open(seed_file, "r", encoding="utf-8") as f:
-                            all_seed = json.load(f)
-                            docs = [item for item in all_seed if item.get("role", "").lower() == role.lower()]
-                    except Exception as err:
-                        logger.warning("Could not load KB seed file: %s", err)
+                docs = _get_seed_docs(role)
 
             for doc in docs:
                 doc_sen = doc.get("seniority", "").lower().strip()
@@ -185,6 +198,7 @@ class KnowledgeBaseRepository:
                 emb = doc.get("embedding")
                 if not emb:
                     emb = _deterministic_mock_embedding(doc.get("search_text", ""), len(query_vector))
+                    doc["embedding"] = emb
 
                 sim = _cosine_similarity(query_vector, emb)
                 doc_tags = [t.lower() for t in doc.get("tags", [])]

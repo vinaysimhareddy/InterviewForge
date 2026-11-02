@@ -274,6 +274,61 @@ Windows devices and certain USB audio interfaces restrict simultaneous microphon
 
 ---
 
-## 8. License
+## 8. Editorial Design System
+
+The application features a bespoke, editorial **"premium-professional"** visual design language inspired by refined publication aesthetics, replacing generic SaaS blue/indigo styling with a calm, tactile light theme and focused deep-green emphasis surfaces.
+
+### 8.1 Design Philosophy
+- **Calm, High-Information Surfaces:** Warm cream backgrounds (`--bg: #F4F1EA`) and crisp off-white cards (`--card: #FBFAF6`) minimize cognitive fatigue and glare during extended interview preparations.
+- **Hairline Tactility:** 1 px hairline borders (`--card-border: #E3DED2`) with layered micro-shadows evoke the feel of premium stationery and physical documentation.
+- **Deep Forest Emphasis:** High-stakes interactive surfaces—such as the AI live interview stage, hero CTAs, and primary action buttons—leverage deep forest greens (`--primary: #0F4A3A`, `--deep-1: #0A2E24`, `--deep-2: #14503F`) with subtle ambient radial glow.
+- **Restrained Warm Accent:** Burnt orange/rust (`--accent: #C2410C` / `--accent-dark: #A8360A`) is reserved strictly for focal points: italic headline highlights, critical integrity alerts, and score callouts.
+- **Strictly Honest Data Presentation:** All previews, scorecard graphs, and interview metrics reflect truthful product mechanics; zero fake testimonials, inflated star ratings, or phantom user counts.
+
+### 8.2 Color Tokens
+
+| Token | Hex (Light Mode) | Hex (Dark Mode) | Purpose |
+| :--- | :--- | :--- | :--- |
+| `--bg` | `#F4F1EA` | `#0A1713` | Warm cream page canvas |
+| `--bg-subtle` | `#EFEBE2` | `#0F211C` | Alternating section wash & form field fill |
+| `--card` | `#FBFAF6` | `#122620` | Elevated content cards and modal surfaces |
+| `--card-border` | `#E3DED2` | `#1C3830` | 1 px structural hairline borders |
+| `--muted-surface`| `#F1EEE6` | `#152E27` | Progress bar tracks & pill containers |
+| `--text` | `#1C2420` | `#F4F1EA` | Near-black body ink with deep green undertone |
+| `--text-muted` | `#5F6B64` | `#A3B0A8` | Secondary labels, descriptions, and metadata |
+| `--text-faint` | `#8A948D` | `#6E7D75` | Micro-captions, timestamps, disabled indicators |
+| `--primary` | `#0F4A3A` | `#1F6B55` | Brand anchor, primary CTAs, active selections |
+| `--primary-hover`| `#0B3A2D` | `#29856A` | Interactive hover state for primary buttons |
+| `--primary-ink` | `#F4F1EA` | `#F4F1EA` | High-contrast text on primary background |
+| `--deep-1` | `#0A2E24` | `#071C16` | Dark band gradient origin & stage backdrop |
+| `--deep-2` | `#14503F` | `#0E2E25` | Dark band gradient termination |
+| `--accent` | `#C2410C` | `#EA580C` | Burnt orange / rust focal point accent |
+| `--accent-dark` | `#A8360A` | `#FB923C` | WCAG AAA compliant variant for small text on cream |
+| `--accent-soft` | `#F8E7DC` | `#2E1810` | Subtle warning tile and peach badge fill |
+| `--mint` | `#E3EFE8` | `#17382B` | Soft pastel tint for success & audio telemetry |
+| `--peach` | `#F8E7DC` | `#331E15` | Soft pastel tint for growth areas & warnings |
+| `--sky` | `#E4ECF5` | `#132B3E` | Soft pastel tint for technical metrics |
+| `--sand` | `#F0E9D8` | `#2A261A` | Soft pastel tint for role & seniority chips |
+
+### 8.3 Typography
+Self-hosted via `@fontsource` packages (zero external font requests or Google Fonts tracking):
+- **Display / Headings (`font-display`):** *Newsreader* (serif), tight leading, elegant editorial serif paired with an optional italic accent word in `--accent`.
+- **Interface / Body (`font-sans`):** *Inter* (sans-serif), high legibility and neutral clarity across desktop and mobile screens.
+- **Labels / Micro-Data (`font-mono` / `label-mono`):** *JetBrains Mono* (monospace), uppercase, letter-spaced (`0.08em`), with numbered section markers (`01 // WHY IT WORKS`).
+
+### 8.4 Shape & Radii Hierarchy
+- **`rounded-sm` (8 px):** Micro-badges, input fields, checkboxes, and inline tags.
+- **`rounded-md` (12 px):** Standard buttons, icon tiles, and dropdown containers.
+- **`rounded-lg` (16 px):** Content cards, dropzone containers, and preview modals.
+- **`rounded-xl` (20 px):** Interactive window cards, hero stage containers, and scorecard summaries.
+- **`rounded-full` (9999 px):** Pill badges, filter chips, and primary hero action buttons.
+
+### 8.5 UI Components & Showcase
+- **Component Primitives:** Button, Card, Badge, Tooltip, Checkbox, Dropzone, and Dialog re-mapped to editorial tokens with WCAG AA compliance.
+- **Design System Showcase Page:** Accessible at route `/design-system` during development to audit all color ramps, typography scales, badge variants, and interactive states in both light and dark themes.
+
+---
+
+## 9. License
 
 MIT License. Designed and engineered for privacy-preserving AI mock interview simulations.

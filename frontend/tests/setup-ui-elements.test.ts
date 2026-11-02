@@ -14,9 +14,9 @@ describe('S5: Setup UI Elements & Accessibility Verification', () => {
     expect(content).toContain('w-36 h-48 sm:w-44 sm:h-56');
     expect(content).toContain('rounded-[50%]');
 
-    // Color states: emerald when ready/passed, amber when failing criterion
-    expect(content).toContain('border-emerald-400');
-    expect(content).toContain('border-amber-400');
+    // Color states: success when ready/passed, warning when failing criterion
+    expect(content).toMatch(/border-(emerald-400|success)/);
+    expect(content).toMatch(/border-(amber-400|warning)/);
 
     // Direction alignment hint message placed under guide oval
     expect(content).toContain('Ready to capture! Hold still');
@@ -50,7 +50,7 @@ describe('S5: Setup UI Elements & Accessibility Verification', () => {
     // SVG Circular Progress Ring
     expect(content).toContain('strokeDasharray={100.53}');
     expect(content).toContain('strokeDashoffset');
-    expect(content).toContain('stroke-indigo-400');
+    expect(content).toMatch(/stroke-(indigo-400|primary)/);
 
     // Latched verified state
     expect(content).toContain('Clear voice detected ✓');

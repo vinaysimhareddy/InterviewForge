@@ -173,24 +173,24 @@ export function HelpDrawer({
       {/* Backdrop Overlay */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-background/80 backdrop-blur-sm transition-opacity duration-300 ease-in-out"
+        className="fixed inset-0 bg-[#0A2E24]/80 backdrop-blur-sm transition-opacity duration-300 ease-in-out"
         aria-hidden="true"
       />
 
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <aside className="w-screen max-w-md bg-card border-l border-border shadow-2xl flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-300 ease-out select-none">
+        <aside className="w-screen max-w-md bg-bg border-l border-card-border shadow-soft flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-300 ease-out select-none text-text">
           {/* Header */}
-          <div className="p-6 border-b border-border space-y-2 sticky top-0 bg-card/95 backdrop-blur-md z-10">
+          <div className="p-6 border-b border-card-border space-y-2 sticky top-0 bg-card/95 backdrop-blur-md z-10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-primary/15 border border-primary/30 text-primary">
+                <div className="p-2 rounded-xl bg-mint border border-primary/20 text-primary">
                   <HelpCircle className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 id="help-drawer-title" className="text-base font-bold text-foreground">
+                  <h2 id="help-drawer-title" className="text-base font-display font-semibold text-text">
                     Having Trouble?
                   </h2>
-                  <p className="text-xs text-muted-foreground">Quick guided troubleshooting checklist</p>
+                  <p className="text-xs text-text-muted">Quick guided troubleshooting checklist</p>
                 </div>
               </div>
 
@@ -198,15 +198,15 @@ export function HelpDrawer({
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-foreground"
+                className="h-8 w-8 p-0 rounded-full text-text-muted hover:text-text hover:bg-bg-subtle"
                 aria-label="Close help drawer"
               >
                 <X className="h-4 w-4" />
               </Button>
             </div>
 
-            <div className="flex items-center gap-2 pt-1 text-[11px] text-muted-foreground">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="flex items-center gap-2 pt-1 text-[11px] text-text-muted font-mono">
+              <span className="h-2 w-2 rounded-full bg-mint animate-pulse" />
               <span>Interview timers are paused while this guide is open.</span>
             </div>
           </div>
@@ -214,9 +214,9 @@ export function HelpDrawer({
           {/* Checklist Sections */}
           <div className="p-6 space-y-6 flex-1 text-xs">
             {/* 1. Camera Section */}
-            <div className="p-4 rounded-2xl bg-muted/30 border border-border space-y-3">
+            <div className="p-4 rounded-2xl bg-card border border-card-border space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 font-semibold text-foreground">
+                <div className="flex items-center gap-2 font-semibold text-text">
                   <Camera className="h-4 w-4 text-primary" />
                   <span>Camera Not Working</span>
                 </div>
@@ -228,19 +228,19 @@ export function HelpDrawer({
                 </Badge>
               </div>
 
-              <p className="text-muted-foreground text-[11px]">
+              <p className="text-text-muted text-[11px]">
                 {activeVideoTrack?.label ? `Device: ${activeVideoTrack.label}` : 'No active physical video track detected.'}
               </p>
 
               {availableCameras && availableCameras.length > 1 && onSelectCamera && (
                 <div className="space-y-1">
-                  <label className="text-[11px] text-muted-foreground font-medium block">
+                  <label className="text-[11px] text-text-muted font-medium block">
                     Switch Camera:
                   </label>
                   <select
                     value={selectedCameraId}
                     onChange={(e) => onSelectCamera(e.target.value)}
-                    className="w-full h-8 rounded-xl bg-card border border-border text-xs text-foreground px-2.5 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                    className="w-full h-8 rounded-xl bg-card border border-card-border text-xs text-text px-2.5 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
                   >
                     {availableCameras.map((cam) => (
                       <option key={cam.deviceId} value={cam.deviceId}>
@@ -256,14 +256,14 @@ export function HelpDrawer({
                 size="sm"
                 onClick={handleRetryCameraClick}
                 disabled={isRetryingCamera}
-                className="w-full h-8 text-xs font-medium gap-1.5 rounded-full"
+                className="w-full h-8 text-xs font-medium gap-1.5 rounded-full border-card-border text-text hover:bg-bg-subtle"
               >
                 <RotateCcw className={`h-3 w-3 ${isRetryingCamera ? 'animate-spin' : ''}`} />
                 <span>{isRetryingCamera ? 'Refreshing camera...' : 'Retry camera'}</span>
               </Button>
 
-              <div className="text-[11px] text-muted-foreground bg-card/60 p-2.5 rounded-xl border border-border/60 space-y-1">
-                <p className="font-semibold text-foreground">Tips:</p>
+              <div className="text-[11px] text-text-muted bg-bg-subtle p-2.5 rounded-xl border border-card-border space-y-1">
+                <p className="font-semibold text-text">Tips:</p>
                 <ul className="list-disc list-inside space-y-0.5">
                   <li>Close other video apps (Zoom, Teams, Meet).</li>
                   <li>Check browser address bar camera permissions.</li>
@@ -273,9 +273,9 @@ export function HelpDrawer({
             </div>
 
             {/* 2. Microphone Section */}
-            <div className="p-4 rounded-2xl bg-muted/30 border border-border space-y-3">
+            <div className="p-4 rounded-2xl bg-card border border-card-border space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 font-semibold text-foreground">
+                <div className="flex items-center gap-2 font-semibold text-text">
                   <Mic className="h-4 w-4 text-primary" />
                   <span>Microphone Not Working</span>
                 </div>
@@ -289,13 +289,13 @@ export function HelpDrawer({
 
               {/* Real Mic Level Bar */}
               <div className="space-y-1.5">
-                <div className="flex justify-between text-[11px] text-muted-foreground">
+                <div className="flex justify-between text-[11px] text-text-muted">
                   <span>Input Level:</span>
                   <span>{audioLevel > 0.05 ? 'Detecting Sound' : 'Quiet'}</span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-muted overflow-hidden flex items-center">
+                <div className="w-full h-2 rounded-full bg-muted-surface overflow-hidden flex items-center">
                   <div
-                    className="h-full bg-emerald-400 transition-all duration-75 ease-out rounded-full"
+                    className="h-full bg-primary transition-all duration-75 ease-out rounded-full"
                     style={{ width: `${Math.min(100, audioLevel * 100)}%` }}
                   />
                 </div>
@@ -306,7 +306,7 @@ export function HelpDrawer({
                 size="sm"
                 onClick={handleRetryMicClick}
                 disabled={isRetryingMic}
-                className="w-full h-8 text-xs font-medium gap-1.5 rounded-full"
+                className="w-full h-8 text-xs font-medium gap-1.5 rounded-full border-card-border text-text hover:bg-bg-subtle"
               >
                 <RotateCcw className={`h-3 w-3 ${isRetryingMic ? 'animate-spin' : ''}`} />
                 <span>{isRetryingMic ? 'Refreshing mic...' : 'Retry microphone'}</span>
@@ -314,13 +314,13 @@ export function HelpDrawer({
             </div>
 
             {/* 3. Speaker / Interviewer Audio Section */}
-            <div className="p-4 rounded-2xl bg-muted/30 border border-border space-y-3">
-              <div className="flex items-center gap-2 font-semibold text-foreground">
+            <div className="p-4 rounded-2xl bg-card border border-card-border space-y-3">
+              <div className="flex items-center gap-2 font-semibold text-text">
                 <Volume2 className="h-4 w-4 text-primary" />
                 <span>Can't Hear the Interviewer?</span>
               </div>
 
-              <p className="text-muted-foreground text-[11px]">
+              <p className="text-text-muted text-[11px]">
                 Test your speakers or headphones with a short audio chime.
               </p>
 
@@ -329,7 +329,7 @@ export function HelpDrawer({
                 size="sm"
                 onClick={handlePlayTestSound}
                 disabled={isPlayingTestSound}
-                className="w-full h-8 text-xs font-medium gap-1.5 rounded-full"
+                className="w-full h-8 text-xs font-medium gap-1.5 rounded-full border-card-border text-text hover:bg-bg-subtle"
               >
                 <Sparkles className={`h-3 w-3 ${isPlayingTestSound ? 'animate-spin' : ''}`} />
                 <span>{isPlayingTestSound ? 'Playing test audio...' : 'Play test sound'}</span>
@@ -337,9 +337,9 @@ export function HelpDrawer({
             </div>
 
             {/* 4. Interviewer Frozen / Disconnected */}
-            <div className="p-4 rounded-2xl bg-muted/30 border border-border space-y-3">
+            <div className="p-4 rounded-2xl bg-card border border-card-border space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 font-semibold text-foreground">
+                <div className="flex items-center gap-2 font-semibold text-text">
                   <Wifi className="h-4 w-4 text-primary" />
                   <span>Interviewer Frozen or Delayed</span>
                 </div>
@@ -357,7 +357,7 @@ export function HelpDrawer({
                   size="sm"
                   onClick={onRepeatQuestion}
                   disabled={hasRepeatedQuestion || !onRepeatQuestion}
-                  className="h-8 text-xs font-medium rounded-full"
+                  className="h-8 text-xs font-medium rounded-full border-card-border text-text hover:bg-bg-subtle"
                   title="Have the AI interviewer repeat the current question (once per turn)"
                 >
                   {hasRepeatedQuestion ? 'Question Repeated' : 'Repeat question'}
@@ -367,7 +367,7 @@ export function HelpDrawer({
                   variant="outline"
                   size="sm"
                   onClick={onReconnectWS}
-                  className="h-8 text-xs font-medium gap-1 rounded-full"
+                  className="h-8 text-xs font-medium gap-1 rounded-full border-card-border text-text hover:bg-bg-subtle"
                   title="Reconnect WebSocket session"
                 >
                   <RefreshCw className="h-3 w-3" />
@@ -377,8 +377,8 @@ export function HelpDrawer({
             </div>
 
             {/* 5. Something Else / Diagnostics */}
-            <div className="p-4 rounded-2xl bg-muted/30 border border-border space-y-3">
-              <div className="flex items-center gap-2 font-semibold text-foreground">
+            <div className="p-4 rounded-2xl bg-card border border-card-border space-y-3">
+              <div className="flex items-center gap-2 font-semibold text-text">
                 <HelpCircle className="h-4 w-4 text-primary" />
                 <span>Something Else?</span>
               </div>
@@ -387,11 +387,11 @@ export function HelpDrawer({
                 variant="outline"
                 size="sm"
                 onClick={handleCopyDiagnostics}
-                className="w-full h-8 text-xs font-medium gap-1.5 rounded-full"
+                className="w-full h-8 text-xs font-medium gap-1.5 rounded-full border-card-border text-text hover:bg-bg-subtle"
               >
                 {copiedDiagnostics ? (
                   <>
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                    <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                     <span>Copied diagnostics to clipboard!</span>
                   </>
                 ) : (
@@ -402,7 +402,7 @@ export function HelpDrawer({
                 )}
               </Button>
 
-              <div className="flex items-center gap-2 pt-1 text-muted-foreground text-[11px]">
+              <div className="flex items-center gap-2 pt-1 text-text-muted text-[11px]">
                 <Mail className="h-3.5 w-3.5" />
                 <span>Support: </span>
                 <a
@@ -416,10 +416,10 @@ export function HelpDrawer({
           </div>
 
           {/* Footer */}
-          <div className="p-4 border-t border-border bg-card/95 flex justify-end">
+          <div className="p-4 border-t border-card-border bg-card/95 flex justify-end">
             <Button
               onClick={onClose}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs px-6 h-9 rounded-full"
+              className="bg-primary hover:bg-primary-hover text-primary-ink font-semibold text-xs px-6 h-9 rounded-full shadow-sm"
             >
               Resume Interview
             </Button>

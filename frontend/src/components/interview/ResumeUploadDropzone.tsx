@@ -189,10 +189,10 @@ export function ResumeUploadDropzone({
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
+        className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
           isDragging
-            ? 'border-indigo-500 bg-indigo-950/40 scale-[1.01]'
-            : 'border-slate-800 bg-slate-900/60 hover:border-slate-700 hover:bg-slate-900/80'
+            ? 'border-primary bg-mint/30 scale-[1.01]'
+            : 'border-card-border bg-card/80 hover:border-primary/50 hover:bg-bg-subtle'
         }`}
       >
         <input
@@ -208,19 +208,19 @@ export function ResumeUploadDropzone({
         />
 
         <div className="flex flex-col items-center justify-center space-y-3">
-          <div className="p-3.5 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400">
+          <div className="p-3.5 rounded-2xl bg-mint border border-primary/20 text-primary">
             {isUploading ? (
-              <span className="h-6 w-6 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin block" />
+              <span className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin block" />
             ) : (
               <Upload className="h-6 w-6" />
             )}
           </div>
 
           <div>
-            <p className="text-base font-semibold text-white">
+            <p className="text-base font-semibold text-text font-display">
               {isUploading ? 'Parsing Resume PDF with pdfplumber & AI...' : 'Drop your resume PDF here or browse'}
             </p>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-text-muted mt-1">
               Supports PDF documents up to 5MB. Skills and experience are parsed automatically.
             </p>
           </div>
@@ -228,19 +228,21 @@ export function ResumeUploadDropzone({
       </div>
 
       {uploadError && (
-        <div className="p-3.5 rounded-lg bg-rose-950/60 border border-rose-800/80 text-rose-200 text-xs flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
+        <div className="p-3.5 rounded-xl bg-danger/10 border border-danger/25 text-danger text-xs flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 text-danger shrink-0" />
           <span>{uploadError}</span>
         </div>
       )}
 
       {selectedResume && (
-        <Card className="border-indigo-900/60 bg-indigo-950/20 backdrop-blur-md">
-          <CardHeader className="pb-4">
+        <Card className="card-editorial shadow-sm">
+          <CardHeader className="pb-4 border-b border-card-border">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-indigo-400" />
-                <CardTitle className="text-base text-white">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg bg-sky border border-primary/20 flex items-center justify-center text-primary">
+                  <FileText className="h-4 w-4" />
+                </div>
+                <CardTitle className="text-base text-text font-display font-bold">
                   Parsed Resume: {selectedResume.filename}
                 </CardTitle>
               </div>
@@ -250,20 +252,20 @@ export function ResumeUploadDropzone({
               </Badge>
             </div>
             {summary && (
-              <CardDescription className="text-slate-300 text-xs mt-2 italic">
+              <CardDescription className="text-text-muted text-xs mt-2 italic">
                 "{summary}"
               </CardDescription>
             )}
           </CardHeader>
 
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
-                  <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+                <span className="text-xs font-semibold text-text flex items-center gap-1.5 font-mono uppercase tracking-wider text-[11px]">
+                  <Sparkles className="h-3.5 w-3.5 text-primary" />
                   Target Skills Grounding ({skills.length})
                 </span>
-                <span className="text-[11px] text-slate-400">Click x to remove or add custom below</span>
+                <span className="text-[11px] text-text-faint font-mono">Click × to remove or add custom</span>
               </div>
 
               {skills.length > 0 ? (
@@ -271,13 +273,13 @@ export function ResumeUploadDropzone({
                   {skills.map((skill) => (
                     <span
                       key={skill}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-950/90 text-indigo-200 border border-indigo-800/80 shadow-sm"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-mint text-primary border border-primary/20 shadow-xs"
                     >
                       {skill}
                       <button
                         type="button"
                         onClick={() => removeSkill(skill)}
-                        className="text-indigo-400 hover:text-rose-300 transition-colors"
+                        className="text-primary/70 hover:text-danger transition-colors cursor-pointer"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -285,7 +287,7 @@ export function ResumeUploadDropzone({
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-slate-500 italic">No technical skills detected yet. You can add skills manually below.</p>
+                <p className="text-xs text-text-muted italic">No technical skills detected yet. You can add skills manually below.</p>
               )}
 
               <div className="flex gap-2 pt-1">
@@ -300,13 +302,13 @@ export function ResumeUploadDropzone({
                       addCustomSkill();
                     }
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="px-3 py-1.5 rounded-lg bg-bg-subtle border border-card-border text-xs text-text placeholder:text-text-faint focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={addCustomSkill}
-                  className="h-8 text-xs text-slate-300 gap-1 border-slate-700 bg-slate-900"
+                  className="h-8 text-xs text-text gap-1 border-card-border bg-card hover:bg-bg-subtle"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Add Skill
@@ -315,21 +317,21 @@ export function ResumeUploadDropzone({
             </div>
 
             {experiences.length > 0 && (
-              <div className="pt-2 border-t border-slate-800/80">
-                <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5 mb-2">
-                  <Briefcase className="h-3.5 w-3.5 text-indigo-400" />
+              <div className="pt-3 border-t border-card-border">
+                <span className="text-xs font-semibold text-text flex items-center gap-1.5 mb-2 font-mono uppercase tracking-wider text-[11px]">
+                  <Briefcase className="h-3.5 w-3.5 text-primary" />
                   Work Experience Highlights ({experiences.length})
                 </span>
-                <div className="space-y-2 text-xs text-slate-400">
+                <div className="space-y-2 text-xs text-text-muted">
                   {experiences.map((exp, idx) => (
-                    <div key={idx} className="p-2.5 rounded-lg bg-slate-950/40 border border-slate-800/60 space-y-1">
+                    <div key={idx} className="p-3 rounded-xl bg-bg-subtle border border-card-border space-y-1">
                       <div className="flex justify-between items-center">
-                        <span className="font-semibold text-slate-200">{exp.title}</span>
-                        {exp.duration && <span className="text-[11px] font-mono text-slate-400">{exp.duration}</span>}
+                        <span className="font-semibold text-text">{exp.title}</span>
+                        {exp.duration && <span className="text-[11px] font-mono text-text-faint">{exp.duration}</span>}
                       </div>
-                      <div className="text-indigo-300 font-medium text-[11px]">{exp.company}</div>
+                      <div className="text-accent font-medium text-[11px]">{exp.company}</div>
                       {exp.description && (
-                        <p className="text-slate-400 text-[11px] line-clamp-2 mt-0.5">{exp.description}</p>
+                        <p className="text-text-muted text-[11px] line-clamp-2 mt-0.5">{exp.description}</p>
                       )}
                     </div>
                   ))}

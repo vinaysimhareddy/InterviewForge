@@ -53,7 +53,7 @@ export function QuestionCaption({
         role="region"
         aria-label="Interview Question"
       >
-        <p className="text-xl sm:text-2xl text-slate-500 font-medium italic animate-pulse">
+        <p className="text-xl sm:text-2xl text-mint/60 font-serif italic animate-pulse">
           Synthesizing tailored question...
         </p>
       </div>
@@ -67,7 +67,10 @@ export function QuestionCaption({
       role="region"
       aria-label="Interview Question"
     >
-      <h2 className="text-2xl sm:text-3xl lg:text-[32px] font-semibold text-slate-100 dark:text-slate-100 light:text-slate-900 leading-[1.4] tracking-normal transition-colors duration-200">
+      <div className="label-mono text-[11px] text-mint/70 tracking-widest uppercase mb-3">
+        CURRENT QUESTION
+      </div>
+      <h2 className="text-2xl sm:text-3xl lg:text-[32px] font-display font-medium text-[#FBFAF6] leading-[1.35] tracking-tight transition-colors duration-200">
         {words.map((word, idx) => {
           const isRevealed = idx < displayedWordsCount;
           return (
@@ -75,8 +78,8 @@ export function QuestionCaption({
               key={`${idx}-${word}`}
               className={`inline-block mr-1.5 transition-all duration-200 ${
                 isRevealed
-                  ? 'opacity-100 translate-y-0 text-slate-100 dark:text-slate-100 light:text-slate-900'
-                  : 'opacity-0 translate-y-1 text-slate-600 dark:text-slate-600'
+                  ? 'opacity-100 translate-y-0 text-[#FBFAF6]'
+                  : 'opacity-0 translate-y-1 text-mint/20'
               }`}
             >
               {word}

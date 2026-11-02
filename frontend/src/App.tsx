@@ -1,24 +1,24 @@
 import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import {
-  Server,
-  Database,
-  Monitor,
-  Activity,
   CheckCircle2,
-  Lock,
   LogOut,
   Sun,
   Moon,
 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { CameraStreamProvider, useMediaStream } from '@/context/CameraStreamContext';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import { LogoWordmark } from '@/components/common/LogoWordmark';
 import AuthPage from '@/pages/AuthPage';
 import DashboardPage from '@/pages/DashboardPage';
+import LandingPage from '@/pages/LandingPage';
+import PrivacyPage from '@/pages/PrivacyPage';
+import TermsPage from '@/pages/TermsPage';
+import DesignSystemPage from '@/pages/DesignSystemPage';
 import { InterviewWelcome } from '@/components/interview/InterviewWelcome';
 import { PreInterviewSetup } from '@/components/interview/PreInterviewSetup';
 import { InterviewReady } from '@/components/interview/InterviewReady';
@@ -37,7 +37,7 @@ function ThemeToggleButton(): React.ReactElement {
       variant="ghost"
       size="sm"
       onClick={toggleTheme}
-      className="h-8 w-8 p-0 rounded-full text-slate-400 hover:text-white"
+      className="h-8 w-8 p-0 rounded-full text-text-muted hover:text-text"
       title={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
       aria-label="Toggle theme"
     >
@@ -77,9 +77,152 @@ function LiveStageDemoWrapper(): React.ReactElement {
   );
 }
 
-function PlatformContent(): React.ReactElement {
-  const { user, logout, isLoading } = useAuth();
+/**
+ * Route protection wrapper: unauthenticated users are redirected to /login with target path preserved.
+ */
+function ProtectedRoute({ children }: { children: React.ReactElement }): React.ReactElement {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-bg text-text flex items-center justify-center p-8">
+        <div className="flex items-center gap-3 text-text-muted text-sm font-mono">
+          <span className="h-5 w-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          Verifying candidate session...
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    const redirectUrl = `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`;
+    return <Navigate to={redirectUrl} replace />;
+  }
+
+  return children;
+}
+
+/**
+ * Auth route wrapper: if already logged in, redirect straight to /app/dashboard or specified target.
+ */
+function AuthRouteWrapper({ mode }: { mode: 'login' | 'register' }): React.ReactElement {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-bg text-text flex items-center justify-center p-8">
+        <div className="flex items-center gap-3 text-text-muted text-sm font-mono">
+          <span className="h-5 w-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          Loading candidate portal...
+        </div>
+      </div>
+    );
+  }
+
+  if (user) {
+    const params = new URLSearchParams(location.search);
+    const target = params.get('redirect') || '/app/dashboard';
+    return <Navigate to={target} replace />;
+  }
+
+  return (
+    <div className="min-h-screen bg-bg text-text flex flex-col justify-between selection:bg-accent-soft selection:text-accent font-sans">
+      <header className="border-b border-card-border bg-bg/80 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <a href="/" className="hover:opacity-90 transition-opacity">
+            <LogoWordmark />
+          </a>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              window.location.href = '/';
+            }}
+            className="text-text-muted hover:text-text"
+          >
+            Back to Home
+          </Button>
+        </div>
+      </header>
+      <main className="flex-1 flex items-center justify-center p-4 sm:p-8">
+        <AuthPage initialMode={mode} />
+      </main>
+      <footer className="border-t border-card-border bg-bg-subtle py-4 text-center text-xs text-text-muted">
+        AdaptiveMock Simulator • Secure Argon2id & JWT Authentication
+      </footer>
+    </div>
+  );
+}
+
+/**
+ * Protected App Area Layout Shell
+ */
+function AppDashboardWrapper(): React.ReactElement {
+  const { user, logout } = useAuth();
+
+  return (
+    <div className="min-h-screen bg-bg text-text flex flex-col selection:bg-accent-soft selection:text-accent font-sans overflow-x-hidden">
+      {/* Top Navigation */}
+      <header className="border-b border-card-border bg-card/90 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <a href="/" className="hover:opacity-90 transition-opacity">
+              <LogoWordmark />
+            </a>
+            <span className="label-mono bg-bg-subtle px-2 py-0.5 rounded border border-card-border hidden sm:inline">
+              CANDIDATE WORKSPACE
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <Badge variant="success" className="gap-1.5 py-1 px-3 hidden md:inline-flex">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              Live Telemetry & Adaptive AI Active
+            </Badge>
+
+            <ThemeToggleButton />
+
+            {user && (
+              <div className="flex items-center gap-3 pl-3 border-l border-card-border">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-full bg-mint border border-primary/20 flex items-center justify-center text-xs text-primary font-semibold">
+                    {user.full_name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-xs font-medium text-text hidden sm:inline">
+                    {user.full_name}
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={logout}
+                  className="h-8 px-2 text-text-muted hover:text-text"
+                  title="Sign out"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Main Body */}
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-10">
+        <DashboardPage />
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-card-border bg-bg-subtle py-6 text-center text-xs text-text-muted">
+        AdaptiveMock Simulator • Privacy-First MediaPipe CV • LangGraph Adaptive Engine
+      </footer>
+    </div>
+  );
+}
+
+function PlatformContent(): React.ReactElement {
   // Preview routes: Strictly gated to development or test environments only.
   // In production builds (import.meta.env.DEV === false), this entire block is dead-code eliminated.
   if (import.meta.env.DEV) {
@@ -92,9 +235,15 @@ function PlatformContent(): React.ReactElement {
     const isDirectComplete = typeof window !== 'undefined' && window.location.search.includes('complete=true');
     const isDirectAborted = typeof window !== 'undefined' && window.location.search.includes('aborted=true');
     const isDirectScorecard = typeof window !== 'undefined' && (window.location.search.includes('scorecard=true') || window.location.search.includes('report=true'));
+    const isDirectDesignSystem = typeof window !== 'undefined' && (window.location.search.includes('design-system=true') || window.location.pathname.includes('design-system'));
+
+    if (isDirectDesignSystem) {
+      return <DesignSystemPage />;
+    }
+
     if (isDirectWelcome) {
       return (
-        <div className="min-h-screen bg-background text-foreground p-4 sm:p-8">
+        <div className="min-h-screen bg-bg text-text p-4 sm:p-8">
           <InterviewWelcome
             role="Full Stack Engineer"
             seniority="Senior"
@@ -112,7 +261,7 @@ function PlatformContent(): React.ReactElement {
 
     if (isDirectReady) {
       return (
-        <div className="min-h-screen bg-background text-foreground p-4 sm:p-8">
+        <div className="min-h-screen bg-bg text-text p-4 sm:p-8">
           <InterviewReady
             session={{
               id: 'demo-session-1234',
@@ -137,7 +286,7 @@ function PlatformContent(): React.ReactElement {
 
     if (isDirectSetup) {
       return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-8">
+        <div className="min-h-screen bg-bg text-text p-4 sm:p-8">
           <PreInterviewSetup
             role="Full Stack Engineer"
             seniority="Senior"
@@ -158,7 +307,7 @@ function PlatformContent(): React.ReactElement {
 
     if (isDirectFaceLost) {
       return (
-        <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
+        <div className="min-h-screen bg-bg text-text flex items-center justify-center p-4">
           <FaceLostModal
             isOpen={true}
             missingSeconds={14}
@@ -172,7 +321,7 @@ function PlatformContent(): React.ReactElement {
 
     if (isDirectCameraLost) {
       return (
-        <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
+        <div className="min-h-screen bg-bg text-text flex items-center justify-center p-4">
           <CameraLostModal
             isOpen={true}
             graceSeconds={30}
@@ -187,7 +336,7 @@ function PlatformContent(): React.ReactElement {
 
     if (isDirectComplete) {
       return (
-        <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
+        <div className="min-h-screen bg-bg text-text flex items-center justify-center p-4">
           <InterviewComplete
             role="Full Stack Engineer"
             seniority="Senior"
@@ -207,7 +356,7 @@ function PlatformContent(): React.ReactElement {
 
     if (isDirectAborted) {
       return (
-        <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
+        <div className="min-h-screen bg-bg text-text flex items-center justify-center p-4">
           <InterviewAborted
             role="Full Stack Engineer"
             seniority="Senior"
@@ -261,7 +410,7 @@ function PlatformContent(): React.ReactElement {
       };
 
       return (
-        <div className="min-h-screen bg-background text-foreground p-4 sm:p-8">
+        <div className="min-h-screen bg-bg text-text p-4 sm:p-8">
           <ExecutiveScorecard
             session={{
               id: 'session-demo-84920',
@@ -284,185 +433,61 @@ function PlatformContent(): React.ReactElement {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500 selection:text-white">
-      {/* Top Navigation */}
-      <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="h-9 w-9 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30">
-              <Activity className="h-5 w-5" />
-            </div>
-            <div>
-              <span className="font-bold text-lg text-white tracking-tight">Mock-Interview</span>
-              <span className="text-xs text-indigo-400 font-mono ml-2 font-medium px-2 py-0.5 rounded bg-indigo-950 border border-indigo-800">
-                Simulator
-              </span>
-            </div>
-          </div>
+    <BrowserRouter>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<AuthRouteWrapper mode="login" />} />
+        <Route path="/register" element={<AuthRouteWrapper mode="register" />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/design-system" element={<DesignSystemPage />} />
 
-          <div className="flex items-center space-x-3">
-            <Badge variant="success" className="gap-1.5 py-1 px-3">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              Live Telemetry & Adaptive AI Active
-            </Badge>
-
-            <ThemeToggleButton />
-
-            {user && (
-              <div className="flex items-center gap-3 pl-3 border-l border-slate-800">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-full bg-indigo-600/30 border border-indigo-500/50 flex items-center justify-center text-xs text-indigo-300 font-semibold">
-                    {user.full_name.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="text-xs font-medium text-slate-300 hidden sm:inline">
-                    {user.full_name}
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={logout}
-                  className="h-8 px-2 text-slate-400 hover:text-white"
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                </Button>
+        {/* Protected App Routes */}
+        <Route
+          path="/app/dashboard"
+          element={
+            <ProtectedRoute>
+              <AppDashboardWrapper />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/setup"
+          element={
+            <ProtectedRoute>
+              <div className="min-h-screen bg-bg text-text p-4 sm:p-8">
+                <PreInterviewSetup
+                  role="Full Stack Engineer"
+                  seniority="Senior"
+                  onStartInterview={(_config) => {
+                    window.location.href = '/app/interview';
+                  }}
+                  onCancel={() => {
+                    window.location.href = '/app/dashboard';
+                  }}
+                />
               </div>
-            )}
-          </div>
-        </div>
-      </header>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/interview"
+          element={
+            <ProtectedRoute>
+              <LiveStageDemoWrapper />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app"
+          element={<Navigate to="/app/dashboard" replace />}
+        />
 
-      {/* Main Body */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-10">
-        {/* Render Dashboard if authenticated, else Auth Page */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="flex items-center gap-3 text-slate-400 text-sm">
-              <span className="h-5 w-5 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
-              Verifying session token...
-            </div>
-          </div>
-        ) : user ? (
-          <DashboardPage />
-        ) : (
-          <div className="space-y-8">
-            <div className="text-center space-y-3 max-w-2xl mx-auto">
-              <Badge variant="outline" className="border-indigo-500/40 text-indigo-300 bg-indigo-950/40">
-                Phase 2 Security Verification
-              </Badge>
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                Candidate Authentication Portal
-              </h1>
-              <p className="text-sm text-slate-400">
-                Register a candidate or sign in to test Argon2id password hashing, JWT Bearer token generation, and role-based endpoint protection.
-              </p>
-            </div>
-            <AuthPage />
-          </div>
-        )}
-
-        {/* System Architecture Grid */}
-        <section className="space-y-4 pt-6 border-t border-slate-800/80">
-          <h2 className="text-xl font-semibold text-white tracking-tight flex items-center gap-2">
-            <Server className="h-5 w-5 text-indigo-400" />
-            Core Architecture & Service Registry
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="border-slate-800 bg-slate-900/60 hover:border-slate-700 transition-colors">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="p-2.5 rounded-lg bg-indigo-950/80 border border-indigo-800/60 text-indigo-400">
-                    <Lock className="h-5 w-5" />
-                  </div>
-                  <Badge variant="success">Argon2id + JWT</Badge>
-                </div>
-                <CardTitle className="text-lg mt-3">Auth & Security Layer</CardTitle>
-                <CardDescription>
-                  RFC 7519 PyJWT access tokens, Argon2id cryptographic password hashing, and strict HTTP Bearer dependency.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2 text-xs font-mono text-slate-400">
-                <div className="flex justify-between py-1 border-b border-slate-800/80">
-                  <span>Register:</span>
-                  <span className="text-slate-200">POST /api/v1/auth/register</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-800/80">
-                  <span>Login:</span>
-                  <span className="text-slate-200">POST /api/v1/auth/login</span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span>Protected:</span>
-                  <span className="text-emerald-400">GET /api/v1/auth/me (200 / 401)</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-slate-800 bg-slate-900/60 hover:border-slate-700 transition-colors">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="p-2.5 rounded-lg bg-indigo-950/80 border border-indigo-800/60 text-indigo-400">
-                    <Database className="h-5 w-5" />
-                  </div>
-                  <Badge variant="success">Indexed</Badge>
-                </div>
-                <CardTitle className="text-lg mt-3">MongoDB Collections</CardTitle>
-                <CardDescription>
-                  Motor async driver with ping on startup. Collections: users, resumes, sessions, evaluations, telemetry_packets.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2 text-xs font-mono text-slate-400">
-                <div className="flex justify-between py-1 border-b border-slate-800/80">
-                  <span>Unique Index:</span>
-                  <span className="text-slate-200">users (email: 1)</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-800/80">
-                  <span>Compound Index:</span>
-                  <span className="text-slate-200">telemetry (session + ts)</span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span>State:</span>
-                  <span className="text-emerald-400">Initialized & Verified</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-slate-800 bg-slate-900/60 hover:border-slate-700 transition-colors">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="p-2.5 rounded-lg bg-indigo-950/80 border border-indigo-800/60 text-indigo-400">
-                    <Monitor className="h-5 w-5" />
-                  </div>
-                  <Badge variant="success">Active</Badge>
-                </div>
-                <CardTitle className="text-lg mt-3">Frontend Client</CardTitle>
-                <CardDescription>
-                  React 18 + TypeScript strict SPA. AuthContext with automatic Bearer token interceptor and sandbox tester.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2 text-xs font-mono text-slate-400">
-                <div className="flex justify-between py-1 border-b border-slate-800/80">
-                  <span>Token Storage:</span>
-                  <span className="text-slate-200">LocalStorage access_token</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-800/80">
-                  <span>Interceptor:</span>
-                  <span className="text-emerald-400">Authorization: Bearer ...</span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span>Status:</span>
-                  <span className="text-indigo-300">Phase 2 Verified</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-slate-800 bg-slate-900/40 py-6 text-center text-xs text-slate-500">
-        Mock-interview simulator • Privacy-First MediaPipe CV • LangGraph Adaptive Engine • Multi-Dimensional Scoring
-      </footer>
-    </div>
+        {/* Catch-all */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
@@ -479,4 +504,3 @@ export default function App(): React.ReactElement {
     </ErrorBoundary>
   );
 }
-

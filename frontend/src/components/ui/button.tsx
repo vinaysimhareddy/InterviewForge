@@ -3,27 +3,32 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 export const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:pointer-events-none disabled:opacity-50 cursor-pointer',
+  'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 cursor-pointer',
   {
     variants: {
       variant: {
         default:
-          'bg-indigo-600 text-white shadow hover:bg-indigo-700 active:bg-indigo-800',
+          'bg-primary text-primary-ink shadow-sm hover:bg-primary-hover active:scale-[0.99]',
+        primary:
+          'bg-primary text-primary-ink shadow-sm hover:bg-primary-hover active:scale-[0.99]',
         destructive:
-          'bg-rose-600 text-white shadow-sm hover:bg-rose-700 active:bg-rose-800',
+          'bg-danger text-white shadow-sm hover:opacity-90 active:scale-[0.99]',
         outline:
-          'border border-slate-700 bg-slate-900/60 text-slate-200 hover:bg-slate-800 hover:text-white',
+          'border border-card-border bg-card text-text shadow-sm hover:bg-bg-subtle hover:border-text-faint',
         secondary:
-          'bg-slate-800 text-slate-100 shadow-sm hover:bg-slate-700',
+          'border border-card-border bg-card text-text hover:bg-bg-subtle shadow-sm',
         ghost:
-          'text-slate-300 hover:bg-slate-800/80 hover:text-white',
+          'text-text-muted hover:text-text hover:bg-bg-subtle',
+        accent:
+          'bg-accent text-white shadow-sm hover:opacity-95 active:scale-[0.99]',
         link:
-          'text-indigo-400 underline-offset-4 hover:underline',
+          'text-primary underline-offset-4 hover:underline',
       },
       size: {
         default: 'h-10 px-4 py-2',
         sm: 'h-8 rounded-md px-3 text-xs',
-        lg: 'h-12 rounded-lg px-8 text-base font-semibold',
+        lg: 'h-12 rounded-lg px-7 text-base font-semibold',
+        pill: 'h-11 rounded-full px-6 text-sm font-medium',
         icon: 'h-10 w-10',
       },
     },

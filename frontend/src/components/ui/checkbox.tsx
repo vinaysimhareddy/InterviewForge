@@ -39,10 +39,10 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
         <label
           htmlFor={id}
           className={cn(
-            'flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-slate-600 bg-slate-900 transition-colors',
-            'hover:border-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2',
-            'peer-checked:bg-indigo-600 peer-checked:border-indigo-600 peer-checked:text-white',
-            'peer-disabled:cursor-not-allowed peer-disabled:opacity-50 cursor-pointer',
+            'flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-card-border bg-card transition-all duration-150',
+            'hover:border-primary/50 peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-primary/40 peer-focus-visible:ring-offset-1',
+            'peer-checked:bg-primary peer-checked:border-primary peer-checked:text-primary-ink',
+            'peer-disabled:cursor-not-allowed peer-disabled:opacity-50 cursor-pointer shadow-sm',
             className
           )}
         >
@@ -53,4 +53,3 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
   }
 );
 Checkbox.displayName = 'Checkbox';
-

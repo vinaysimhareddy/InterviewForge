@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Sparkles,
   Clock,
   Sun,
   Moon,
@@ -49,32 +48,37 @@ export function InterviewTopBar({
 
   return (
     <>
-      <header className="w-full border-b border-border/80 bg-background/80 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 h-14 flex items-center justify-between transition-colors">
-        {/* Left: Brand logo & Candidate Role */}
+      <header className="w-full border-b border-[#E3DED2]/15 bg-[#0A2E24]/85 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 h-14 flex items-center justify-between text-[#FBFAF6] transition-colors">
+        {/* Left: Wordmark in cream & Candidate Role */}
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-8 w-8 rounded-xl bg-primary/15 border border-primary/30 flex items-center justify-center text-primary shrink-0">
-            <Sparkles className="h-4 w-4" />
-          </div>
-          <div className="flex items-center gap-2 truncate">
-            <span className="font-semibold text-sm text-foreground tracking-tight hidden sm:inline">
-              {interviewerName}
+          <div className="flex items-center gap-2">
+            <span className="font-display font-semibold tracking-tight text-[#FBFAF6] text-base">
+              AdaptiveMock
             </span>
-            <span className="text-muted-foreground hidden sm:inline">•</span>
-            <span className="text-xs font-medium text-foreground truncate">
+            <span className="text-[#E3DED2]/40 hidden sm:inline">•</span>
+            <span className="font-mono text-[11px] text-mint uppercase tracking-wider hidden sm:inline">
+              LIVE STAGE
+            </span>
+          </div>
+          <span className="text-[#E3DED2]/30 hidden md:inline">|</span>
+          <div className="flex items-center gap-1.5 truncate text-xs text-[#E3DED2]/90">
+            <span className="hidden lg:inline text-[#E3DED2]/70">{interviewerName}</span>
+            <span className="text-[#E3DED2]/40 hidden lg:inline">•</span>
+            <span className="font-medium truncate">
               {seniority} {role}
             </span>
           </div>
         </div>
 
         {/* Center / Right: Timer & Indicators */}
-        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
           {/* Remaining-time timer */}
           {showTimer && (
             <div
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium transition-colors ${
                 isLowTime
-                  ? 'bg-rose-500/15 border border-rose-500/30 text-rose-400 animate-pulse'
-                  : 'bg-muted/60 border border-border text-foreground'
+                  ? 'bg-accent/25 border border-accent/40 text-accent-soft animate-pulse'
+                  : 'bg-[#0F4A3A]/70 border border-[#E3DED2]/20 text-[#FBFAF6]'
               }`}
               title="Time remaining in current interview session"
             >
@@ -96,18 +100,18 @@ export function InterviewTopBar({
             side="bottom"
           >
             <div
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/60 border border-border text-xs cursor-help select-none"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0F4A3A]/50 border border-[#E3DED2]/15 text-xs cursor-help select-none"
               tabIndex={0}
               aria-label="Camera and microphone active status: Privacy protected"
             >
               <span
                 className={`h-2 w-2 rounded-full ${
                   cameraActive && micActive
-                    ? 'bg-emerald-500 animate-pulse'
+                    ? 'bg-mint animate-pulse'
                     : 'bg-amber-400'
                 }`}
               />
-              <span className="text-muted-foreground text-[11px] font-medium hidden md:inline">
+              <span className="text-[#E3DED2]/80 text-[11px] font-medium hidden md:inline">
                 Camera & mic active: monitoring posture & eye contact
               </span>
             </div>
@@ -118,7 +122,7 @@ export function InterviewTopBar({
             variant="ghost"
             size="sm"
             onClick={toggleTheme}
-            className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-foreground"
+            className="h-8 w-8 p-0 rounded-full text-[#E3DED2]/80 hover:text-white hover:bg-white/10"
             title={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
             aria-label="Toggle visual theme"
           >
@@ -135,7 +139,7 @@ export function InterviewTopBar({
               variant="ghost"
               size="sm"
               onClick={() => setShowConfirmEnd(true)}
-              className="h-8 px-2.5 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full"
+              className="h-8 px-2.5 text-xs text-[#E3DED2]/80 hover:text-accent-soft hover:bg-accent/20 rounded-full"
             >
               <LogOut className="h-3.5 w-3.5 mr-1" />
               <span className="hidden sm:inline">End interview</span>
@@ -150,18 +154,18 @@ export function InterviewTopBar({
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="confirm-end-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A2E24]/80 backdrop-blur-md animate-in fade-in"
         >
-          <div className="w-full max-w-md rounded-2xl bg-card border border-border p-6 shadow-2xl space-y-4">
+          <div className="w-full max-w-md rounded-2xl bg-card border border-card-border p-6 shadow-soft space-y-4 text-text">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/15 border border-destructive/30 flex items-center justify-center text-destructive shrink-0">
+              <div className="h-10 w-10 rounded-xl bg-peach border border-accent/25 flex items-center justify-center text-accent shrink-0">
                 <AlertCircle className="h-5 w-5" />
               </div>
               <div>
-                <h3 id="confirm-end-title" className="text-base font-bold text-foreground">
+                <h3 id="confirm-end-title" className="text-base font-display font-semibold text-text">
                   Conclude Interview Session?
                 </h3>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-text-muted mt-0.5">
                   Your responses so far will be evaluated and saved into your final scorecard.
                 </p>
               </div>
@@ -172,7 +176,7 @@ export function InterviewTopBar({
                 variant="outline"
                 size="sm"
                 onClick={() => setShowConfirmEnd(false)}
-                className="rounded-full"
+                className="rounded-full border-card-border text-text hover:bg-bg-subtle"
               >
                 Continue Interview
               </Button>
@@ -183,7 +187,7 @@ export function InterviewTopBar({
                   setShowConfirmEnd(false);
                   onEndInterview?.();
                 }}
-                className="rounded-full"
+                className="rounded-full bg-accent hover:bg-accent/90 text-primary-ink"
               >
                 Conclude Now
               </Button>

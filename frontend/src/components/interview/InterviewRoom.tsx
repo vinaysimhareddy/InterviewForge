@@ -759,7 +759,7 @@ export function InterviewRoom({
   // Screen 1: Interview Aborted Screen
   if (roomPhase === 'aborted') {
     return (
-      <div className="min-h-screen w-full flex flex-col bg-background text-foreground">
+      <div className="min-h-screen w-full flex flex-col bg-bg text-text">
         <InterviewAborted
           role={session.role}
           seniority={session.seniority}
@@ -774,7 +774,7 @@ export function InterviewRoom({
   // Screen 2: Interview Complete (Preliminary Handoff Screen)
   if (roomPhase === 'complete') {
     return (
-      <div className="min-h-screen w-full flex flex-col bg-background text-foreground">
+      <div className="min-h-screen w-full flex flex-col bg-bg text-text">
         <InterviewComplete
           role={session.role}
           seniority={session.seniority}
@@ -792,7 +792,7 @@ export function InterviewRoom({
   // Screen 3: Detailed Executive Scorecard Screen
   if (roomPhase === 'scorecard' && finalReport) {
     return (
-      <div className="min-h-screen w-full flex flex-col bg-background text-foreground">
+      <div className="min-h-screen w-full flex flex-col bg-bg text-text">
         <ExecutiveScorecard
           session={session}
           report={finalReport}
@@ -806,15 +806,30 @@ export function InterviewRoom({
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-background text-foreground transition-colors selection:bg-primary/20">
+    <div
+      className="min-h-screen w-full flex flex-col text-[#FBFAF6] transition-colors relative selection:bg-mint/20 overflow-x-hidden"
+      style={{
+        background: 'linear-gradient(135deg, var(--deep-1), var(--deep-2))',
+      }}
+    >
+      {/* Subtle radial highlight centered behind the interviewer orb */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-40"
+        style={{
+          background:
+            'radial-gradient(circle at 50% 35%, rgba(227, 239, 232, 0.15) 0%, rgba(15, 74, 58, 0.05) 50%, transparent 70%)',
+        }}
+        aria-hidden="true"
+      />
+
       {/* Wrap-up overlay while interviewer speaks closing line (§3.7) */}
       {roomPhase === 'wrapping_up' && (
-        <div className="fixed inset-0 z-50 bg-background/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center space-y-4 animate-in fade-in duration-500">
-          <div className="h-16 w-16 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
-            <Sparkles className="h-8 w-8 animate-pulse text-primary" />
+        <div className="fixed inset-0 z-50 bg-[#0A2E24]/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center space-y-4 animate-in fade-in duration-500 text-[#FBFAF6]">
+          <div className="h-16 w-16 rounded-full bg-mint/15 border border-mint/30 flex items-center justify-center text-mint">
+            <Sparkles className="h-8 w-8 animate-pulse text-mint" />
           </div>
-          <h2 className="text-2xl font-bold text-foreground tracking-tight">Concluding Interview</h2>
-          <p className="text-sm text-muted-foreground max-w-md">
+          <h2 className="text-2xl font-display font-medium text-[#FBFAF6] tracking-tight">Concluding Interview</h2>
+          <p className="text-sm text-[#E3DED2]/80 max-w-md">
             "That concludes our interview today. Thank you for your time and thoughtful responses."
           </p>
         </div>
@@ -840,7 +855,7 @@ export function InterviewRoom({
       />
 
       {/* Main Immersive Interview Stage */}
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 flex flex-col items-center justify-center relative select-none">
+      <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 flex flex-col items-center justify-center relative select-none z-10">
         {/* Error notification if any */}
         {errorMessage && (
           <div className="absolute top-4 left-4 right-4 max-w-lg mx-auto p-3 rounded-xl bg-destructive/15 border border-destructive/30 text-destructive text-xs text-center z-20">
@@ -866,11 +881,11 @@ export function InterviewRoom({
 
           {/* Subtle State Hint */}
           <div className="flex flex-col items-center justify-center gap-2 pt-2">
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted/40 border border-border/50 text-xs text-muted-foreground font-medium transition-all">
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#0F4A3A]/60 border border-[#E3DED2]/15 text-xs text-[#E3DED2]/80 font-mono transition-all">
               {noSpeechRemaining !== null && (
                 <div className="relative w-4 h-4 flex items-center justify-center">
-                  <div className="absolute inset-0 rounded-full border border-amber-400/40 animate-ping" />
-                  <div className="w-2 h-2 rounded-full bg-amber-400" />
+                  <div className="absolute inset-0 rounded-full border border-accent/40 animate-ping" />
+                  <div className="w-2 h-2 rounded-full bg-accent" />
                 </div>
               )}
               <span>{stateHint}</span>
@@ -901,35 +916,35 @@ export function InterviewRoom({
 
         {/* Developer HUD: ONLY rendered if ?debug=1 is present in URL */}
         {isDebugMode && (
-          <div className="fixed top-16 right-4 z-50 w-80 p-3 rounded-2xl bg-card/95 border border-border shadow-2xl backdrop-blur-md text-xs space-y-2 animate-in fade-in">
-            <div className="flex items-center justify-between pb-1.5 border-b border-border font-mono">
-              <span className="font-bold text-foreground">DEBUG TELEMETRY HUD</span>
-              <span className="text-emerald-400">{ackedPacketCount} acked</span>
+          <div className="fixed top-16 right-4 z-50 w-80 p-3 rounded-2xl bg-[#0A2E24]/95 border border-[#E3DED2]/20 shadow-2xl backdrop-blur-md text-xs space-y-2 animate-in fade-in text-[#FBFAF6]">
+            <div className="flex items-center justify-between pb-1.5 border-b border-[#E3DED2]/15 font-mono">
+              <span className="font-bold text-[#FBFAF6]">DEBUG TELEMETRY HUD</span>
+              <span className="text-mint">{ackedPacketCount} acked</span>
             </div>
             <div className="grid grid-cols-2 gap-2 font-mono text-[11px]">
-              <div className="p-1.5 rounded bg-muted/40">
-                <span className="text-muted-foreground block">FPS</span>
-                <span className="font-bold text-foreground">{latestMetrics.fps}</span>
+              <div className="p-1.5 rounded bg-white/5 border border-white/5">
+                <span className="text-[#E3DED2]/60 block">FPS</span>
+                <span className="font-bold text-[#FBFAF6]">{latestMetrics.fps}</span>
               </div>
-              <div className="p-1.5 rounded bg-muted/40">
-                <span className="text-muted-foreground block">Eye Contact</span>
-                <span className="font-bold text-foreground">
+              <div className="p-1.5 rounded bg-white/5 border border-white/5">
+                <span className="text-[#E3DED2]/60 block">Eye Contact</span>
+                <span className="font-bold text-[#FBFAF6]">
                   {latestMetrics.eyeContactRatio !== null
                     ? `${Math.round(latestMetrics.eyeContactRatio * 100)}%`
                     : '—'}
                 </span>
               </div>
-              <div className="p-1.5 rounded bg-muted/40">
-                <span className="text-muted-foreground block">Posture</span>
-                <span className="font-bold text-foreground">
+              <div className="p-1.5 rounded bg-white/5 border border-white/5">
+                <span className="text-[#E3DED2]/60 block">Posture</span>
+                <span className="font-bold text-[#FBFAF6]">
                   {latestMetrics.postureScore !== null
                     ? `${Math.round(latestMetrics.postureScore * 100)}%`
                     : '—'}
                 </span>
               </div>
-              <div className="p-1.5 rounded bg-muted/40">
-                <span className="text-muted-foreground block">Face Present</span>
-                <span className={`font-bold ${latestMetrics.facePresent ? 'text-emerald-400' : 'text-amber-400'}`}>
+              <div className="p-1.5 rounded bg-white/5 border border-white/5">
+                <span className="text-[#E3DED2]/60 block">Face Present</span>
+                <span className={`font-bold ${latestMetrics.facePresent ? 'text-mint' : 'text-accent-soft'}`}>
                   {latestMetrics.facePresent ? 'True' : 'False'}
                 </span>
               </div>
@@ -940,15 +955,15 @@ export function InterviewRoom({
       </main>
 
       {/* Bottom Bar Controls */}
-      <footer className="w-full border-t border-border/80 bg-background/80 backdrop-blur-md px-4 sm:px-6 h-16 flex items-center justify-between relative z-30">
+      <footer className="w-full border-t border-[#E3DED2]/15 bg-[#0A2E24]/85 backdrop-blur-md px-4 sm:px-6 h-16 flex items-center justify-between text-[#FBFAF6] relative z-30">
         {/* Left: Self-View Toggle and Accessibility Captions Toggle */}
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowSelfView((prev) => !prev)}
-            className={`h-9 px-3 text-xs font-medium gap-1.5 rounded-full border border-border/60 ${
-              showSelfView ? 'bg-primary/15 text-primary border-primary/40' : 'text-muted-foreground hover:text-foreground'
+            className={`h-9 px-3 text-xs font-medium gap-1.5 rounded-full border border-[#E3DED2]/20 ${
+              showSelfView ? 'bg-mint/20 text-mint border-mint/40' : 'text-[#E3DED2]/80 hover:text-white hover:bg-white/10'
             }`}
           >
             <Video className="h-4 w-4" />
@@ -965,8 +980,8 @@ export function InterviewRoom({
                 return next;
               });
             }}
-            className={`h-9 px-3 text-xs font-medium gap-1.5 rounded-full border border-border/60 ${
-              showCandidateCaptions ? 'bg-primary/15 text-primary border-primary/40' : 'text-muted-foreground hover:text-foreground'
+            className={`h-9 px-3 text-xs font-medium gap-1.5 rounded-full border border-[#E3DED2]/20 ${
+              showCandidateCaptions ? 'bg-mint/20 text-mint border-mint/40' : 'text-[#E3DED2]/80 hover:text-white hover:bg-white/10'
             }`}
             title="Toggle candidate real-time speech transcript"
           >
@@ -981,8 +996,8 @@ export function InterviewRoom({
           <div
             className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all duration-200 select-none ${
               isCandidateSpeaking
-                ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.25)]'
-                : 'bg-muted/40 border-border/60 text-muted-foreground'
+                ? 'bg-mint/20 border-mint/40 text-mint shadow-[0_0_12px_rgba(227,239,232,0.25)]'
+                : 'bg-[#0F4A3A]/60 border-[#E3DED2]/20 text-[#E3DED2]/80'
             }`}
             title={isCandidateSpeaking ? 'Speaking: Mic detecting voice' : 'Mic listening'}
           >
@@ -993,10 +1008,10 @@ export function InterviewRoom({
                   key={i}
                   className={`w-0.5 rounded-full transition-all duration-75 ${
                     audioLevel >= threshold
-                      ? 'bg-emerald-400 h-3'
+                      ? 'bg-mint h-3'
                       : audioLevel >= threshold * 0.5
-                      ? 'bg-primary h-2'
-                      : 'bg-muted-foreground/30 h-1'
+                      ? 'bg-mint/60 h-2'
+                      : 'bg-[#E3DED2]/30 h-1'
                   }`}
                 />
               ))}
@@ -1008,12 +1023,12 @@ export function InterviewRoom({
             variant="outline"
             size="sm"
             onClick={() => setIsUserPaused((prev) => !prev)}
-            className="h-9 px-3.5 text-xs font-medium gap-1.5 rounded-full border-border/80 hover:bg-muted/60"
+            className="h-9 px-3.5 text-xs font-medium gap-1.5 rounded-full border-[#E3DED2]/20 bg-[#0F4A3A]/50 text-[#FBFAF6] hover:bg-white/10"
             title="Pause or resume the interview session (Spacebar)"
           >
             {isUserPaused ? (
               <>
-                <Play className="h-3.5 w-3.5 fill-current" />
+                <Play className="h-3.5 w-3.5 fill-current text-mint" />
                 <span>Resume</span>
               </>
             ) : (
@@ -1036,7 +1051,7 @@ export function InterviewRoom({
               }
               setIsHelpDrawerOpen(true);
             }}
-            className="h-9 px-3 text-xs font-medium gap-1.5 text-muted-foreground hover:text-foreground rounded-full border border-border/60 hover:bg-muted/60"
+            className="h-9 px-3 text-xs font-medium gap-1.5 text-[#E3DED2]/80 hover:text-white rounded-full border border-[#E3DED2]/20 hover:bg-white/10"
           >
             <HelpCircle className="h-4 w-4" />
             <span className="hidden sm:inline">Having trouble?</span>
@@ -1046,23 +1061,23 @@ export function InterviewRoom({
 
       {/* Floating Picture-in-Picture Self-View Thumbnail */}
       {showSelfView && (
-        <div className="fixed bottom-20 left-6 z-40 w-56 sm:w-64 rounded-2xl bg-card/95 border border-border shadow-2xl p-2.5 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4">
-          <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-border">
+        <div className="fixed bottom-20 left-6 z-40 w-56 sm:w-64 rounded-2xl bg-[#0A2E24]/95 border border-[#E3DED2]/20 text-[#FBFAF6] shadow-2xl p-2.5 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4">
+          <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-[#E3DED2]/15">
             <div className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs font-semibold text-foreground">Self-View</span>
+              <span className="h-2 w-2 rounded-full bg-mint animate-pulse" />
+              <span className="text-xs font-semibold text-[#FBFAF6]">Self-View</span>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowSelfView(false)}
-              className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground"
+              className="h-5 w-5 p-0 text-[#E3DED2]/70 hover:text-white"
               title="Hide Self-View"
             >
               <X className="h-3 w-3" />
             </Button>
           </div>
-          <div className="relative aspect-video w-full rounded-xl bg-muted overflow-hidden border border-border">
+          <div className="relative aspect-video w-full rounded-xl bg-black/40 overflow-hidden border border-[#E3DED2]/15">
             <video
               ref={selfViewVideoRef}
               playsInline
@@ -1071,7 +1086,7 @@ export function InterviewRoom({
               className="w-full h-full object-cover transform -scale-x-100"
             />
           </div>
-          <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
+          <p className="text-[10px] text-[#E3DED2]/60 mt-1.5 text-center font-mono">
             On-device local processing • Not recorded
           </p>
         </div>

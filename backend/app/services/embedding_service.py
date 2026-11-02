@@ -119,6 +119,7 @@ class EmbeddingService:
         # Use deterministic mock embedding in test mode or if provider credentials are not configured
         is_test_env = bool(
             os.environ.get("PYTEST_CURRENT_TEST")
+            or os.environ.get("EVAL_BENCHMARK_FAST") == "1"
             or self.settings.ENVIRONMENT == "test"
             or os.environ.get("MOCK_EMBEDDINGS") == "1"
         )
@@ -142,6 +143,20 @@ class EmbeddingService:
                     )
                     return [_deterministic_mock_embedding(t, self._dimensions) for t in texts]
             except Exception as exc:
+                err_msg = str(exc).lower()
+                if (
+                    "insufficient_quota" in err_msg
+                    or "credit_balance_exhausted" in err_msg
+                    or "invalid_api_key" in err_msg
+                    or "not found" in err_msg
+                    or "connection error" in err_msg
+                ):
+                    logger.warning(
+                        "Embedding API quota/key/connection error: %s. Using deterministic fallback immediately.",
+                        exc,
+                    )
+                    return [_deterministic_mock_embedding(t, self._dimensions) for t in texts]
+
                 if attempt == max_attempts:
                     logger.error(
                         "Embedding call failed after %d attempts: %s. Using deterministic fallback.",

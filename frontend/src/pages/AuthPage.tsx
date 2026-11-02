@@ -5,9 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/AuthContext';
 
-export default function AuthPage(): React.ReactElement {
+interface AuthPageProps {
+  initialMode?: 'login' | 'register';
+}
+
+export default function AuthPage({ initialMode }: AuthPageProps = {}): React.ReactElement {
   const { login, register, error, clearError, isLoading } = useAuth();
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register'>(
+    initialMode || (typeof window !== 'undefined' && window.location.pathname.includes('register') ? 'register' : 'login')
+  );
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
@@ -38,6 +44,9 @@ export default function AuthPage(): React.ReactElement {
       } else {
         await register(email, fullName, password);
       }
+      const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+      const redirect = params?.get('redirect') || '/app/dashboard';
+      window.location.href = redirect;
     } catch {
       // Error handled by AuthContext
     }
@@ -52,29 +61,30 @@ export default function AuthPage(): React.ReactElement {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto my-auto py-10 px-4">
-      <Card className="border-slate-800 bg-slate-900/90 shadow-2xl backdrop-blur-xl">
-        <CardHeader className="space-y-3 pb-6">
+    <div className="w-full max-w-md mx-auto my-auto py-8 px-4">
+      <Card className="card-editorial border-card-border bg-card shadow-card">
+        <CardHeader className="space-y-4 pb-6">
           <div className="flex items-center justify-between">
-            <div className="p-2.5 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400">
-              <Shield className="h-6 w-6" />
+            <div className="h-11 w-11 rounded-xl bg-mint flex items-center justify-center text-primary shadow-sm">
+              <Shield className="h-5 w-5" />
             </div>
-            <Badge variant="outline" className="border-indigo-500/30 text-indigo-300 bg-indigo-950/40">
-              Argon2id + JWT
-            </Badge>
+            <Badge variant="mono">ARGON2ID + JWT</Badge>
           </div>
-          <div>
-            <CardTitle className="text-2xl font-bold text-white tracking-tight">
+
+          <div className="space-y-1">
+            <div className="label-mono">01 // CANDIDATE ACCESS</div>
+            <CardTitle className="font-display text-2xl sm:text-3xl text-text font-semibold tracking-tight">
               {mode === 'login' ? 'Candidate Sign In' : 'Create Candidate Account'}
             </CardTitle>
-            <CardDescription className="text-slate-400 mt-1">
+            <CardDescription className="text-text-muted text-xs sm:text-sm">
               {mode === 'login'
                 ? 'Enter your credentials to access your mock interview dashboard'
                 : 'Register to start live adaptive AI mock interviews'}
             </CardDescription>
           </div>
 
-          <div className="grid grid-cols-2 p-1 bg-slate-950/60 rounded-lg border border-slate-800">
+          {/* Mode Switcher Tabs */}
+          <div className="grid grid-cols-2 p-1 bg-bg-subtle rounded-lg border border-card-border gap-1">
             <button
               type="button"
               onClick={() => {
@@ -82,10 +92,10 @@ export default function AuthPage(): React.ReactElement {
                 clearError();
                 setLocalValidation(null);
               }}
-              className={`py-2 text-xs font-semibold rounded-md transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-2 text-xs font-medium rounded-md transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 mode === 'login'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-primary text-primary-ink shadow-sm'
+                  : 'text-text-muted hover:text-text hover:bg-card/60'
               }`}
             >
               <LogIn className="h-3.5 w-3.5" />
@@ -98,10 +108,10 @@ export default function AuthPage(): React.ReactElement {
                 clearError();
                 setLocalValidation(null);
               }}
-              className={`py-2 text-xs font-semibold rounded-md transition-all flex items-center justify-center gap-1.5 ${
+              className={`py-2 text-xs font-medium rounded-md transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 mode === 'register'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-primary text-primary-ink shadow-sm'
+                  : 'text-text-muted hover:text-text hover:bg-card/60'
               }`}
             >
               <UserPlus className="h-3.5 w-3.5" />
@@ -113,42 +123,48 @@ export default function AuthPage(): React.ReactElement {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {(error || localValidation) && (
-              <div className="p-3.5 rounded-lg bg-rose-950/60 border border-rose-800/80 text-rose-200 text-xs flex items-start gap-2.5 animate-in fade-in">
-                <AlertCircle className="h-4 w-4 text-rose-400 shrink-0 mt-0.5" />
+              <div className="p-3.5 rounded-lg bg-danger/10 border border-danger/25 text-danger text-xs flex items-start gap-2.5 animate-in fade-in">
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>{localValidation || error}</span>
               </div>
             )}
 
             {mode === 'register' && (
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-300">Full Name</label>
+                <label className="text-xs font-mono uppercase tracking-wider text-text font-medium">
+                  Full Name
+                </label>
                 <input
                   type="text"
                   placeholder="e.g. Alex Mercer"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   autoComplete="name"
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-slate-950/80 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-md bg-bg-subtle border border-card-border text-sm text-text placeholder:text-text-faint focus:bg-card focus:border-primary/50 focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all"
                   required
                 />
               </div>
             )}
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-300">Email Address</label>
+              <label className="text-xs font-mono uppercase tracking-wider text-text font-medium">
+                Email Address
+              </label>
               <input
                 type="email"
                 placeholder="name@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
-                className="w-full px-3.5 py-2.5 rounded-lg bg-slate-950/80 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                className="w-full px-3.5 py-2.5 rounded-md bg-bg-subtle border border-card-border text-sm text-text placeholder:text-text-faint focus:bg-card focus:border-primary/50 focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all"
                 required
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-300">Password</label>
+              <label className="text-xs font-mono uppercase tracking-wider text-text font-medium">
+                Password
+              </label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -156,13 +172,14 @@ export default function AuthPage(): React.ReactElement {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-                  className="w-full px-3.5 py-2.5 pr-10 rounded-lg bg-slate-950/80 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  className="w-full px-3.5 py-2.5 pr-10 rounded-md bg-bg-subtle border border-card-border text-sm text-text placeholder:text-text-faint focus:bg-card focus:border-primary/50 focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-faint hover:text-text transition-colors cursor-pointer"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -172,11 +189,11 @@ export default function AuthPage(): React.ReactElement {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg shadow-lg shadow-indigo-600/25 mt-2"
+              className="w-full h-11 bg-primary hover:bg-primary-hover text-primary-ink font-semibold rounded-md shadow-sm mt-2 transition-all"
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
-                  <span className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  <span className="h-4 w-4 border-2 border-primary-ink/20 border-t-primary-ink rounded-full animate-spin" />
                   Processing...
                 </span>
               ) : mode === 'login' ? (
@@ -186,15 +203,15 @@ export default function AuthPage(): React.ReactElement {
               )}
             </Button>
 
-            <div className="pt-2 border-t border-slate-800/80">
+            <div className="pt-2 border-t border-card-border">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={fillDemoCandidate}
-                className="w-full text-xs text-indigo-300 border-dashed border-indigo-800/60 bg-indigo-950/20 hover:bg-indigo-900/30"
+                className="w-full text-xs text-primary border-dashed border-card-border hover:bg-bg-subtle"
               >
-                <Sparkles className="h-3.5 w-3.5 mr-1.5 text-indigo-400" />
+                <Sparkles className="h-3.5 w-3.5 mr-1.5 text-accent" />
                 Fill Demo Candidate Credentials
               </Button>
             </div>

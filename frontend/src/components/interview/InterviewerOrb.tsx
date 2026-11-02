@@ -39,14 +39,14 @@ export function InterviewerOrb({
           height: '260px',
           background:
             state === 'speaking'
-              ? 'radial-gradient(circle, rgba(99, 102, 241, 0.45) 0%, rgba(139, 92, 246, 0.25) 50%, transparent 70%)'
+              ? 'radial-gradient(circle, rgba(31, 122, 85, 0.45) 0%, rgba(15, 74, 58, 0.25) 50%, transparent 70%)'
               : state === 'listening'
               ? isCandidateSpeaking
-                ? 'radial-gradient(circle, rgba(16, 185, 129, 0.4) 0%, rgba(59, 130, 246, 0.2) 50%, transparent 70%)'
-                : 'radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, rgba(59, 130, 246, 0.15) 50%, transparent 70%)'
+                ? 'radial-gradient(circle, rgba(52, 211, 153, 0.40) 0%, rgba(31, 122, 85, 0.25) 50%, transparent 70%)'
+                : 'radial-gradient(circle, rgba(31, 122, 85, 0.25) 0%, rgba(10, 46, 36, 0.15) 50%, transparent 70%)'
               : state === 'thinking'
-              ? 'radial-gradient(circle, rgba(168, 85, 247, 0.35) 0%, rgba(99, 102, 241, 0.2) 50%, transparent 70%)'
-              : 'radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%)',
+              ? 'radial-gradient(circle, rgba(227, 239, 232, 0.30) 0%, rgba(31, 122, 85, 0.20) 50%, transparent 70%)'
+              : 'radial-gradient(circle, rgba(15, 74, 58, 0.25) 0%, transparent 70%)',
           transform: !prefersReducedMotion && (state === 'speaking' || isCandidateSpeaking)
             ? `scale(${audioScale})`
             : 'scale(1)',
@@ -55,9 +55,9 @@ export function InterviewerOrb({
 
       {/* Orbiting particles for 'thinking' state */}
       {state === 'thinking' && !prefersReducedMotion && (
-        <div className="absolute w-44 h-44 rounded-full border border-indigo-400/20 animate-spin" style={{ animationDuration: '6s' }}>
-          <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-indigo-400 shadow-[0_0_12px_rgba(129,140,248,0.9)]" />
-          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.8)]" />
+        <div className="absolute w-44 h-44 rounded-full border border-mint/20 animate-spin" style={{ animationDuration: '6s' }}>
+          <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-mint shadow-[0_0_12px_rgba(227,239,232,0.9)]" />
+          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-sand shadow-[0_0_8px_rgba(240,233,216,0.8)]" />
         </div>
       )}
 
@@ -66,10 +66,10 @@ export function InterviewerOrb({
         <div
           className={`absolute rounded-full border transition-all duration-300 pointer-events-none ${
             state === 'speaking'
-              ? 'w-40 h-40 border-indigo-400/40 animate-ping'
+              ? 'w-40 h-40 border-mint/40 animate-ping'
               : state === 'listening' && isCandidateSpeaking
               ? 'w-36 h-36 border-emerald-400/50'
-              : 'w-36 h-36 border-indigo-500/20'
+              : 'w-36 h-36 border-mint/20'
           }`}
           style={{
             animationDuration: state === 'speaking' ? '2s' : undefined,
@@ -80,7 +80,7 @@ export function InterviewerOrb({
 
       {/* Breathing ring for listening/idle */}
       {!prefersReducedMotion && state === 'listening' && (
-        <div className="absolute w-32 h-32 rounded-full border border-indigo-400/30 animate-pulse pointer-events-none" />
+        <div className="absolute w-32 h-32 rounded-full border border-mint/30 animate-pulse pointer-events-none" />
       )}
 
       {/* Core Orb Body */}
@@ -94,20 +94,20 @@ export function InterviewerOrb({
             : 'scale(1)',
           background:
             state === 'speaking'
-              ? 'radial-gradient(circle at 35% 35%, #818cf8 0%, #6366f1 45%, #4338ca 85%)'
+              ? 'radial-gradient(circle at 35% 35%, #1F7A55 0%, #0F4A3A 50%, #0A2E24 90%)'
               : state === 'listening'
               ? isCandidateSpeaking
-                ? 'radial-gradient(circle at 35% 35%, #34d399 0%, #059669 45%, #047857 85%)'
-                : 'radial-gradient(circle at 35% 35%, #60a5fa 0%, #3b82f6 45%, #1d4ed8 85%)'
+                ? 'radial-gradient(circle at 35% 35%, #34D399 0%, #1F7A55 50%, #0F4A3A 90%)'
+                : 'radial-gradient(circle at 35% 35%, #14503F 0%, #0F4A3A 55%, #0A2E24 95%)'
               : state === 'thinking'
-              ? 'radial-gradient(circle at 35% 35%, #c084fc 0%, #a855f7 45%, #6d28d9 85%)'
-              : 'radial-gradient(circle at 35% 35%, #6366f1 0%, #4f46e5 50%, #312e81 90%)',
+              ? 'radial-gradient(circle at 35% 35%, #2B5C8A 0%, #0F4A3A 50%, #0A2E24 90%)'
+              : 'radial-gradient(circle at 35% 35%, #14503F 0%, #0F4A3A 60%, #0A2E24 95%)',
           boxShadow: `0 0 ${audioGlow}px ${
             state === 'speaking'
-              ? 'rgba(99, 102, 241, 0.6)'
+              ? 'rgba(31, 122, 85, 0.6)'
               : state === 'listening' && isCandidateSpeaking
-              ? 'rgba(16, 185, 129, 0.6)'
-              : 'rgba(99, 102, 241, 0.35)'
+              ? 'rgba(52, 211, 153, 0.6)'
+              : 'rgba(15, 74, 58, 0.4)'
           }`,
         }}
       >

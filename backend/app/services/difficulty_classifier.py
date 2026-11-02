@@ -58,11 +58,14 @@ TIER_INDICATORS = {
         "what is the difference between get and post", "http status codes",
         "what does http 404", "basic sql", "what is a list", "what is a dictionary",
         "git add", "git commit", "let vs const", "what is props",
+        "basics of", "basic syntax", "early-career", "core basics", "how you fixed it",
+        "main purpose", "day-to-day", "simple example", "how do you typically use",
+        "simple unit test", "validate common input errors",
     ],
 }
 
 
-def _classify_heuristic(question_text: str) -> float:
+def _classify_heuristic(question_text: str, target_seniority: Optional[str] = None) -> float:
     """Classify question difficulty using keyword and phrasing heuristics."""
     q_lower = question_text.lower()
 
@@ -93,9 +96,19 @@ def _classify_heuristic(question_text: str) -> float:
     for kw in TIER_INDICATORS[2.0]:
         pattern = r"(?<!\w)" + re.escape(kw) + r"(?!\w)"
         if re.search(pattern, q_lower):
-            return 2.5
+            return 2.0
 
-    # Default to practical Mid-level difficulty
+    # Default based on candidate target seniority level
+    if target_seniority:
+        sen_lower = target_seniority.lower()
+        if "junior" in sen_lower or "entry" in sen_lower:
+            return 1.5
+        elif "senior" in sen_lower:
+            return 3.5
+        elif "staff" in sen_lower or "principal" in sen_lower:
+            return 4.5
+        return 2.5
+
     return 2.5
 
 
@@ -123,14 +136,14 @@ async def classify_difficulty(
                 forbidden_hits.append(forb)
 
     # 2. Estimate numeric difficulty tier
-    estimated_tier = _classify_heuristic(question_text)
+    estimated_tier = _classify_heuristic(question_text, target_seniority=target_seniority)
 
     # Optional LLM evaluation in live non-test environments if requested
-    if use_llm and not os.environ.get("PYTEST_CURRENT_TEST") and settings.GOOGLE_API_KEY:
+    if use_llm and not os.environ.get("PYTEST_CURRENT_TEST") and not os.environ.get("EVAL_BENCHMARK_FAST") and settings.GOOGLE_API_KEY:
         try:
             from langchain_google_genai import ChatGoogleGenerativeAI
             llm = ChatGoogleGenerativeAI(
-                model="gemini-2.5-flash",
+                model="gemini-1.5-flash",
                 google_api_key=settings.GOOGLE_API_KEY,
                 temperature=0.0,
             )

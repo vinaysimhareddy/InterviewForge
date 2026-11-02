@@ -57,62 +57,62 @@ export function InterviewAborted({
 
   return (
     <div className="min-h-[80vh] w-full flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
-      <Card className="w-full max-w-xl border-border bg-card/95 shadow-2xl backdrop-blur-xl rounded-3xl overflow-hidden border">
-        {/* Subtle accent top border */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-amber-500 via-rose-500 to-amber-500" />
+      <Card className="w-full max-w-xl border-card-border bg-card shadow-soft rounded-3xl overflow-hidden border">
+        {/* Subtle accent top hairline */}
+        <div className="h-1 w-full bg-accent" />
 
         <CardContent className="p-6 sm:p-10 flex flex-col items-center text-center space-y-6">
           {/* Status Icon */}
-          <div className="h-20 w-20 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-inner">
-            <ShieldAlert className="h-10 w-10 text-amber-400 stroke-[2.2]" />
+          <div className="h-16 w-16 rounded-2xl bg-peach border border-accent/25 flex items-center justify-center text-accent shadow-sm">
+            <ShieldAlert className="h-8 w-8 stroke-[2.2]" />
           </div>
 
           {/* Heading */}
           <div className="space-y-2">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            <h1 className="text-2xl sm:text-3xl font-display font-medium tracking-tight text-text">
               Interview Ended
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto leading-relaxed">
+            <p className="text-sm sm:text-base text-text-muted max-w-md mx-auto leading-relaxed">
               {details.title}
             </p>
           </div>
 
           {/* Session Info Pill */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-muted/60 border border-border text-xs text-muted-foreground font-medium">
-            <span className="h-2 w-2 rounded-full bg-amber-400" />
-            <span>Target Role:</span>
-            <span className="text-foreground font-semibold">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-bg-subtle border border-card-border text-xs text-text-muted font-medium">
+            <span className="h-2 w-2 rounded-full bg-accent" />
+            <span className="font-mono text-[11px] uppercase tracking-wider">Target Track:</span>
+            <span className="text-text font-semibold">
               {seniority} {role}
             </span>
           </div>
 
           {/* Specific Reason & Advice Card */}
-          <div className="w-full p-4 sm:p-5 rounded-2xl bg-amber-950/20 border border-amber-900/40 text-left space-y-3">
+          <div className="w-full p-4 sm:p-5 rounded-2xl bg-peach/25 border border-accent/20 text-left space-y-3">
             <div className="flex items-start gap-2.5">
-              <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+              <AlertTriangle className="h-4 w-4 text-accent shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <span className="text-xs font-semibold text-amber-300 block">
+                <span className="text-xs font-semibold text-accent block">
                   Why this happened:
                 </span>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-xs text-text-muted leading-relaxed">
                   {details.description}
                 </p>
               </div>
             </div>
 
-            <div className="pt-2 border-t border-amber-900/40 text-[11px] text-muted-foreground">
-              <span className="text-amber-300 font-medium mr-1.5">Tip for next session:</span>
+            <div className="pt-2 border-t border-accent/15 text-[11px] text-text-muted">
+              <span className="text-accent font-medium mr-1.5">Tip for next session:</span>
               <span>{details.tip}</span>
             </div>
           </div>
 
           {/* What Was Saved (§3.7) */}
-          <div className="w-full p-4 rounded-2xl bg-muted/40 border border-border text-left space-y-2">
-            <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+          <div className="w-full p-4 rounded-2xl bg-bg-subtle border border-card-border text-left space-y-2">
+            <div className="flex items-center gap-2 text-xs font-semibold text-text">
+              <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
               <span>What was saved</span>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed pl-6">
+            <p className="text-xs text-text-muted leading-relaxed pl-6">
               All responses, answer transcripts, and biometric telemetry signals recorded prior to this point have been safely stored with your candidate record.
             </p>
           </div>
@@ -121,7 +121,7 @@ export function InterviewAborted({
           <div className="w-full space-y-3 pt-2">
             <Button
               onClick={onReturnHome}
-              className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm rounded-full gap-2 shadow-lg shadow-primary/20 cursor-pointer transition-transform active:scale-[0.99]"
+              className="w-full h-12 bg-primary hover:bg-primary-hover text-primary-ink font-semibold text-sm rounded-full gap-2 shadow-sm cursor-pointer transition-transform active:scale-[0.99]"
             >
               <Home className="h-4 w-4" />
               <span>Back to Dashboard</span>
@@ -131,7 +131,7 @@ export function InterviewAborted({
               <Button
                 variant="outline"
                 onClick={onRestartSession}
-                className="w-full h-11 border-border bg-card hover:bg-muted/40 text-foreground font-medium text-xs rounded-full gap-2 cursor-pointer"
+                className="w-full h-11 border-card-border bg-card hover:bg-bg-subtle text-text font-medium text-xs rounded-full gap-2 cursor-pointer"
               >
                 <RotateCcw className="h-3.5 w-3.5 text-primary" />
                 <span>Start New Interview Session</span>
@@ -140,7 +140,7 @@ export function InterviewAborted({
           </div>
 
           {/* Calming reassurance */}
-          <p className="text-[11px] text-muted-foreground/80 flex items-center justify-center gap-1.5 pt-1">
+          <p className="text-[11px] text-text-muted flex items-center justify-center gap-1.5 pt-1">
             <Sparkles className="h-3 w-3 text-primary/70" />
             <span>You can practice or restart interviews as many times as you like.</span>
           </p>

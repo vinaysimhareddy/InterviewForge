@@ -1,0 +1,163 @@
+<USER_REQUEST>
+PROMPT: RESTYLE THE WHOLE APP (COLORS, BACKGROUNDS, TYPOGRAPHY) + BUILD A PUBLIC LANDING PAGE
+0. HOW YOU MUST WORK
+This is a visual redesign + one new public page. Do NOT change features, logic, APIs, data models, MongoDB code, the voice/interview flow, face policy, RAG, or tests' intent. Only presentation changes (colors, gradients, backgrounds, typography, spacing, radii, shadows, layout polish) plus the landing page and routing for it.
+Work in order L1 → L7. After each step: run lint/typecheck/tests, take screenshots at 1440 px and 390 px wide, print L<N> COMPLETE with files changed and the screenshots, then stop and wait for "continue".
+L1 is an audit only. Report what exists before changing code.
+Reference images: two screenshots of a mentor-marketplace site ("InterviewForge") are provided (a landing page and a mentor-profile/booking page). Use them only as a reference for color palette, background treatments, gradients/tints, typography feel, card styling, and overall visual mood. Do not copy: the name, logo, copy text, mentors, photos, testimonials, statistics, pricing, company logos, or marketplace features (mentors, bookings, credits, peer swaps, payments). If the images are not visible to you, say so and ask the user to attach them to the project under design-reference/ before continuing.
+No fake social proof. Do not invent testimonials, user counts, ratings, company logos, "offers received" claims, or partnerships. Use real product facts only, or clearly labelled sample data.
+No TODOs, placeholders, or lorem ipsum. Strict TypeScript. Never log secrets.
+1. DESIGN LANGUAGE (EXTRACTED FROM THE REFERENCE IMAGES)
+
+The reference look is a calm, editorial, "premium-professional" light theme: warm cream page background, off-white cards with hairline borders, a deep forest-green primary, a warm rust/orange accent used sparingly, soft pastel tints for icon tiles, a serif display font for headlines, a clean sans for body, and small uppercase monospace labels with section numbering (e.g. 01 // WHY IT WORKS). A dark forest-green gradient band is used for the final call-to-action and for emphasis surfaces.
+
+1.1 Color tokens (approximate, sampled by eye: verify by sampling the reference images with a color picker and adjust to match)
+css
+:root {
+  /* surfaces */
+  --bg:            #F4F1EA;  /* warm cream page background */
+  --bg-subtle:     #EFEBE2;  /* alternate section / input background */
+  --card:          #FBFAF6;  /* off-white cards */
+  --card-border:   #E3DED2;  /* hairline borders */
+  --muted-surface: #F1EEE6;
+
+  /* text */
+  --text:          #1C2420;  /* near-black with green undertone */
+  --text-muted:    #5F6B64;
+  --text-faint:    #8A948D;
+
+  /* brand */
+  --primary:       #0F4A3A;  /* deep forest green (buttons, selected states) */
+  --primary-hover: #0B3A2D;
+  --primary-ink:   #F4F1EA;  /* text on primary */
+  --deep-1:        #0A2E24;  /* gradient start for dark bands / interview stage */
+  --deep-2:        #14503F;  /* gradient end */
+
+  /* accent (use sparingly: emphasised word in headline, badges, key numbers) */
+  --accent:        #C2410C;  /* rust / burnt orange */
+  --accent-soft:   #F8E7DC;
+
+  /* tints for icon tiles and badges */
+  --mint:          #E3EFE8;
+  --peach:         #F8E7DC;
+  --sky:           #E4ECF5;
+  --sand:          #F0E9D8;
+
+  /* status */
+  --success:       #1F7A55;
+  --warning:       #B7791F;
+  --danger:        #B42318;
+  --info:          #2B5C8A;
+}
+Backgrounds: page = --bg; alternate sections = --bg-subtle; subtle radial/linear wash behind the hero (e.g. a faint green/cream gradient and a very light paper-like grid or noise at ≤ 4% opacity); dark gradient band = linear-gradient(135deg, var(--deep-1), var(--deep-2)) with a faint radial highlight, used for the final CTA, the footer, and the live interview stage.
+Cards: --card, 1 px --card-border, radius 16 to 20 px, very soft shadow (0 1px 2px rgba(20,30,25,.04), 0 8px 24px rgba(20,30,25,.05)).
+Buttons: primary = solid --primary with --primary-ink text, pill or 12 px radius; secondary = transparent/white with 1 px border; ghost for low emphasis. Focus ring 2 px --primary at 40% opacity.
+Selected states (tabs, chips, slots): --primary background with light text; unselected = --card with border.
+Charts/progress bars: --primary fill on --muted-surface track; warnings use --accent.
+Accessibility: all text/background pairs ≥ WCAG AA (4.5:1 body, 3:1 large). Check --accent text on cream; for small text use a darker variant (
+#A8360A) if needed. Never rely on color alone.
+1.2 Typography
+Display/headings: an elegant serif (choose one: Newsreader, Source Serif 4, or Fraunces). Large, tight leading, optional italic accent word in --accent (like "Real Hiring Committee" in the reference).
+Body/UI: Inter (or system UI fallback).
+Labels/micro text: a monospace (JetBrains Mono or IBM Plex Mono), 11 to 12 px, uppercase, letter-spaced, --text-faint, with section numbering (01 // ...).
+Self-host fonts via @fontsource/* (no external font requests). Define a font-display: swap fallback stack.
+Scale: hero 56 to 64 px desktop / 36 to 40 px mobile; section titles 36 to 44 / 28; body 16 to 18; captions 12 to 13.
+1.3 Components and shapes
+Radius scale: 8 / 12 / 16 / 20 / 9999. Hairline dividers. Generous whitespace (sections padded 80 to 120 px desktop).
+Icon tiles: 40 to 44 px rounded squares with pastel tint backgrounds (--mint, --peach, --sky, --sand) and a darker line icon (lucide-react).
+Badges/pills: small, uppercase mono text on tint backgrounds.
+Remap shadcn/ui CSS variables (--background, --foreground, --card, --primary, --muted, --border, --ring, --destructive, etc.) to these tokens so every shadcn component inherits the theme. Provide the Tailwind config extension mapping tokens to utilities (bg-bg, text-muted, bg-primary, border-card-border, font-display, font-mono-label).
+Motion: 150 to 250 ms eases, subtle fade/slide-up on scroll (Framer Motion), respect prefers-reduced-motion.
+2. LANDING PAGE (PUBLIC, BEFORE LOGIN)
+2.1 Routing
+/ → Landing page (public). /login and /register → auth pages. /app/* (dashboard, setup, interview, report) → protected; unauthenticated users are redirected to /login and returned to their target after login.
+If the user is already logged in, the landing page still shows, with the primary button changed to "Go to dashboard" and the nav showing their avatar/name.
+Add document title, meta description, Open Graph/Twitter tags, a favicon, and robots meta. Include /privacy and /terms simple pages (clear, honest placeholder-free text that reflects how data is actually handled).
+Product name and tagline come from config (VITE_APP_NAME, VITE_APP_TAGLINE), with the logo as an SVG wordmark component.
+2.2 Sections (adapted to THIS product, mirroring the reference's rhythm and visual style)
+Top nav (sticky, blurred cream): logo wordmark; links How it works, Features, Interview tracks, Privacy, FAQ; right side: Sign in (ghost) and Get started free (primary).
+Hero: small mono eyebrow pill ("FREE · VOICE-BASED · ADAPTIVE"); headline in serif with an italic accent word, e.g. "Practice interviews that listen, adapt, and tell you the truth" (write original copy); one-sentence subhead (adaptive voice interview based on your resume and target level, with a detailed scorecard); two buttons: Start practicing free and See how it works (smooth scroll). Under the buttons: three tiny trust facts that are TRUE for this product (e.g. "Voice-to-voice", "Resume-aware questions", "Camera analysis runs in your browser").
+Product preview card (right below or beside the hero): a framed, window-style card (like the reference's whiteboard + scorecard mockup) built from real React components with clearly labelled sample data ("Sample"): left = a mini interview-stage mock (AI orb, a question caption, a live transcript line), right = a scorecard panel (overall score, technical/communication/composure bars, a short verdict). No screenshots of real users.
+"What you can practice" strip (replaces the company logo row): role chips — Frontend, Backend, Full Stack, Data, DevOps/Cloud, Mobile — and level chips — Junior, Mid, Senior, Staff. No third-party company logos.
+Features grid (4 cards, pastel icon tiles, mono labels):
+Adaptive voice interview: each question follows your last answer.
+Resume-aware questions: grounded in your own projects and skills (RAG).
+Level-matched difficulty: Mid stays Mid; no staff-level surprises.
+Private by design: camera analysis runs in your browser; only numbers and text are saved, never video.
+How it works (3 numbered steps with large serif numerals 01 02 03): Upload resume & choose role/level → Check devices & start the voice interview → Get your scorecard & PDF report.
+Interview experience section: short explanation + tabbed or stacked cards (Live voice conversation, Real-time transcript, Camera & integrity checks, Scorecard & PDF), each with a small illustrative component (not a fake screenshot).
+Scorecard section: shows what the report contains (technical depth, communication, composure, integrity verdict, per-question feedback, strengths and growth areas), using the sample scorecard component.
+Privacy & integrity section (honest): what runs on-device, what is stored (text transcripts and numeric signals), that Chrome's speech recognition uses a cloud speech service, how camera checks work and their limits (advisory heuristics, not proof), data deletion on request.
+Pricing/plan: one card: "Free" with the real feature list (no payments in this project). If config SHOW_PRICING=false, hide the section.
+FAQ (accordion, 6 to 8 items): browsers supported (Chrome/Edge), need a webcam and mic, how long an interview takes, what is stored, can I redo, what if the camera drops, is it really free, what AI models are used.
+Final CTA band: the dark forest-green gradient with a faint radial highlight, serif headline, subline, and a cream button "Get started free".
+Footer (dark green): logo, short description, link columns (Product, Privacy, Terms, Contact via config email), copyright line.
+Don't include: testimonials, star ratings, "X users", "offers received", mentor/peer/booking/credits/payment content, company logos, or invented statistics. If a testimonials section is desired later, leave an empty, config-gated component that renders nothing.
+2.3 Behavior and quality
+Fully responsive (360 to 1920 px), mobile nav as a sheet, sticky CTA on small screens optional.
+Lighthouse targets on /: Performance ≥ 90, Accessibility ≥ 95, SEO ≥ 90. Lazy-load below-the-fold sections, no layout shift, fonts preloaded and self-hosted, images/SVG optimized.
+Keyboard-accessible nav, visible focus states, semantic landmarks (header, main, section[aria-labelledby], footer), reduced-motion support.
+Smooth in-page anchors with offset for the sticky header.
+3. APPLY THE THEME TO THE REST OF THE APP (NO FEATURE CHANGES)
+Auth pages (/login, /register): split layout on desktop (form card on cream, a dark-green gradient side panel with a short value statement), single column on mobile. Clear validation and error states.
+App shell / dashboard: cream background, top bar with logo, nav, user menu; cards for resume upload, session setup, history; mono labels for section headers.
+Resume upload, session config, history lists, empty states: restyled cards, pastel tiles, pill badges.
+Pre-interview setup page (camera/mic/speaker/liveness): restyle cards and status badges (success/warning/danger tokens). Keep every check and gating rule.
+Live interview stage: use the deep green gradient surface with soft radial glow, cream text, the interviewer orb in green/mint tones, large serif question caption, quiet controls. Live transcript panel in a translucent card. Keep the layout, states and behavior exactly as already specified.
+Dialogs, help drawer, face-lost/camera-lost modals, toasts: restyle to tokens (cream cards on dimmed green-tinted overlay, rust accent for warnings).
+Report / scorecard page and PDF: cream paper look, serif headings, green progress bars, rust accents, mono labels. Update the @react-pdf/renderer document colors and fonts (register serif + sans + mono fonts for the PDF) so the PDF matches the web theme.
+Remove the old navy/indigo dark theme styles. Keep an optional dark mode only if it already exists and can use a deep-green dark token set (--bg:#0C1A15, --card:#12241D, etc.). Otherwise ship light-only plus the dark interview stage.
+4. STEPS
+L1: Audit (no code changes)
+
+List: current Tailwind/shadcn setup, theme variables, fonts, global CSS, every page/route and layout component, where colors are hardcoded (hex/rgb/tailwind color classes like indigo-*, slate-*, zinc-*), router structure and auth guard, and PDF styling. Report how many hardcoded color usages exist and a migration plan. Confirm whether the reference images are visible to you.
+
+L2: Design tokens and base system
+
+Implement the tokens (CSS variables, Tailwind extension, shadcn remap), self-hosted fonts, base typography classes, Button, Card, Badge, Tabs, Input, Dialog, Sheet variants, section wrapper, mono label component, logo wordmark, and a /design-system dev-only page showing all tokens and components. Verify: typecheck/tests pass; contrast checks pass; screenshots of the design-system page.
+
+L3: Landing page
+
+Build all sections in 2.2 with the real components (sample data clearly labelled), routing (/, /privacy, /terms), meta tags, responsive nav, smooth anchors, animations. Verify: screenshots 1440/390; Lighthouse scores; keyboard navigation; logged-in vs logged-out nav states.
+
+L4: Auth pages and route protection
+
+Restyle /login and /register, add redirect-after-login, keep all existing auth logic and error handling unchanged. Verify: existing auth tests pass; manual: register, login, logout, deep-link redirect.
+
+L5: App shell, dashboard, setup page
+
+Restyle navigation, dashboard cards, resume upload, session config, history, empty/loading/error states, and the pre-interview setup page. Verify: all existing component tests pass; screenshots of each page at both widths.
+
+L6: Interview stage, dialogs, report, PDF
+
+Restyle the live interview stage (deep green), help drawer, modals, toasts, scorecard/report page, and the PDF export. Verify: E2E interview smoke test still passes; no layout regressions; a generated PDF screenshot matches the theme.
+
+L7: Polish, accessibility, regression
+
+Responsive pass (360 to 1920 px), contrast audit, focus states, reduced motion, remove unused old styles, bundle size check, README "Design system" section, final screenshots gallery. Run the full Vitest + Playwright + backend suites.
+
+5. ACCEPTANCE CRITERIA
+Visiting / while logged out shows the new landing page (no redirect to login). Protected routes redirect to login and return after authentication.
+The whole app uses the same cream / deep-green / rust palette, serif headings, mono labels and card styling as the reference mood, and no old navy/indigo styles remain.
+The landing page contains the sections in 2.2, uses only truthful content and clearly-labelled sample data, and has no fake testimonials, ratings, user counts, company logos or marketplace features.
+No feature, API, data model, or interview behavior changed. All existing tests pass.
+Lighthouse: landing Performance ≥ 90, Accessibility ≥ 95; app pages Accessibility ≥ 90. Text contrast meets WCAG AA.
+Fonts are self-hosted, the PDF report matches the web theme, and the layout works from 360 px to 1920 px.
+Branding (name, tagline, support email, pricing visibility) is configurable via environment variables, not hardcoded.
+START NOW
+
+Begin with L1 only. Report the audit, the hardcoded-color count, the migration plan, and whether the reference images are visible. Do not change code until L2. Then stop and wait for "continue".
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-11-02T12:19:56+05:30.
+
+The user's current state is as follows:
+Active Document: d:\Projects\Ai-mock-interview\adaptive-ai-mock-interview-platform\backend\app\services\interview_engine.py (LANGUAGE_UNSPECIFIED)
+Cursor is on line: 1
+Other open documents:
+- d:\Projects\Ai-mock-interview\adaptive-ai-mock-interview-platform\backend\app\repositories\resume_chunk_repo.py (LANGUAGE_UNSPECIFIED)
+- d:\Projects\Ai-mock-interview\adaptive-ai-mock-interview-platform\backend\app\repositories\knowledge_base_repo.py (LANGUAGE_UNSPECIFIED)
+- d:\Projects\Ai-mock-interview\adaptive-ai-mock-interview-platform\backend\app\services\difficulty_classifier.py (LANGUAGE_UNSPECIFIED)
+- d:\Projects\Ai-mock-interview\adaptive-ai-mock-interview-platform\scripts\eval_questions.py (LANGUAGE_UNSPECIFIED)
+- d:\Projects\Ai-mock-interview\adaptive-ai-mock-interview-platform\frontend\vite.config.ts (LANGUAGE_UNSPECIFIED)
+</ADDITIONAL_METADATA>

@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -13,6 +14,7 @@ from app.repositories.telemetry_repo import telemetry_repo
 from app.services.integrity_service import build_integrity_summary, compute_verified_non_verbal_scores
 from app.services.interview_engine import InterviewState, start_interview, submit_candidate_answer
 
+logger = logging.getLogger("uvicorn.error")
 router = APIRouter(prefix="/interview", tags=["interview"])
 
 

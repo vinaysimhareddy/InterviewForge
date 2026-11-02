@@ -16,6 +16,8 @@ from app.models.knowledge_base import KnowledgeBaseItemInDB, KBSearchHit
 from app.repositories.resume_chunk_repo import _cosine_similarity
 from app.services.embedding_service import _deterministic_mock_embedding
 
+logger = logging.getLogger("uvicorn.error")
+
 _SEED_CACHE: Optional[List[Dict[str, Any]]] = None
 
 

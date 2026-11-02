@@ -353,7 +353,7 @@ async def run_evaluation() -> bool:
 
         # Embed all questions for this seniority level to compute semantic diversity
         questions_text = [m["question"] for m in level_metrics]
-        vectors = await embedding_service.embed_batch(questions_text)
+        vectors = await embedding_service.embed_documents(questions_text)
         diversity = calculate_semantic_diversity(vectors)
 
         # Aggregate level statistics

@@ -114,6 +114,10 @@ class EmbeddingService:
 
         return [v for v in results if v is not None]
 
+    async def embed_batch(self, texts: List[str]) -> List[List[float]]:
+        """Alias for embed_documents for batch embedding compatibility."""
+        return await self.embed_documents(texts)
+
     async def _call_provider_with_retry(self, texts: List[str]) -> List[List[float]]:
         """Call active provider with exponential backoff up to 3 attempts."""
         # Use deterministic mock embedding in test mode or if provider credentials are not configured

@@ -1,3 +1,4 @@
+import logging
 import time
 from collections import defaultdict
 from typing import Annotated, Dict, List
@@ -13,6 +14,7 @@ from app.services.ai_engine import AIServiceError, parse_resume_profile
 from app.services.pdf_parser import PDFExtractionError, extract_text
 from app.services.resume_ingestion_service import ingest_resume_chunks
 
+logger = logging.getLogger("uvicorn.error")
 router = APIRouter(prefix="/resumes", tags=["resumes"])
 settings = get_settings()
 

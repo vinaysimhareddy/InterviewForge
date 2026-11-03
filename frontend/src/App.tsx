@@ -12,12 +12,13 @@ import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { CameraStreamProvider, useMediaStream } from '@/context/CameraStreamContext';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
-import { LogoWordmark } from '@/components/common/LogoWordmark';
+import { Logo } from '@/components/common/Logo';
 import AuthPage from '@/pages/AuthPage';
 import DashboardPage from '@/pages/DashboardPage';
 import LandingPage from '@/pages/LandingPage';
 import PrivacyPage from '@/pages/PrivacyPage';
 import TermsPage from '@/pages/TermsPage';
+import NotFoundPage from '@/pages/NotFoundPage';
 import DesignSystemPage from '@/pages/DesignSystemPage';
 import { InterviewWelcome } from '@/components/interview/InterviewWelcome';
 import { PreInterviewSetup } from '@/components/interview/PreInterviewSetup';
@@ -28,7 +29,9 @@ import { FaceLostModal } from '@/components/interview/FaceLostModal';
 import { InterviewComplete } from '@/components/interview/InterviewComplete';
 import { InterviewAborted } from '@/components/interview/InterviewAborted';
 import { ExecutiveScorecard } from '@/components/interview/ExecutiveScorecard';
+import { LatencyLabPage } from '@/pages/LatencyLabPage';
 import { FinalReport } from '@/lib/types';
+import { formatPageTitle } from '@/copy/glossary';
 
 function ThemeToggleButton(): React.ReactElement {
   const { resolvedTheme, toggleTheme } = useTheme();
@@ -86,9 +89,10 @@ function ProtectedRoute({ children }: { children: React.ReactElement }): React.R
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-bg text-text flex items-center justify-center p-8">
+      <div className="min-h-screen bg-bg text-text flex flex-col items-center justify-center p-8 space-y-4">
+        <Logo variant="mark" size={48} className="animate-pulse" />
         <div className="flex items-center gap-3 text-text-muted text-sm font-mono">
-          <span className="h-5 w-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <span className="h-4 w-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
           Verifying candidate session...
         </div>
       </div>
@@ -110,11 +114,16 @@ function AuthRouteWrapper({ mode }: { mode: 'login' | 'register' }): React.React
   const { user, isLoading } = useAuth();
   const location = useLocation();
 
+  React.useEffect(() => {
+    document.title = formatPageTitle(mode === 'login' ? 'Sign In' : 'Register');
+  }, [mode]);
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-bg text-text flex items-center justify-center p-8">
+      <div className="min-h-screen bg-bg text-text flex flex-col items-center justify-center p-8 space-y-4">
+        <Logo variant="mark" size={48} className="animate-pulse" />
         <div className="flex items-center gap-3 text-text-muted text-sm font-mono">
-          <span className="h-5 w-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <span className="h-4 w-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
           Loading candidate portal...
         </div>
       </div>
@@ -131,9 +140,7 @@ function AuthRouteWrapper({ mode }: { mode: 'login' | 'register' }): React.React
     <div className="min-h-screen bg-bg text-text flex flex-col justify-between selection:bg-accent-soft selection:text-accent font-sans">
       <header className="border-b border-card-border bg-bg/80 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <a href="/" className="hover:opacity-90 transition-opacity">
-            <LogoWordmark />
-          </a>
+          <Logo href="/" size="md" responsive={true} />
           <Button
             variant="ghost"
             size="sm"
@@ -147,10 +154,10 @@ function AuthRouteWrapper({ mode }: { mode: 'login' | 'register' }): React.React
         </div>
       </header>
       <main className="flex-1 flex items-center justify-center p-4 sm:p-8">
-        <AuthPage initialMode={mode} />
+        <AuthPage key={mode} initialMode={mode} />
       </main>
       <footer className="border-t border-card-border bg-bg-subtle py-4 text-center text-xs text-text-muted">
-        AdaptiveMock Simulator • Secure Argon2id & JWT Authentication
+        InterviewForge • Secure Candidate Authentication
       </footer>
     </div>
   );
@@ -162,19 +169,55 @@ function AuthRouteWrapper({ mode }: { mode: 'login' | 'register' }): React.React
 function AppDashboardWrapper(): React.ReactElement {
   const { user, logout } = useAuth();
 
+  React.useEffect(() => {
+    document.title = formatPageTitle('Dashboard');
+  }, []);
+
   return (
     <div className="min-h-screen bg-bg text-text flex flex-col selection:bg-accent-soft selection:text-accent font-sans overflow-x-hidden">
       {/* Top Navigation */}
       <header className="border-b border-card-border bg-card/90 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <a href="/" className="hover:opacity-90 transition-opacity">
-              <LogoWordmark />
-            </a>
+            <Logo href="/app/dashboard" size="md" responsive={true} />
             <span className="label-mono bg-bg-subtle px-2 py-0.5 rounded border border-card-border hidden sm:inline">
               CANDIDATE WORKSPACE
             </span>
           </div>
+
+          {/* App Shell Navigation (Canonical Order: Dashboard → New Interview → My Reviews → Resume → Account) */}
+          <nav className="hidden lg:flex items-center gap-6 text-xs font-medium text-text-muted">
+            <a
+              href="/app/dashboard"
+              className="text-text font-semibold hover:text-primary transition-colors flex items-center gap-1.5"
+            >
+              Dashboard
+            </a>
+            <a
+              href="/app/setup"
+              className="hover:text-text transition-colors flex items-center gap-1.5"
+            >
+              New Interview
+            </a>
+            <a
+              href="/app/dashboard#reviews"
+              className="hover:text-text transition-colors flex items-center gap-1.5"
+            >
+              My Reviews
+            </a>
+            <a
+              href="/app/dashboard#resume"
+              className="hover:text-text transition-colors flex items-center gap-1.5"
+            >
+              Resume
+            </a>
+            <a
+              href="/app/dashboard#account"
+              className="hover:text-text transition-colors flex items-center gap-1.5"
+            >
+              Account
+            </a>
+          </nav>
 
           <div className="flex items-center space-x-3">
             <Badge variant="success" className="gap-1.5 py-1 px-3 hidden md:inline-flex">
@@ -198,7 +241,7 @@ function AppDashboardWrapper(): React.ReactElement {
                   variant="ghost"
                   size="sm"
                   onClick={logout}
-                  className="h-8 px-2 text-text-muted hover:text-text"
+                  className="h-8 px-2 text-text-muted hover:text-text cursor-pointer"
                   title="Sign out"
                 >
                   <LogOut className="h-3.5 w-3.5" />
@@ -216,7 +259,7 @@ function AppDashboardWrapper(): React.ReactElement {
 
       {/* Footer */}
       <footer className="border-t border-card-border bg-bg-subtle py-6 text-center text-xs text-text-muted">
-        AdaptiveMock Simulator • Privacy-First MediaPipe CV • LangGraph Adaptive Engine
+        InterviewForge • AI Technical Interview Platform
       </footer>
     </div>
   );
@@ -236,6 +279,15 @@ function PlatformContent(): React.ReactElement {
     const isDirectAborted = typeof window !== 'undefined' && window.location.search.includes('aborted=true');
     const isDirectScorecard = typeof window !== 'undefined' && (window.location.search.includes('scorecard=true') || window.location.search.includes('report=true'));
     const isDirectDesignSystem = typeof window !== 'undefined' && (window.location.search.includes('design-system=true') || window.location.pathname.includes('design-system'));
+    const isDirectLatencyLab =
+      typeof window !== 'undefined' &&
+      (window.location.search.includes('latency-lab=true') ||
+        window.location.pathname.includes('/dev/latency-lab') ||
+        window.location.pathname.includes('/latency-lab'));
+
+    if (isDirectLatencyLab) {
+      return <LatencyLabPage />;
+    }
 
     if (isDirectDesignSystem) {
       return <DesignSystemPage />;
@@ -405,8 +457,77 @@ function PlatformContent(): React.ReactElement {
           excluded_segments_count: 0,
           non_verbal_excluded_note:
             'Non-verbal scores (eye contact, posture) are computed only from verified-live segments; segments with active integrity flags were excluded.',
-          disclaimer: 'Client-side WebAssembly heuristics combined with server-side plausibility checks.',
+          disclaimer: 'Automated camera verification combined with session plausibility checks.',
         },
+        difficulty_progression: [
+          { question_index: 1, difficulty_tier: 2.0, difficulty_label: 'Easy-Medium', score: 8.5, change: 'UPGRADE' },
+          { question_index: 2, difficulty_tier: 2.5, difficulty_label: 'Medium', score: 8.8, change: 'UPGRADE' },
+          { question_index: 3, difficulty_tier: 3.0, difficulty_label: 'Hard', score: 9.0, change: 'UNCHANGED' },
+          { question_index: 4, difficulty_tier: 3.0, difficulty_label: 'Hard', score: 8.2, change: 'UNCHANGED' },
+          { question_index: 5, difficulty_tier: 3.5, difficulty_label: 'Staff', score: 8.5, change: 'UPGRADE' },
+        ],
+        question_coverage: [
+          {
+            question_index: 1,
+            question: 'How do you design an idempotent payment processing endpoint to prevent double-charging on network retries?',
+            candidate_answer: 'I use a client-generated Idempotency-Key header stored in Redis with a 24-hour TTL and transactional locks in PostgreSQL before processing.',
+            planner_action: 'resume_probe',
+            target_topic: 'Payment API & Idempotency',
+            source_description: 'From resume: Stripe Integration & PostgreSQL',
+            difficulty_tier: 2.0,
+            difficulty_label: 'Easy-Medium',
+            score: 8.5,
+            feedback: 'Strong grasp of idempotency keys, Redis TTL, and database transactions.',
+          },
+          {
+            question_index: 2,
+            question: 'When implementing Redis cache invalidation, how do you prevent cache stampedes under heavy traffic?',
+            candidate_answer: 'We use probabilistic early expiration with mutex locks so only one worker recomputes the cache key while others receive stale values temporarily.',
+            planner_action: 'follow_up_probe',
+            target_topic: 'Redis Caching & Concurrency',
+            source_description: 'Adaptive follow-up to caching answer',
+            difficulty_tier: 2.5,
+            difficulty_label: 'Medium',
+            score: 8.8,
+            feedback: 'Excellent explanation of mutex locks and probabilistic early expiration (XFetch algorithm).',
+          },
+          {
+            question_index: 3,
+            question: 'How would you handle schema migrations on a 50M-row PostgreSQL table without downtime?',
+            candidate_answer: 'We use expand-and-contract: add nullable columns, double-write via application code, backfill asynchronously with batch limits, then switch reads.',
+            planner_action: 'kb_probe',
+            target_topic: 'Database Migrations & Scaling',
+            source_description: 'Role knowledge base: High-throughput SQL',
+            difficulty_tier: 3.0,
+            difficulty_label: 'Hard',
+            score: 9.0,
+            feedback: 'Flawless expand-and-contract migration strategy and batch backfilling.',
+          },
+          {
+            question_index: 4,
+            question: 'Explain how you structure Kafka consumer group rebalances to avoid processing lag spikes.',
+            candidate_answer: 'We use cooperative sticky assignors in Kafka 2.4+ so only affected partitions migrate rather than triggering stop-the-world partition revocations.',
+            planner_action: 'kb_probe',
+            target_topic: 'Distributed Messaging (Kafka)',
+            source_description: 'Role knowledge base: Event-Driven Architecture',
+            difficulty_tier: 3.0,
+            difficulty_label: 'Hard',
+            score: 8.2,
+            feedback: 'Great knowledge of cooperative sticky assignor mechanics.',
+          },
+          {
+            question_index: 5,
+            question: 'Tell me about a time you had an architectural disagreement with a senior engineer. How was it resolved?',
+            candidate_answer: 'Situation: Our lead wanted synchronous gRPC, I advocated for async event pub/sub for order placement. Task: Evaluate p99 latency SLAs. Action: Built a benchmark PoC showing gRPC cascade failure risk. Result: Adopted hybrid approach with fallback queues.',
+            planner_action: 'behavioral_probe',
+            target_topic: 'Technical Leadership & Conflict',
+            source_description: 'Adaptive probe: Engineering Leadership',
+            difficulty_tier: 3.5,
+            difficulty_label: 'Staff',
+            score: 8.5,
+            feedback: 'Structured STAR response with benchmark data to de-escalate disagreement.',
+          },
+        ],
       };
 
       return (
@@ -441,7 +562,13 @@ function PlatformContent(): React.ReactElement {
         <Route path="/register" element={<AuthRouteWrapper mode="register" />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
-        <Route path="/design-system" element={<DesignSystemPage />} />
+        {import.meta.env.DEV && (
+          <>
+            <Route path="/design-system" element={<DesignSystemPage />} />
+            <Route path="/dev/latency-lab" element={<LatencyLabPage />} />
+            <Route path="/latency-lab" element={<LatencyLabPage />} />
+          </>
+        )}
 
         {/* Protected App Routes */}
         <Route
@@ -484,8 +611,8 @@ function PlatformContent(): React.ReactElement {
           element={<Navigate to="/app/dashboard" replace />}
         />
 
-        {/* Catch-all */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* 404 Catch-all */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );

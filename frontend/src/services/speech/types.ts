@@ -17,13 +17,14 @@ export interface SpeechError {
 }
 
 export type STTState = 'idle' | 'listening' | 'error';
-export type TTSState = 'idle' | 'speaking' | 'paused';
+export type TTSState = 'idle' | 'speaking' | 'paused' | 'error' | 'silent-fallback';
 
 export interface TTSOptions {
   voiceURI?: string;
   rate?: number;
   pitch?: number;
   volume?: number;
+  onStart?: () => void;
 }
 
 export interface SpeechToText {

@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
 import { useTheme } from '@/context/ThemeContext';
+import { Logo } from '@/components/common/Logo';
 
 export interface InterviewTopBarProps {
   role: string;
@@ -49,11 +50,12 @@ export function InterviewTopBar({
   return (
     <>
       <header className="w-full border-b border-[#E3DED2]/15 bg-[#0A2E24]/85 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 h-14 flex items-center justify-between text-[#FBFAF6] transition-colors">
-        {/* Left: Wordmark in cream & Candidate Role */}
+        {/* Left: Wordmark & Candidate Role */}
         <div className="flex items-center gap-3 min-w-0">
           <div className="flex items-center gap-2">
+            <Logo variant="mark" size="sm" />
             <span className="font-display font-semibold tracking-tight text-[#FBFAF6] text-base">
-              AdaptiveMock
+              InterviewForge
             </span>
             <span className="text-[#E3DED2]/40 hidden sm:inline">•</span>
             <span className="font-mono text-[11px] text-mint uppercase tracking-wider hidden sm:inline">

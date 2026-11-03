@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, Loader2, FileDown, ArrowRight, Home, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, Loader2, FileDown, ArrowRight, Home, ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,10 @@ export interface InterviewCompleteProps {
   seniority: string;
   isGeneratingReport?: boolean;
   hasReport?: boolean;
+  generationStep?: string;
+  generationProgress?: number;
+  generationError?: string | null;
+  onRetryGeneration?: () => void;
   onViewReport: () => void;
   onDownloadPdf?: () => void;
   isDownloadingPdf?: boolean;
@@ -20,6 +24,10 @@ export function InterviewComplete({
   seniority,
   isGeneratingReport = false,
   hasReport = true,
+  generationStep,
+  generationProgress,
+  generationError,
+  onRetryGeneration,
   onViewReport,
   onDownloadPdf,
   isDownloadingPdf = false,
@@ -57,17 +65,46 @@ export function InterviewComplete({
           </div>
 
           {/* Report Compilation State Card */}
-          {isGeneratingReport || !hasReport ? (
-            <div className="w-full p-5 rounded-2xl bg-bg-subtle border border-card-border flex flex-col items-center space-y-3 animate-pulse">
-              <div className="flex items-center gap-2 text-primary font-medium text-sm">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Generating your executive performance report...</span>
+          {generationError ? (
+            <div className="w-full p-5 rounded-2xl bg-peach/40 border border-accent/20 flex flex-col items-center space-y-3">
+              <div className="flex items-center gap-2 text-accent font-medium text-sm">
+                <AlertCircle className="h-4 w-4" />
+                <span>Report synthesis encountered an issue</span>
               </div>
               <p className="text-xs text-text-muted max-w-sm text-center leading-relaxed">
-                Our evaluation engine is analyzing your technical depth, communication clarity, and verified biometric telemetry.
+                {generationError}
+              </p>
+              {onRetryGeneration && (
+                <Button
+                  onClick={onRetryGeneration}
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full text-xs gap-1.5 h-8 border-card-border text-text hover:bg-bg-subtle"
+                >
+                  <RefreshCw className="h-3 w-3" /> Retry Generation
+                </Button>
+              )}
+            </div>
+          ) : isGeneratingReport || !hasReport ? (
+            <div className="w-full p-5 rounded-2xl bg-bg-subtle border border-card-border flex flex-col items-center space-y-3">
+              <div className="flex items-center gap-2 text-primary font-medium text-sm">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>
+                  {generationStep || 'Generating your executive performance report...'}
+                </span>
+              </div>
+              <p className="text-xs text-text-muted max-w-sm text-center leading-relaxed">
+                Analyzing technical depth, communication clarity, and verified biometric telemetry.
               </p>
               <div className="w-full bg-muted-surface rounded-full h-1.5 overflow-hidden mt-1">
-                <div className="h-full bg-primary rounded-full animate-indeterminate-bar w-1/2" />
+                {generationProgress !== undefined ? (
+                  <div
+                    className="h-full bg-primary rounded-full transition-all duration-300"
+                    style={{ width: `${Math.round(generationProgress * 100)}%` }}
+                  />
+                ) : (
+                  <div className="h-full bg-primary rounded-full animate-indeterminate-bar w-1/2" />
+                )}
               </div>
             </div>
           ) : (
@@ -136,4 +173,3 @@ export function InterviewComplete({
     </div>
   );
 }
-

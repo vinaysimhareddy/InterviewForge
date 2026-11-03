@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BrowserSpeechToText } from '../services/speech/browserSTT';
-import { BrowserTextToSpeech } from '../services/speech/browserTTS';
+import { SpeechToText, TTSState } from '../services/speech/types';
+import { createSpeechToTextProvider } from '../services/speech/sttFactory';
+import { ttsManager, TTSManager } from '../services/speech/ttsManager';
 import { isSignificantSpeech, VoiceActivityDetector } from '../services/speech/vad';
 import { mapSpeechRecognitionError, SpeechErrorInfo } from '../services/speech/speechErrors';
+import { sttTimingLogger } from '../services/speech/sttTimingLogger';
+import { computeAdaptiveSilenceTimeoutMs, MAX_ANSWER_DURATION_SEC } from '../services/speech/adaptiveSilence';
 import { ClientWSMessage } from '../lib/types';
 
 export type VoiceTurnState =
@@ -18,7 +21,7 @@ export interface UseVoiceTurnEngineOptions {
   questionIndex: number;
   isPaused?: boolean;
   sendWSMessage?: (message: ClientWSMessage) => boolean;
-  onSubmitAnswer: (answer: string) => Promise<void>;
+  onSubmitAnswer: (answer: string, metadata?: { source?: 'voice' | 'typed' }) => Promise<void>;
   autoPlayTTS?: boolean;
   silenceTimeoutMs?: number;      // Silence window after speech to trigger auto-complete (default: 2000ms)
   minSpeechDurationMs?: number;   // Minimum speech duration to qualify as spoken answer (default: 400ms)
@@ -27,6 +30,7 @@ export interface UseVoiceTurnEngineOptions {
 
 export interface UseVoiceTurnEngineReturn {
   turnState: VoiceTurnState;
+  ttsState: TTSState;
   isAiSpeaking: boolean;
   isCandidateSpeaking: boolean;
   isListening: boolean;
@@ -35,10 +39,15 @@ export interface UseVoiceTurnEngineReturn {
   audioLevel: number;             // 0..1 normalized RMS for UI visualizer
   silenceProgress: number;        // 0..1 countdown progress toward auto-submission
   isSpeechSupported: boolean;
+  isReconnectingVoice: boolean;
+  sttStatusNotice: string | null;
+  activeSTTProvider: 'browser' | 'nemotron' | 'typed';
+  retryVoice: () => void;
   speakQuestion: () => Promise<void>;
+  replayQuestion: () => Promise<void>;
   stopAudio: () => void;
   interruptAI: () => void;
-  submitAnswer: () => Promise<void>;
+  submitAnswer: (metadata?: { source?: 'voice' | 'typed' }) => Promise<void>;
   clearTranscript: () => void;
   setTranscript: (text: string) => void;
   toggleDictation: () => void;
@@ -67,10 +76,16 @@ export function useVoiceTurnEngine({
   const [audioLevel, setAudioLevel] = useState<number>(0);
   const [silenceProgress, setSilenceProgress] = useState<number>(0);
   const [sttError, setSttError] = useState<SpeechErrorInfo | null>(null);
+  const [ttsState, setTtsState] = useState<TTSState>(ttsManager.getAudioState());
+  const [isReconnectingVoice, setIsReconnectingVoice] = useState<boolean>(false);
+  const [sttStatusNotice, setSttStatusNotice] = useState<string | null>(null);
+  const [activeSTTProvider, setActiveSTTProvider] = useState<'browser' | 'nemotron' | 'typed'>('browser');
+  const isReconnectingVoiceRef = useRef<boolean>(false);
+  isReconnectingVoiceRef.current = isReconnectingVoice;
 
   // References for services and lifecycle
-  const ttsRef = useRef<BrowserTextToSpeech | null>(null);
-  const sttRef = useRef<BrowserSpeechToText | null>(null);
+  const ttsRef = useRef<TTSManager | null>(null);
+  const sttRef = useRef<SpeechToText | null>(null);
   const vadRef = useRef<VoiceActivityDetector | null>(null);
 
   // Web Audio API refs for VAD
@@ -99,26 +114,57 @@ export function useVoiceTurnEngine({
 
   // 1. Initialize STT, TTS, and VAD instances
   useEffect(() => {
-    ttsRef.current = new BrowserTextToSpeech();
-    sttRef.current = new BrowserSpeechToText();
+    ttsRef.current = ttsManager;
+    const unsubscribeTTS = ttsManager.onStateChange((state) => {
+      setTtsState(state);
+    });
+    const stt = createSpeechToTextProvider({ audioStream });
+    sttRef.current = stt;
     vadRef.current = new VoiceActivityDetector({
       energyThreshold,
       minSpeechDurationMs,
       hangoverMs: 300,
     });
 
-    const unsubscribeSTT = sttRef.current.onTranscript((event) => {
+    const unsubscribeChain = stt.onChainStatusChange((chainStatus) => {
+      setIsReconnectingVoice(chainStatus.isReconnecting);
+      setSttStatusNotice(chainStatus.statusNotice);
+      setActiveSTTProvider(chainStatus.activeProvider);
+      if (!chainStatus.isReconnecting && chainStatus.activeProvider !== 'typed') {
+        setSttError(null);
+      }
+    });
+
+    let rafInterimId: number | null = null;
+    let latestInterimChunk = '';
+
+    const unsubscribeSTT = stt.onTranscript((event) => {
       // If AI is speaking and candidate starts speaking, trigger barge-in interruption!
       if (turnStateRef.current === 'ai_speaking' && event.text.trim().length > 0) {
         handleBargeIn();
       }
 
       if (event.isFinal) {
+        if (rafInterimId !== null) {
+          cancelAnimationFrame(rafInterimId);
+          rafInterimId = null;
+        }
+        latestInterimChunk = '';
+        sttTimingLogger.recordEvent('final_text', questionIndex);
         setTranscriptState(event.fullTranscript);
         setInterimTranscript('');
         transcriptRef.current = event.fullTranscript;
       } else {
-        setInterimTranscript(event.text);
+        sttTimingLogger.recordEvent('first_interim', questionIndex);
+        sttTimingLogger.recordEvent('last_interim', questionIndex);
+        latestInterimChunk = event.text;
+        // Throttle interim re-renders via requestAnimationFrame to avoid UI thread thrashing (§B4)
+        if (rafInterimId === null) {
+          rafInterimId = requestAnimationFrame(() => {
+            setInterimTranscript(latestInterimChunk);
+            rafInterimId = null;
+          });
+        }
       }
 
       // Stream transcript chunk to server over WebSocket (§4.2)
@@ -133,15 +179,19 @@ export function useVoiceTurnEngine({
       }
     });
 
-    const unsubscribeState = sttRef.current.onStateChange((state) => {
+    const unsubscribeState = stt.onStateChange((state) => {
       setIsListening(state === 'listening');
     });
 
-    const unsubscribeError = sttRef.current.onError((err) => {
+    const unsubscribeError = stt.onError((err) => {
+      if (err.error === 'network' && isReconnectingVoiceRef.current) {
+        return;
+      }
       if (
         err.isFatal ||
         err.error === 'network' ||
         err.error === 'audio-capture' ||
+        err.error === 'not-allowed' ||
         err.error === 'service-not-allowed'
       ) {
         setSttError(mapSpeechRecognitionError(err.error));
@@ -149,13 +199,16 @@ export function useVoiceTurnEngine({
     });
 
     return () => {
+      if (rafInterimId !== null) cancelAnimationFrame(rafInterimId);
+      unsubscribeTTS();
+      unsubscribeChain();
       unsubscribeSTT();
       unsubscribeState();
       unsubscribeError();
       if (ttsRef.current) ttsRef.current.stop();
       if (sttRef.current) sttRef.current.stop();
     };
-  }, [sendWSMessage, energyThreshold, minSpeechDurationMs]);
+  }, [sendWSMessage, energyThreshold, minSpeechDurationMs, audioStream, questionIndex]);
 
   // 2. Set up Web Audio AnalyserNode for shared audioStream VAD
   useEffect(() => {
@@ -205,23 +258,47 @@ export function useVoiceTurnEngine({
 
           // 2b. Turn-taking & Silence Detection during candidate_turn
           if (turnStateRef.current === 'candidate_turn') {
+            if (isReconnectingVoiceRef.current) {
+              silenceStartTimeRef.current = null;
+              setSilenceProgress(0);
+              animFrameIdRef.current = requestAnimationFrame(processAudio);
+              return;
+            }
+
+            if (vadState.isSpeaking) {
+              sttTimingLogger.recordEvent('speech_start', questionIndex);
+            }
             const currentWords = transcriptRef.current.trim().split(/\s+/).filter(Boolean).length;
             if (isSignificantSpeech(vadState.speechDurationMs, currentWords, minSpeechDurationMs, 2)) {
               hasSpokenMeaningfullyRef.current = true;
             }
 
+            // Cap 120s per answer check (§B4)
+            const elapsedAnswerSec = (Date.now() - questionStartTimeRef.current) / 1000;
+            if (elapsedAnswerSec >= MAX_ANSWER_DURATION_SEC && !isSubmittingRef.current) {
+              void triggerAnswerCompletion();
+              return;
+            }
+
             if (hasSpokenMeaningfullyRef.current) {
               if (!vadState.isSpeaking) {
+                // Adaptive silence window (1.2s for complete sentences / terminal punctuation [.?!], 2.0s for mid-sentence pauses, cap 2.5s)
+                const adaptiveTimeoutMs = computeAdaptiveSilenceTimeoutMs(
+                  transcriptRef.current,
+                  currentWords,
+                  silenceTimeoutMs
+                );
+
                 // Candidate is silent after having spoken
                 if (!silenceStartTimeRef.current) {
                   silenceStartTimeRef.current = now;
                 }
                 const elapsedSilence = now - silenceStartTimeRef.current;
-                const progress = Math.min(1.0, elapsedSilence / silenceTimeoutMs);
+                const progress = Math.min(1.0, elapsedSilence / adaptiveTimeoutMs);
                 setSilenceProgress(progress);
 
-                if (elapsedSilence >= silenceTimeoutMs && !isSubmittingRef.current) {
-                  // Silence timeout reached -> automatically complete answer
+                if (elapsedSilence >= adaptiveTimeoutMs && !isSubmittingRef.current) {
+                  // Adaptive silence timeout reached -> automatically complete answer
                   void triggerAnswerCompletion();
                 }
               } else {
@@ -274,9 +351,11 @@ export function useVoiceTurnEngine({
   }, []);
 
   // 4. Trigger Answer Completion & Submission
-  const triggerAnswerCompletion = useCallback(async () => {
+  const triggerAnswerCompletion = useCallback(async (metadata?: { source?: 'voice' | 'typed' }) => {
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
+
+    sttTimingLogger.recordEvent('answer_end_decision', questionIndex);
 
     // Stop STT and VAD tracking
     if (sttRef.current) {
@@ -293,21 +372,34 @@ export function useVoiceTurnEngine({
       });
     }
 
+    sttTimingLogger.recordEvent('answer_sent', questionIndex);
+
     const finalAnswer = transcriptRef.current.trim();
+    const source = metadata?.source || (activeSTTProvider === 'typed' ? 'typed' : 'voice');
     try {
-      await onSubmitAnswer(finalAnswer);
+      await onSubmitAnswer(finalAnswer, { source });
     } finally {
       isSubmittingRef.current = false;
     }
-  }, [sendWSMessage, questionIndex, onSubmitAnswer]);
+  }, [sendWSMessage, questionIndex, onSubmitAnswer, activeSTTProvider]);
+
+  // Retry Voice Recognition when user clicks Try Again
+  const retryVoice = useCallback(() => {
+    setSttError(null);
+    if (sttRef.current && 'retry' in sttRef.current) {
+      (sttRef.current as any).retry();
+    }
+  }, []);
 
   // 5. Speak Question via TTS
   const speakQuestion = useCallback(async () => {
     if (!currentQuestion.trim() || isPaused) return;
 
-    // Reset turn state for new question
+    sttTimingLogger.startTurn(questionIndex, activeSTTProvider);
+    sttTimingLogger.recordEvent('question_received', questionIndex);
+
+    // Reset turn state for new question without tearing down active recognizer instance
     if (sttRef.current) {
-      sttRef.current.stop();
       sttRef.current.resetTranscript();
     }
     if (vadRef.current) {
@@ -324,8 +416,8 @@ export function useVoiceTurnEngine({
     setTurnState('ai_speaking');
     setIsAiSpeaking(true);
 
-    // Start background STT to enable voice barge-in interruption while AI speaks
-    if (sttRef.current && sttRef.current.isSupported) {
+    // Warm up / ensure STT is running to allow instant barge-in and zero cold-start latency (§B4)
+    if (sttRef.current && sttRef.current.isSupported && !sttRef.current.isListening) {
       try {
         sttRef.current.start();
       } catch {}
@@ -333,7 +425,12 @@ export function useVoiceTurnEngine({
 
     try {
       if (ttsRef.current) {
-        await ttsRef.current.speak(currentQuestion);
+        await ttsRef.current.speak(currentQuestion, {
+          onStart: () => {
+            sttTimingLogger.recordEvent('tts_start', questionIndex);
+          },
+        });
+        sttTimingLogger.recordEvent('tts_end', questionIndex);
       }
     } finally {
       setIsAiSpeaking(false);
@@ -407,6 +504,7 @@ export function useVoiceTurnEngine({
 
   return {
     turnState,
+    ttsState,
     isAiSpeaking,
     isCandidateSpeaking,
     isListening,
@@ -415,7 +513,12 @@ export function useVoiceTurnEngine({
     audioLevel,
     silenceProgress,
     isSpeechSupported,
+    isReconnectingVoice,
+    sttStatusNotice,
+    activeSTTProvider,
+    retryVoice,
     speakQuestion,
+    replayQuestion: speakQuestion,
     stopAudio,
     interruptAI: handleBargeIn,
     submitAnswer: triggerAnswerCompletion,

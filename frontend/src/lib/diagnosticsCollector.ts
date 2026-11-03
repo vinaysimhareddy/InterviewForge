@@ -6,6 +6,7 @@
  */
 
 import { getVisionDiagnostics, VisionDiagnostics } from './visionManager';
+import { ttsManager } from '../services/speech/ttsManager';
 
 export interface TrackDiagnostics {
   readyState: MediaStreamTrackState | string;
@@ -81,6 +82,7 @@ export interface DiagnosticsReport {
     isAudioTrackMutedOrEnded: boolean;
     lastGetUserMediaError: string | null;
     lastSpeechRecognitionError: string | null;
+    ttsState?: string;
   };
   lastError: string | null;
 }
@@ -105,6 +107,7 @@ export interface CollectDiagnosticsOptions {
   lastError?: string | null;
   lastGetUserMediaError?: string | null;
   lastSpeechRecognitionError?: string | null;
+  ttsState?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -252,6 +255,7 @@ export async function collectDiagnosticsReport(
     isAudioTrackMutedOrEnded,
     lastGetUserMediaError: options.lastGetUserMediaError ?? null,
     lastSpeechRecognitionError: options.lastSpeechRecognitionError ?? null,
+    ttsState: options.ttsState ?? (typeof window !== 'undefined' ? ttsManager.getAudioState() : 'idle'),
   };
 
   return {
@@ -291,6 +295,31 @@ export async function collectDiagnosticsReport(
   };
 }
 
+export function sanitizeTrackSettings(settings?: MediaTrackSettings): Record<string, unknown> {
+  if (!settings) return {};
+  const allowlist = [
+    'width',
+    'height',
+    'frameRate',
+    'aspectRatio',
+    'facingMode',
+    'resizeMode',
+    'sampleRate',
+    'channelCount',
+    'echoCancellation',
+    'autoGainControl',
+    'noiseSuppression',
+    'latency',
+  ];
+  const sanitized: Record<string, unknown> = {};
+  for (const key of allowlist) {
+    if (key in settings) {
+      sanitized[key] = (settings as Record<string, unknown>)[key];
+    }
+  }
+  return sanitized;
+}
+
 export function formatDiagnosticsAsMarkdown(report: DiagnosticsReport): string {
   return [
     `# Hardware & Media Diagnostics Report`,
@@ -316,7 +345,7 @@ export function formatDiagnosticsAsMarkdown(report: DiagnosticsReport): string {
     `- Total getUserMedia Invocations: ${report.getUserMediaCalls.total}`,
     ``,
     `## Connected Media Devices (${report.devices.length})`,
-    ...report.devices.map((d) => `- [${d.kind}] ${d.label} (id: ${d.deviceId.slice(0, 8)}...)`),
+    ...report.devices.map((d, idx) => `- [${d.kind}] ${d.label} [Device #${idx + 1}]`),
     ``,
     `## Active Video Track`,
     report.activeVideoTrack
@@ -325,7 +354,7 @@ export function formatDiagnosticsAsMarkdown(report: DiagnosticsReport): string {
           `- Ready State: ${report.activeVideoTrack.readyState}`,
           `- Enabled: ${report.activeVideoTrack.enabled}`,
           `- Muted: ${report.activeVideoTrack.muted}`,
-          `- Settings: ${JSON.stringify(report.activeVideoTrack.settings)}`,
+          `- Settings: ${JSON.stringify(sanitizeTrackSettings(report.activeVideoTrack.settings))}`,
         ].join('\n')
       : `- No active video track`,
     ``,
@@ -354,12 +383,12 @@ export function formatDiagnosticsAsMarkdown(report: DiagnosticsReport): string {
     `- Last SpeechRecognition Error: ${report.audioDiagnostics.lastSpeechRecognitionError || 'None'}`,
     `- Active Audio Track: ${report.audioDiagnostics.activeAudioTrack ? `${report.audioDiagnostics.activeAudioTrack.label} (${report.audioDiagnostics.activeAudioTrack.readyState}, muted=${report.audioDiagnostics.activeAudioTrack.muted})` : 'None'}`,
     ...(report.audioDiagnostics.activeAudioTrack?.settings && Object.keys(report.audioDiagnostics.activeAudioTrack.settings).length > 0
-      ? [`- Active Audio Track Settings: ${JSON.stringify(report.audioDiagnostics.activeAudioTrack.settings)}`]
+      ? [`- Active Audio Track Settings: ${JSON.stringify(sanitizeTrackSettings(report.audioDiagnostics.activeAudioTrack.settings))}`]
       : []),
     `- Audio Track Muted/Ended: ${report.audioDiagnostics.isAudioTrackMutedOrEnded ? 'YES (Microphone lost or muted)' : 'NO (Healthy)'}`,
     `- Audio Input Devices (${report.audioDiagnostics.audioInputs.length}):`,
     ...report.audioDiagnostics.audioInputs.map(
-      (m) => `  - ${m.label || '(Unlabeled)'} [ID: ${m.isDeviceIdEmpty ? 'EMPTY' : m.deviceId.slice(0, 8) + '...'}]`
+      (m, idx) => `  - ${m.label || `(Microphone ${idx + 1})`} [Status: ${m.isDeviceIdEmpty ? 'UNASSIGNED' : 'READY'}]`
     ),
   ].join('\n');
 }

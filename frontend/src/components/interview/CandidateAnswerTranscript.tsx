@@ -23,8 +23,11 @@ export interface CandidateAnswerTranscriptProps {
   audioLevel: number;
   silenceProgress: number; // 0..1
   isSpeechSupported: boolean;
+  isReconnectingVoice?: boolean;
+  sttStatusNotice?: string | null;
+  activeSTTProvider?: 'browser' | 'nemotron' | 'typed';
   sttError?: SpeechErrorInfo | null;
-  onSubmit: (answerText: string) => void | Promise<void>;
+  onSubmit: (answerText: string, metadata?: { source?: 'voice' | 'typed' }) => void | Promise<void>;
   onClearAndRetry: () => void;
   onManualTextChange?: (text: string) => void;
   onRetryMic?: () => void;
@@ -41,6 +44,9 @@ export function CandidateAnswerTranscript({
   audioLevel,
   silenceProgress,
   isSpeechSupported,
+  isReconnectingVoice = false,
+  sttStatusNotice = null,
+  activeSTTProvider = 'browser',
   sttError,
   onSubmit,
   onClearAndRetry,
@@ -87,19 +93,20 @@ export function CandidateAnswerTranscript({
     }
   }, [transcript, interimTranscript, isManualEditMode]);
 
-  // If SpeechRecognition throws error, automatically enable manual input fallback
+  // If SpeechRecognition throws error and not actively reconnecting, automatically enable manual input fallback
   useEffect(() => {
-    if (sttError || !isSpeechSupported) {
+    if ((sttError || !isSpeechSupported) && !isReconnectingVoice) {
       if (!isManualEditMode && !manualText && fullVoiceText) {
         setManualText(fullVoiceText);
       }
     }
-  }, [sttError, isSpeechSupported, isManualEditMode, manualText, fullVoiceText]);
+  }, [sttError, isSpeechSupported, isManualEditMode, manualText, fullVoiceText, isReconnectingVoice]);
 
   const handleSubmit = () => {
     const textToSubmit = activeText.trim();
     if (textToSubmit.length === 0 || isSubmitting) return;
-    void onSubmit(textToSubmit);
+    const isTyped = isManualEditMode || activeSTTProvider === 'typed' || Boolean(sttError);
+    void onSubmit(textToSubmit, { source: isTyped ? 'typed' : 'voice' });
   };
 
   const handleClear = () => {
@@ -127,7 +134,15 @@ export function CandidateAnswerTranscript({
       <div className="px-4 py-2.5 bg-[#0A2E24]/50 border-b border-[#E3DED2]/10 flex items-center justify-between text-xs select-none">
         {/* Left: State Badge + Live Audio Equalizer */}
         <div className="flex items-center gap-2.5">
-          {sttError || !isSpeechSupported ? (
+          {isReconnectingVoice ? (
+            <div className="flex items-center gap-2 text-amber-300 font-medium">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400" />
+              </span>
+              <span>Reconnecting voice…</span>
+            </div>
+          ) : sttError || !isSpeechSupported ? (
             <div className="flex items-center gap-1.5 text-accent-soft font-medium">
               <AlertTriangle className="h-3.5 w-3.5 text-accent" />
               <span>Voice capture unavailable</span>
@@ -194,7 +209,7 @@ export function CandidateAnswerTranscript({
             </span>
           )}
 
-          {!sttError && isSpeechSupported && (
+          {!sttError && isSpeechSupported && !isReconnectingVoice && (
             <Button
               variant="ghost"
               size="sm"
@@ -215,8 +230,29 @@ export function CandidateAnswerTranscript({
         </div>
       </div>
 
-      {/* Actionable Error Alert Box (from M3) if SpeechRecognition fails or is unsupported */}
-      {(sttError || !isSpeechSupported) && (
+      {/* Calm, Non-blocking Voice Reconnection Status (§B3) */}
+      {isReconnectingVoice && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="mx-4 mt-3 px-3 py-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 text-xs flex items-center justify-between animate-pulse"
+          data-testid="reconnecting-voice-banner"
+        >
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400" />
+            </span>
+            <span className="font-medium">
+              {sttStatusNotice || 'Reconnecting voice recognition… (temporary network delay)'}
+            </span>
+          </div>
+          <span className="text-[11px] text-amber-200/70 font-mono">Retrying…</span>
+        </div>
+      )}
+
+      {/* Actionable Error Alert Box if all retries and fallback providers fail */}
+      {!isReconnectingVoice && (sttError || !isSpeechSupported) && (
         <div className="p-3 mx-4 mt-3 rounded-xl bg-peach/20 border border-accent/30 text-accent-soft text-xs space-y-1.5 animate-in fade-in">
           <div className="flex items-center justify-between font-semibold">
             <span className="flex items-center gap-1.5 text-accent-soft">
@@ -228,7 +264,8 @@ export function CandidateAnswerTranscript({
                 variant="outline"
                 size="sm"
                 onClick={onRetryMic}
-                className="h-6 text-[11px] px-2 border-accent/40 text-accent-soft hover:bg-accent/20"
+                className="h-7 text-xs px-3 font-semibold rounded-lg bg-[#B33925] text-white hover:bg-[#8F2B1B] focus:outline-none focus:ring-2 focus:ring-[#B33925] focus:ring-offset-2 focus:ring-offset-[#0A2E24] border-0 shadow-sm transition-colors"
+                data-testid="stt-try-again-button"
               >
                 Try Again
               </Button>
@@ -237,7 +274,7 @@ export function CandidateAnswerTranscript({
           <p className="text-[11px] text-[#E3DED2]/90 leading-relaxed">
             {sttError
               ? sttError.explanation
-              : 'Web Speech API is not supported in this browser. Please use Google Chrome or type your answer below.'}
+              : 'Voice recognition is not supported in this browser. Please use a supported browser or type your answer below.'}
           </p>
           <div className="text-[11px] text-accent-soft font-medium">
             Recovery: {sttError ? sttError.recoveryStep : 'Type your answer below and click Submit Answer.'}
@@ -247,7 +284,7 @@ export function CandidateAnswerTranscript({
 
       {/* Main Content Area: Streaming Transcript OR Manual Textarea */}
       <div className="p-4 flex-1">
-        {isManualEditMode || sttError || !isSpeechSupported ? (
+        {isManualEditMode || (!isReconnectingVoice && (sttError || !isSpeechSupported)) ? (
           <div className="space-y-2">
             <textarea
               value={manualText}

@@ -23,8 +23,10 @@ import {
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BrowserTextToSpeech } from '@/services/speech/browserTTS';
-import { BrowserSpeechToText } from '@/services/speech/browserSTT';
+import { ttsManager, TTSManager } from '@/services/speech/ttsManager';
+import { SpeechToText } from '@/services/speech/types';
+import { createSpeechToTextProvider } from '@/services/speech/sttFactory';
+import { runSpeechPreflightDiagnostic, SpeechPreflightResult } from '@/services/speech/sttPreflight';
 import { estimateQuestionRange } from '@/services/speech/timeEstimator';
 import {
   computeRMS,
@@ -48,6 +50,8 @@ import {
   generateChallengeSequence,
 } from '@/lib/activeChallenge';
 import { LivenessChallengeStep } from '@/lib/integrityTypes';
+import { formatPageTitle, USER_FLOW_STEPS } from '@/copy/glossary';
+import { Logo } from '@/components/common/Logo';
 import { PermissionHelpModal } from './PermissionHelpModal';
 import { DiagnosticsModal } from './DiagnosticsModal';
 import {
@@ -167,20 +171,22 @@ export function PreInterviewSetup({
   const analyserRef = useRef<AnalyserNode | null>(null);
   const audioStreamRef = useRef<MediaStream | null>(null);
   const audioAnimRef = useRef<number | null>(null);
-  const ttsRef = useRef<BrowserTextToSpeech | null>(null);
-  const sttRef = useRef<BrowserSpeechToText | null>(null);
+  const ttsRef = useRef<TTSManager | null>(null);
+  const sttRef = useRef<SpeechToText | null>(null);
   const speechStartedRef = useRef<boolean>(false);
   const [liveSpeechTranscript, setLiveSpeechTranscript] = useState<string>('');
   const [sttNotice, setSttNotice] = useState<string | null>(null);
   const [lastMicErrorName, setLastMicErrorName] = useState<string | null>(null);
   const [lastSttErrorCode, setLastSttErrorCode] = useState<string | null>(null);
+  const [preflightResult, setPreflightResult] = useState<SpeechPreflightResult | null>(null);
+  const [activeProviderName, setActiveProviderName] = useState<string>('Voice Recognition');
 
   const durationPresets = [10, 15, 20, 30, 45, 60];
   const questionEstimate = estimateQuestionRange(durationMinutes);
 
   const sttSupported =
     typeof window !== 'undefined' &&
-    Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
+    Boolean(window.SpeechRecognition || (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition || window.WebSocket);
 
   // Lighting & Color Tint Warnings (§2.1, §2.2)
   const lightingCrit = faceQualityReport?.criteriaList.find((c) => c.id === 'lighting');
@@ -191,9 +197,31 @@ export function PreInterviewSetup({
 
   // Initialize Audio & Speech Services + Preload Vision Models
   useEffect(() => {
-    ttsRef.current = new BrowserTextToSpeech();
-    const stt = new BrowserSpeechToText();
+    document.title = formatPageTitle('Check Camera & Microphone');
+    ttsRef.current = ttsManager;
+    const stt = createSpeechToTextProvider();
     sttRef.current = stt;
+
+    // Run speech preflight diagnostics (§B3)
+    runSpeechPreflightDiagnostic(audioStream).then((res) => {
+      setPreflightResult(res);
+      if (res.isBrave) {
+        setSttNotice(res.recommendation);
+      }
+    });
+
+    const unsubscribeChain = stt.onChainStatusChange((status) => {
+      setActiveProviderName(
+        status.activeProvider === 'browser'
+          ? 'Voice Recognition'
+          : status.activeProvider === 'nemotron'
+          ? 'Voice Recognition (Enhanced)'
+          : 'Typed Fallback'
+      );
+      if (status.statusNotice) {
+        setSttNotice(status.statusNotice);
+      }
+    });
 
     const unsubscribeSTT = stt.onTranscript((event) => {
       if (event.fullTranscript) {
@@ -205,14 +233,15 @@ export function PreInterviewSetup({
 
     const unsubscribeSTTError = stt.onError((err) => {
       setLastSttErrorCode(err.error);
-      if (
-        err.error === 'network' ||
-        err.error === 'audio-capture' ||
-        err.error === 'service-not-allowed'
-      ) {
+      runSpeechPreflightDiagnostic(audioStream).then((res) => {
+        setPreflightResult(res);
         const errorInfo = mapSpeechRecognitionError(err.error);
-        setSttNotice(`${errorInfo.title}: ${errorInfo.explanation}`);
-      }
+        const guidance =
+          res.isBrave || !res.isOnline || !res.isEndpointReachable
+            ? res.recommendation
+            : errorInfo.explanation;
+        setSttNotice(`${errorInfo.title}: ${guidance}`);
+      });
     });
 
     refreshCameras();
@@ -220,6 +249,7 @@ export function PreInterviewSetup({
     preloadVisionModels().catch(() => {});
 
     return () => {
+      unsubscribeChain();
       unsubscribeSTT();
       unsubscribeSTTError();
       detectionLoopActiveRef.current = false;
@@ -1025,6 +1055,7 @@ export function PreInterviewSetup({
 
   const handleStart = () => {
     if (!isAllReady || !consentAccepted) return;
+    ttsManager.unlockAudio();
     isHandingOverRef.current = true;
     retainForInterview();
     const finalAudioStream = audioStream ?? audioStreamRef.current;
@@ -1038,13 +1069,55 @@ export function PreInterviewSetup({
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in py-4 px-3 sm:px-0">
+      {/* 5-Step User Flow Breadcrumbs */}
+      <nav aria-label="Interview Flow Progress" className="w-full max-w-3xl mx-auto mb-2">
+        <ol className="flex items-center justify-between text-xs font-mono font-medium">
+          {USER_FLOW_STEPS.map((s, idx) => {
+            const isCurrent = s.step === 3;
+            const isCompleted = s.step < 3;
+            return (
+              <li
+                key={s.step}
+                className={`flex items-center gap-1.5 ${
+                  isCurrent
+                    ? 'text-primary font-bold'
+                    : isCompleted
+                    ? 'text-success'
+                    : 'text-text-faint'
+                }`}
+              >
+                <span
+                  className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] ${
+                    isCurrent
+                      ? 'bg-primary text-primary-ink'
+                      : isCompleted
+                      ? 'bg-mint text-primary font-bold'
+                      : 'bg-bg-subtle border border-card-border text-text-faint'
+                  }`}
+                >
+                  {isCompleted ? '✓' : s.step}
+                </span>
+                <span className="hidden sm:inline">{s.fullLabel}</span>
+                {idx < USER_FLOW_STEPS.length - 1 && (
+                  <span className="text-text-faint mx-1 hidden sm:inline">→</span>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+
       {/* Header */}
       <div className="text-center space-y-2">
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <Logo variant="mark" size="sm" />
+          <span className="font-display font-semibold text-text text-base tracking-tight">InterviewForge</span>
+        </div>
         <Badge variant="outline" className="border-card-border text-text-muted bg-bg-subtle font-mono text-xs">
-          01 // MACHINE-VERIFIED PRE-FLIGHT
+          STEP 3 OF 5 // 3 CHECK CAMERA & MICROPHONE
         </Badge>
         <h1 className="text-2xl sm:text-3xl font-bold font-display text-text tracking-tight">
-          Adaptive Live Interview Setup
+          3 Check Camera & Microphone
         </h1>
         <p className="text-sm text-text-muted max-w-xl mx-auto">
           Verify physical camera feed, confirm two-way audio, and complete active liveness verification.
@@ -1057,7 +1130,7 @@ export function PreInterviewSetup({
           <div className="space-y-1">
             <span className="font-semibold block text-warning font-mono uppercase tracking-wider text-[11px]">Speech Recognition Notice</span>
             <p className="text-text-muted leading-relaxed">
-              Your browser does not have the native Web Speech API enabled. Chrome or Edge is recommended.
+              Your browser does not have voice recognition enabled. Chrome or Edge is recommended.
               A typed input fallback will be provided automatically.
             </p>
           </div>
@@ -1173,7 +1246,7 @@ export function PreInterviewSetup({
                   Local Privacy Protection
                 </div>
                 <p className="text-[11px] text-text-muted leading-relaxed">
-                  Your camera and microphone are on during the interview. Camera monitoring and facial analysis run entirely on your device. Spoken answers are transcribed using your browser’s speech recognition service. Only numeric behavior signals and the transcribed text of your answers are saved. No raw audio or video recordings are stored on our servers.
+                  Your camera and microphone are on during the interview. Camera monitoring and facial analysis run entirely on your device. Spoken answers are transcribed either locally in your browser or sent to our server for real-time transcription only. Audio is never stored or recorded on our servers. Only numeric behavior signals and the transcribed text of your answers are saved.
                 </p>
               </div>
 
@@ -1230,7 +1303,7 @@ export function PreInterviewSetup({
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-semibold text-text flex items-center gap-1.5 font-mono uppercase tracking-wider text-[11px]">
                     <Camera className="h-3.5 w-3.5 text-primary" />
-                    1. Real Physical Camera
+                    1. Camera
                   </span>
 
                   {state.camera.status === 'verified' ? (
@@ -1398,7 +1471,7 @@ export function PreInterviewSetup({
                           {state.camera.stage === 'starting_video'
                             ? 'Starting Video Stream...'
                             : state.camera.stage === 'loading_model'
-                            ? 'Loading Vision Models (MediaPipe WASM)...'
+                            ? 'Checking that you are visible...'
                             : state.camera.stage === 'detecting_face'
                             ? 'Detecting Face in Camera Frame...'
                             : 'Requesting Physical Camera Access...'}
@@ -1682,81 +1755,12 @@ export function PreInterviewSetup({
                 </p>
               </div>
 
-              {/* 2. Liveness Section (Gated on Camera Verification) */}
-              <div className="p-3.5 rounded-xl bg-bg-subtle border border-card-border space-y-2.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-text flex items-center gap-1.5 font-mono uppercase tracking-wider text-[11px]">
-                    <Sparkles className="h-3.5 w-3.5 text-primary" />
-                    Liveness Verification
-                  </span>
-                  {state.liveness.status === 'passed' ? (
-                    <Badge variant="outline" className="bg-mint text-primary border-primary/30 text-[10px] gap-1 font-mono">
-                      <Check className="h-3 w-3 text-success" />
-                      3/3 Steps Passed
-                    </Badge>
-                  ) : state.liveness.status === 'locked' ? (
-                    <Badge variant="outline" className="border-card-border text-text-faint bg-card text-[10px] gap-1 font-mono">
-                      <Lock className="h-2.5 w-2.5" />
-                      Locked
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="border-primary/30 text-primary bg-mint/30 text-[10px] font-mono">
-                      Mandatory Check
-                    </Badge>
-                  )}
-                </div>
-
-                {state.liveness.status === 'locked' ? (
-                  <p className="text-xs text-text-muted">
-                    Enable your physical camera and align your face in the guide to unlock liveness verification.
-                  </p>
-                ) : state.liveness.status === 'in_progress' ? (
-                  <div className="p-3 rounded-xl bg-mint/30 border border-primary/30 space-y-2 animate-in fade-in">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] uppercase font-bold text-primary tracking-wider font-mono">
-                        Action Required ({state.liveness.currentStep}/{state.liveness.totalSteps})
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={handleStepComplete}
-                        className="h-6 text-[10px] text-primary hover:text-primary-hover hover:bg-mint/40"
-                      >
-                        Simulate Gesture Pass
-                      </Button>
-                    </div>
-                    <p className="text-xs font-semibold text-text">
-                      {state.liveness.prompt}
-                    </p>
-                  </div>
-                ) : state.liveness.status === 'passed' ? (
-                  <p className="text-xs text-success flex items-center gap-1.5 font-medium">
-                    <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
-                    Live human presence confirmed. Anti-spoofing passed.
-                  </p>
-                ) : (
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-text-muted">
-                      Camera verified. Complete 3 quick actions to prove human presence.
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleStartLiveness}
-                      className="text-xs border-primary/30 text-primary hover:bg-mint/40 h-7 cursor-pointer"
-                    >
-                      Start Check
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              {/* 3. Microphone Section */}
+              {/* 2. Microphone Section */}
               <div className="space-y-2 pt-2 border-t border-card-border">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-semibold text-text flex items-center gap-1.5 font-mono uppercase tracking-wider text-[11px]">
                     <Mic className="h-3.5 w-3.5 text-primary" />
-                    2. Microphone Audio
+                    2. Microphone
                   </span>
 
                   {state.mic.status === 'verified' ? (
@@ -1983,10 +1987,23 @@ export function PreInterviewSetup({
                             </p>
                           )}
                           {sttNotice && (
-                            <p className="text-[10px] text-warning">
-                              {sttNotice}
-                            </p>
+                            <div className="p-2 rounded-lg bg-warning/15 border border-warning/30 text-warning text-[11px] space-y-1">
+                              <div className="font-semibold flex items-center gap-1">
+                                <AlertTriangle className="h-3 w-3 shrink-0" />
+                                <span>Voice Recognition Guidance</span>
+                              </div>
+                              <p className="leading-snug">{sttNotice}</p>
+                            </div>
                           )}
+                          <div className="text-[10px] text-text-muted flex items-center justify-between pt-0.5">
+                            <span className="flex items-center gap-1.5">
+                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary" />
+                              <span>STT Provider: <strong>{activeProviderName}</strong></span>
+                            </span>
+                            {preflightResult?.isBrave && (
+                              <span className="text-[10px] text-warning font-semibold">Brave Browser (Action Required)</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -2061,12 +2078,12 @@ export function PreInterviewSetup({
                 </p>
               </div>
 
-              {/* 4. Speaker Output & Verification Code Test */}
+              {/* 3. Speaker Output & Verification Code Test */}
               <div className="space-y-2 pt-2 border-t border-card-border">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-semibold text-text flex items-center gap-1.5 font-mono uppercase tracking-wider text-[11px]">
                     <Volume2 className="h-3.5 w-3.5 text-primary" />
-                    3. Speaker / Audio Output
+                    3. Speaker
                   </span>
                   {state.speaker.status === 'verified' ? (
                     <span className="text-success flex items-center gap-1 font-mono text-[11px] font-semibold">
@@ -2126,6 +2143,75 @@ export function PreInterviewSetup({
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* 4. Liveness Section (Gated on Camera Verification) */}
+              <div className="p-3.5 rounded-xl bg-bg-subtle border border-card-border space-y-2.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-text flex items-center gap-1.5 font-mono uppercase tracking-wider text-[11px]">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                    4. Liveness
+                  </span>
+                  {state.liveness.status === 'passed' ? (
+                    <Badge variant="outline" className="bg-mint text-primary border-primary/30 text-[10px] gap-1 font-mono">
+                      <Check className="h-3 w-3 text-success" />
+                      3/3 Steps Passed
+                    </Badge>
+                  ) : state.liveness.status === 'locked' ? (
+                    <Badge variant="outline" className="border-card-border text-text-faint bg-card text-[10px] gap-1 font-mono">
+                      <Lock className="h-2.5 w-2.5" />
+                      Locked
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="border-primary/30 text-primary bg-mint/30 text-[10px] font-mono">
+                      Mandatory Check
+                    </Badge>
+                  )}
+                </div>
+
+                {state.liveness.status === 'locked' ? (
+                  <p className="text-xs text-text-muted">
+                    Enable your physical camera and align your face in the guide to unlock liveness verification.
+                  </p>
+                ) : state.liveness.status === 'in_progress' ? (
+                  <div className="p-3 rounded-xl bg-mint/30 border border-primary/30 space-y-2 animate-in fade-in">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase font-bold text-primary tracking-wider font-mono">
+                        Action Required ({state.liveness.currentStep}/{state.liveness.totalSteps})
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleStepComplete}
+                        className="h-6 text-[10px] text-primary hover:text-primary-hover hover:bg-mint/40"
+                      >
+                        Simulate Gesture Pass
+                      </Button>
+                    </div>
+                    <p className="text-xs font-semibold text-text">
+                      {state.liveness.prompt}
+                    </p>
+                  </div>
+                ) : state.liveness.status === 'passed' ? (
+                  <p className="text-xs text-success flex items-center gap-1.5 font-medium">
+                    <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                    Live human presence confirmed. Anti-spoofing passed.
+                  </p>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-text-muted">
+                      Camera verified. Complete 3 quick actions to prove human presence.
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleStartLiveness}
+                      className="text-xs border-primary/30 text-primary hover:bg-mint/40 h-7 cursor-pointer"
+                    >
+                      Start Check
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* Start Interview CTA */}

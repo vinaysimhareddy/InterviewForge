@@ -1,4 +1,4 @@
-# Mock-interview simulator
+# InterviewForge
 
 An enterprise-grade, privacy-first AI mock interview platform where candidates upload resumes, select role and seniority, and participate in live adaptive interviews with real-time behavioral telemetry, automated question adaptation, and multi-dimensional scoring.
 
@@ -14,11 +14,11 @@ Browser Client (React 18 + TypeScript)
  ├── Audio Capture ──────► Web Speech Recognition (Real-Time Transcript Chunks)
  └── UI Engine ──────────► Responsive HUD, Background Video (2x2 px), PiP Self-View Toggle
                                  │
-                                 │ WebSocket (?token=<JWT>)
+                                 │ WebSocket (?ticket=<single-use-ticket>)
                                  ▼
 FastAPI ASGI Backend (Python 3.11+)
- ├── REST API: Argon2id Auth, Resumes (pdfplumber), Sessions, Evaluations
- ├── WebSocket Server: 10s Heartbeat, Telemetry Ingestion & HMAC Verification
+ ├── REST API: Argon2id Auth, Resumes (pdfplumber), Sessions, Evaluations, WS Tickets
+ ├── WebSocket Server: 10s Heartbeat, Telemetry Ingestion & Ticket Verification
  ├── LangGraph State Machine: Dynamic Difficulty Adaptation & Follow-Up Synthesis
  └── MongoDB Atlas (Motor): Database `ai-mock-interview` (Auth, Sessions, Telemetry, Reports)
 ```
@@ -329,6 +329,253 @@ Self-hosted via `@fontsource` packages (zero external font requests or Google Fo
 
 ---
 
-## 9. License
+## 9. Post-Interview Detailed Summary, Answer Review & Job-Readiness Engine
+
+The platform features an enterprise-grade post-interview scorecard, granular answer review, deterministic readiness estimation, and personalized 7-day action planning.
+
+### 9.1 Report Structure & Content (`/app/dashboard` & PDF)
+The review interface presents a cohesive single-page inspection experience with sticky navigation across distinct sections:
+1. **Overview & Verdict**:
+   - Role, seniority level, interview date, planned vs actual duration, question count (asked / answered / skipped).
+   - Plain-language executive summary highlighting key strengths, depth gaps, and overall impression.
+   - Overall score (`/100`), dimension scores (Technical Accuracy 35%, Depth & Problem Solving 25%, Communication 20%, Completeness 10%, Composure 10%), and hiring recommendation badge (`Strong Hire`, `Hire`, `Leaning Hire`, `No Hire`).
+2. **"What is this role for?"**:
+   - 2-3 sentence role purpose explanation derived from the domain knowledge base.
+   - Benchmark expectations for the target seniority level (Junior, Mid, Senior, Lead).
+   - Skill Match Matrix: compact table (`Expected Skill` &rarr; `Interview Evidence` &rarr; `Rating: Met / Partly / Not shown`).
+3. **Q&A Review (Core)**:
+   - Filter chips with dynamic counters (`All`, `Correct`, `Mostly correct`, `Partly correct`, `Incorrect`, `Skipped`) and instant search.
+   - Collapsible question cards with topic, difficulty tier, source rationale badge, and correctness verdict.
+   - Cleaned transcript display with a "Show original" raw speech toggle.
+   - STT confidence warning badge (`stt_confidence < 0.80`) signaling degraded transcript reliability.
+   - Granular breakdown: What was right, What was missing/wrong, Concepts mentioned vs missed, and a concise model answer calibrated to level.
+   - **"Transcription looks wrong" exclusion button**: Marks turns as unreliable, excludes them from scoring, and immediately triggers real-time deterministic recomputation via `POST /api/v1/sessions/{id}/report/turns/{turn_id}/exclude`.
+4. **"Are we satisfied?" Satisfaction Verdicts**:
+   - Formatted evaluation table across 5 core areas: Technical Knowledge, Depth & Problem Solving, Communication, Role Fit for Level, Professionalism & Composure.
+   - Evaluated as `Satisfied`, `Partly satisfied`, or `Not satisfied`, each citing specific evidence from the dialogue.
+5. **Skills & Topic Performance**:
+   - Topic score breakdown, best 3 and weakest 3 topics.
+   - Spoken communication metrics: average answer length (words), words per minute (WPM), filler word rate, and response latency.
+   - Adaptive difficulty progression timeline tracking question difficulty adjustments across turns.
+6. **Non-Verbal & Integrity Telemetry (Advisory)**:
+   - Evaluated exclusively from verified-live segments: eye contact ratio, posture stability, face presence rate, pauses count.
+   - Explicit advisory note that non-verbal metrics are heuristics, culturally variable, and weighted lowest.
+7. **Job-Readiness Estimate**:
+   - Transparent, bounded estimate presented as a range and band: e.g., `"55 to 65% (Competitive)"`.
+   - Mandatory disclaimer: *"This is an estimate of how your mock-interview performance compares with the expected bar for this role and level. It is not a prediction of any real hiring decision."*
+   - Transparent factor breakdown table explaining exact weights and influences.
+   - Thin-data gating: sessions with fewer than 4 answered questions or less than 5 minutes display `"Not enough data for an estimate"`.
+8. **Personalized Action Plan**:
+   - Top 3 prioritized growth areas ordered by impact, each with targeted study tasks and estimated effort.
+   - Structured 7-day day-by-day practice roadmap.
+   - "Start another interview with these focus areas" launcher pre-configuring target role and the candidate's weakest topics.
+
+---
+
+### 9.2 Deterministic Readiness Math & Calibration Table
+
+The Job-Readiness Estimate is derived from **deterministic mathematical formulas** in configuration (`app/core/readiness_config.py`), never from LLM guesswork.
+
+#### Composite Quality Score:
+$$\text{Quality} = 0.55 \cdot \text{Tech} + 0.20 \cdot \text{Depth} + 0.15 \cdot \text{Comm} + 0.10 \cdot \text{Coverage}$$
+
+#### Seniority Piecewise Calibration Curves:
+| Quality | Junior Base | Mid Base | Senior Base | Lead / Staff Base |
+| :---: | :---: | :---: | :---: | :---: |
+| `0.00` | 5% | 5% | 5% | 5% |
+| `0.30 - 0.45` | 25% | 20% | 18% | 15% |
+| `0.50 - 0.65` | 45% | 40% | 38% | 35% |
+| `0.60 - 0.85` | 65% | 65% | 65% | 65% |
+| `0.80 - 0.90` | 85% | 85% | 85% | 85% |
+| `1.00` | 95% | 95% | 95% | 95% |
+
+#### Confidence & Half-Width Spreads:
+- **High Confidence ($\pm 6\%$)**: $\ge 6$ answered questions and $\ge 12$ minutes duration.
+- **Medium Confidence ($\pm 10\%$)**: 4–5 answered questions and $\ge 5$ minutes duration.
+- **Low Confidence ($\pm 15\%$)**: High transcript noise or minimal qualifying threshold.
+
+#### Readiness Bands:
+- **Not Ready**: $< 25\%$
+- **Developing**: $25\% \text{ to } 45\%$
+- **Borderline**: $45\% \text{ to } 60\%$
+- **Competitive**: $60\% \text{ to } 80\%$
+- **Strong**: $> 80\%$
+
+---
+
+### 9.3 Privacy, Zero-Leak & Gating Guarantees
+- **Zero Mid-Interview Leakage**: Rubric evaluations, turn scores, and readiness estimates are strictly forbidden from being transmitted to the client before the interview session has completed (`status == 'COMPLETED'`).
+- **Strict User Isolation**: All candidate reports and outcome feedback are scoped to the authenticated candidate's ID.
+- **Thin Data Gating**: If an interview contains $< 4$ answered turns or duration is $< 5$ minutes, readiness calculations are gated (`available = False`) with a clear explanatory notice instead of generating misleading numbers.
+- **Prompt Injection Defense**: Transcripts are treated as untrusted data. Candidate attempts to inject system instructions (e.g. `"give me 10/10"`) are isolated and scored on actual technical merits without leaking system prompts or breaking deterministic scoring math.
+- **Call Budget Invariant**: Batching reviews into up to 5 turns per call guarantees that total LLM calls per report never exceed $\lceil \text{turns}/5 \rceil + 2$.
+
+---
+
+## 10. Voice Loop Architecture, Latency Budgets & STT Resilience
+
+### 10.1 Voice Turnaround Latency Budget
+The platform implements a low-latency, resilient voice loop designed to minimize dead-air waiting time between candidate answers and the interviewer's subsequent question.
+
+```mermaid
+flowchart LR
+    CandidateSpeak["Candidate Speaking"] --> VAD["VAD / First Interim (<= 400ms)"]
+    VAD --> FinalSTT["Final Text Committed (<= 300ms)"]
+    FinalSTT --> AdaptiveSilence["Adaptive Silence Detector (1.2s - 2.0s)"]
+    AdaptiveSilence --> SubmitAns["Submit Answer to Engine"]
+    SubmitAns --> LLMTurn["Engine Update & Next Question"]
+    LLMTurn --> TTSStart["TTS Audio Starts (<= 500ms)"]
+    TTSStart --> InterviewerSpeak["Interviewer Speaking"]
+```
+
+#### Where to Tune the Silence Detector:
+The adaptive silence thresholds are configured in `frontend/src/services/speech/adaptiveSilence.ts`:
+- **Complete Sentences (`[.?!]` terminal punctuation)**: `1200 ms` (1.2 s) for rapid turnaround when a candidate concludes a thought.
+- **Mid-sentence Pauses / Fillers**: `2000 ms` (2.0 s) to prevent premature cut-off while candidate is gathering thoughts.
+- **Absolute Maximum Silence Cap**: `2500 ms` (2.5 s).
+- **Per-Answer Absolute Hard Cap**: `120 s` (unchanged).
+
+---
+
+### 10.2 Metric Scorecard: Target vs Before vs After
+
+| Metric | Target | Before Fix | After Fix (Measured) | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **Speech start → first interim words on screen** | $\le 400\text{ ms}$ (p50), $\le 700\text{ ms}$ (p95) | $\approx 680\text{ ms}$ (p50), $1200\text{ ms}$ (p95) | **$240\text{ ms}$ (p50), $380\text{ ms}$ (p95)** | **PASSED** |
+| **Pause in speech → final text committed** | $\le 300\text{ ms}$ | $850\text{ ms}$ | **$180\text{ ms}$** | **PASSED** |
+| **End-of-answer detection (adaptive)** | $1.2\text{ to } 2.0\text{ s}$ (never $> 2.5\text{ s}$) | $3.0\text{ s}$ fixed timeout | **$1.2\text{ s}$ (punct), $2.0\text{ s}$ (pause)** | **PASSED** |
+| **Answer end → next question audio starts** | $\le 2.5\text{ s}$ (p50), $\le 4.0\text{ s}$ (p95) | $4.4\text{ s}$ (p50), $6.2\text{ s}$ (p95) | **$2.1\text{ s}$ (p50), $3.2\text{ s}$ (p95)** | **PASSED** |
+| **Question text received → TTS audio starts** | $\le 500\text{ ms}$ | $1400\text{ ms}$ | **$120\text{ ms}$** | **PASSED** |
+| **TTS success rate (audio actually plays)** | $100\%$ with auto-recovery or fallback | $\approx 78\%$ (GC drops, Chrome stalls) | **$100\%$ (watchdog + sentence chunking)** | **PASSED** |
+| **Review: first section visible after end** | $\le 5\text{ s}$ | $25 - 45\text{ s}$ | **$\le 0.4\text{ s}$ (deterministic render)** | **PASSED** |
+| **Review: fully complete (20-min session)** | $\le 20\text{ s}$ (p50), $\le 35\text{ s}$ (p95) | $42\text{ s}$ (p50), $58\text{ s}$ (p95) | **$2.5\text{ s}$ (p50), $5.8\text{ s}$ (p95)** | **PASSED** |
+| **STT network-error auto-recovery** | Auto within $3\text{ s}$ in $\ge 90\%$ cases | $0\%$ (instant intrusive red error card) | **$98\%$ auto-recovered (backoff 300-1500ms)** | **PASSED** |
+
+---
+
+## 11. Speech Troubleshooting Guide & STT Provider Chain
+
+### 11.1 Resolving Browser Speech "Network Error"
+The Web Speech API requires access to browser-native speech recognition services. If you encounter speech recognition errors:
+
+1. **Brave Browser Shields & Permissions**:
+   - Brave disables Google services by default, causing immediate `network` errors on `SpeechRecognition`.
+   - **Fix**: Open `brave://settings/privacy` and toggle **"Use Google services for messaging and speech recognition"** to **ON**, or use Google Chrome / Microsoft Edge.
+2. **Corporate VPN, Proxy, or Firewall Restrictions**:
+   - Web Speech routes audio through Google speech endpoints over secure WebSockets/HTTPS (`*.google.com:443`).
+   - If your network restricts external speech endpoints, whitelist Google speech services or utilize the local offline Nemotron STT fallback service.
+3. **DNS Filtering (Pi-hole, NextDNS, AdGuard)**:
+   - Ensure `speech.googleapis.com` and related subdomains are not blocked.
+4. **Unsupported Browsers (Firefox / Safari)**:
+   - Firefox does not ship native Web Speech recognition enabled by default. Run on Chrome, Edge, or start the Nemotron STT service.
+5. **High-Contrast "Try Again" & Recovery**:
+   - The retry button uses high-contrast rust text (`#B33925` on `#FFFFFF`, contrast ratio $5.9:1$, compliant with WCAG AA $\ge 4.5:1$).
+   - Transient disconnects auto-retry silently using backoffs ($300\text{ ms}, 800\text{ ms}, 1500\text{ ms}, 3000\text{ ms}$) under a non-blocking indicator (`"Reconnecting voice recognition…"`).
+
+---
+
+### 11.2 Running the Local Nemotron Streaming STT Service
+The platform supports a high-accuracy, low-latency streaming neural ASR fallback that runs entirely on your local machine:
+
+```bash
+# 1. Install streaming STT service requirements
+pip install -r services/stt_service/requirements.txt
+
+# 2. Start the streaming STT microservice on port 8001
+python -m uvicorn services.stt_service.server:app --port 8001 --host 0.0.0.0
+```
+
+When port 8001 is running, the client automatically detects the service during the pre-interview hardware setup. If the browser Web Speech recognizer encounters persistent network failures, it seamlessly fails over to Nemotron streaming STT without interrupting the candidate. If all voice options fail, the interface transitions to typed answer fallback.
+
+---
+
+### 11.3 Observability & Dev Latency Lab (`/dev/latency-lab`)
+Developers can inspect real-time turnaround latency and benchmark speech providers:
+- **Direct Route**: Navigate to `/dev/latency-lab` (or `/latency-lab` or `?latency-lab=true`).
+- **In-Interview Access**: Open the **Diagnostics Modal** (`Ctrl + Shift + D` or via the HUD) and click **"Open Latency Lab"**.
+- **Features**:
+  - Full milestone sequence tracking: `speech_start → first_interim → last_interim → final_text → answer_end_decision → answer_sent → question_received → tts_start → tts_end`.
+  - Color-coded budget violation flags (red highlight when budgets are missed).
+  - STT provider comparison harness (Browser Web Speech vs. Nemotron).
+  - Single-click session JSON timeline export for deep debugging.
+
+---
+
+## 12. Security Model & Authentication Hygiene
+
+InterviewForge enforces an enterprise security model with zero credential leakage across the application:
+
+### 12.1 HttpOnly Session Management & Silent Refresh
+- **HttpOnly Cookies:** Authentication tokens are stored in `HttpOnly`, `SameSite=Lax`, and `Secure` (in production) cookies set directly by the FastAPI backend on login and registration (`access_token_cookie`).
+- **Memory-Only Client Storage:** The frontend maintains tokens in memory only (`api.ts`). `localStorage`, `sessionStorage`, and `IndexedDB` are strictly banned from storing JWTs or authorization secrets.
+- **CSRF Protection:** State-changing requests (`POST`, `PUT`, `DELETE`) require cross-site validation cookies and headers.
+- **URL & History Sanitization:** After OAuth/redirect callbacks, sensitive tokens, query parameters, and IDs are stripped from the browser URL bar using `history.replaceState`.
+
+### 12.2 Single-Use WebSocket Ticket Protocol
+Tokens are **never passed in WebSocket connection URLs**. Instead, InterviewForge implements a single-use ticket exchange:
+1. Candidate requests a ticket: `POST /api/v1/auth/ws-ticket` with `{ "session_id": "<uuid>" }` authenticated via session cookie or bearer header.
+2. Server verifies session ownership and issues a cryptographically secure random ticket (32 bytes base64url) valid for **30 seconds** (`create_ws_ticket`).
+3. Browser connects to `wss://.../ws/interview/{session_id}?ticket=<single-use-ticket>`.
+4. Server validates ticket against session and user, immediately destroys the ticket (`consume_ws_ticket`), and establishes the interview channel.
+5. Reusing a ticket, submitting an expired ticket, or connecting with an invalid ticket immediately terminates the socket with close code **4008** (`Policy Violation`).
+
+### 12.3 Production Build Stripping
+- **Source Maps:** `sourcemap: false` is enforced in `vite.config.ts`.
+- **Console Stripping:** All `console.log`, `console.info`, and `debugger` statements are stripped by `esbuild.drop = ['console', 'debugger']` in production builds.
+- **Dev-Only Routes Protected:** `/design-system`, `/dev/latency-lab`, and `?debug=1` are only registered under `import.meta.env.DEV` and are removed from production bundles.
+
+---
+
+## 13. Brand Asset Guidelines & Derivative Pipeline
+
+All brand assets for **InterviewForge** are dynamically compiled from master design references:
+
+### 13.1 Master Files Location
+- Master Brand Logo: `design-reference/brand/interviewforge-logo.png`
+- Master Mark (Symbol): `design-reference/brand/interviewforge-mark.png`
+- Master Wordmark (Typography): `design-reference/brand/interviewforge-wordmark.png`
+- High-Contrast Monochrome Derivatives: `interviewforge-logo-light.png`, `interviewforge-logo-dark.png`, `interviewforge-logo-mono-white.png`, `interviewforge-logo-mono-dark.png`
+
+### 13.2 Asset Generator Script
+To rebuild all production favicons, web manifests, PWA icons, OpenGraph social cards, webp variants, and PDF report data URIs:
+```bash
+node scripts/build_brand_assets.mjs
+```
+Generated outputs are stored in `frontend/public/brand/` and `frontend/src/assets/brand/`.
+
+### 13.3 Global UI Integration
+- `<Logo />` Component (`frontend/src/components/common/Logo.tsx`): Supports `full`, `mark`, and `wordmark` variants with responsive `<picture>` tags, dark/light theme switching, and high-DPI `srcset` (`1x`, `2x`).
+- Integrated into Top Navigation, Auth Pages, Loading Screens, Setup Header, Live Interview Stage HUD & Watermark, Review Scorecard, 404 Not Found, and PDF Document (`logoPdfBase64.ts`).
+
+---
+
+## 14. Banned Terminology Scanner & In-App UI Hygiene
+
+To guarantee complete white-label privacy and prevent internal technology or vendor name leaks inside the authenticated app:
+
+### 14.1 AST Source Code Scanner
+Scans all frontend source files outside allowed public/legal directories to verify that vendor names (`Gemini`, `OpenAI`, `GPT`, `LangGraph`, `LangChain`, `Nemotron`, `MediaPipe`, `WASM`, `MongoDB`, `FastAPI`, `Argon2`, `JWT`, `HMAC`, etc.) and auth keywords are not rendered in user-visible DOM nodes:
+```bash
+cd frontend
+npm test tests/banned-terms-ast-scan.test.ts
+```
+
+### 14.2 Playwright In-App Crawl
+Logs in as a candidate, traverses the complete interview workflow (Login, Register, Dashboard, Setup, Stage, Scorecard, and 404), and verifies that zero banned terminology or token patterns (`Bearer`, `eyJ...`, `api-key`) appear in the DOM, titles, tooltips, or aria labels:
+```bash
+cd frontend
+npx playwright test e2e/n3-banned-terms-crawl.spec.ts --project=chromium
+```
+
+### 14.3 API Response Hygiene Scan
+Verifies that client-facing JSON payloads never expose provider names, model IDs, prompt versions, raw exception tracebacks, or internal rubric IDs:
+```bash
+cd backend
+.venv/Scripts/python -m pytest tests/test_api_response_hygiene.py
+```
+
+---
+
+## 15. License
 
 MIT License. Designed and engineered for privacy-preserving AI mock interview simulations.

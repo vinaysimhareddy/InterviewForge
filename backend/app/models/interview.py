@@ -1,5 +1,5 @@
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AnswerSubmission(BaseModel):
@@ -10,6 +10,7 @@ class AnswerSubmission(BaseModel):
     response_latency_ms: Optional[float] = None
     answer_duration_sec: Optional[float] = None
     reason: Optional[str] = None  # silence | cap | user
+    source: Optional[str] = Field(default="voice", description="voice | typed")
 
 
 class QuestionEvaluation(BaseModel):
@@ -108,6 +109,8 @@ class DifficultyProgressionPoint(BaseModel):
 
 class FinalReport(BaseModel):
     """Comprehensive post-interview scorecard."""
+    model_config = ConfigDict(extra="ignore")
+
     overall_score: float = Field(..., ge=0.0, le=100.0)
     category_scores: CategoryScores
     hiring_recommendation: str = Field(..., description="Strong Hire | Hire | Leaning Hire | No Hire")

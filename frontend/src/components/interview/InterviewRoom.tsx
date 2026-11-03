@@ -17,9 +17,11 @@ import {
   Smile,
   Eye,
   Sparkles,
+  Volume2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ttsManager } from '@/services/speech/ttsManager';
 import { MetricsHUD } from './MetricsHUD';
 import { CameraLostModal } from './CameraLostModal';
 import { FaceLostModal } from './FaceLostModal';
@@ -35,10 +37,11 @@ import { useWebSocketInterview } from '@/hooks/useWebSocketInterview';
 import { useMediaStream } from '@/context/CameraStreamContext';
 import { useMediaPipeVision } from '@/hooks/useMediaPipeVision';
 import { useVoiceTurnEngine } from '@/hooks/useVoiceTurnEngine';
-import { TelemetrySample, ServerWSMessage, FinalReport } from '@/lib/types';
+import { TelemetrySample, ServerWSMessage, FinalReport, InterviewReport } from '@/lib/types';
 import { ChallengeActionType, LivenessChallengeStep } from '@/lib/integrityTypes';
 import { apiClient, ApiError } from '@/lib/api';
 import { SessionData } from './InterviewConfigurator';
+import { Logo } from '@/components/common/Logo';
 
 interface QuestionEvaluation {
   score: number;
@@ -69,7 +72,7 @@ export interface InterviewRoomProps {
   durationMinutes?: number;
   initialQuestion?: string;
   initialPhase?: RoomPhase;
-  initialReport?: FinalReport;
+  initialReport?: FinalReport | InterviewReport;
   onExit: () => void;
   onOpenHelp?: () => void;
 }
@@ -90,9 +93,9 @@ export function InterviewRoom({
   const [abortReason, setAbortReason] = useState<string>('user_ended');
   const [isGeneratingReport, setIsGeneratingReport] = useState<boolean>(false);
 
-  // Query parameter developer flag (?debug=1)
+  // Query parameter developer flag (?debug=1) - strictly disabled in production builds
   const isDebugMode = useMemo(() => {
-    if (typeof window === 'undefined') return false;
+    if (!import.meta.env.DEV || typeof window === 'undefined') return false;
     return new URLSearchParams(window.location.search).get('debug') === '1';
   }, []);
 
@@ -155,7 +158,7 @@ export function InterviewRoom({
   const [_lastEvaluation, setLastEvaluation] = useState<QuestionEvaluation | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isInitializing, setIsInitializing] = useState<boolean>(true);
-  const [finalReport, setFinalReport] = useState<FinalReport | null>(initialReport || null);
+  const [finalReport, setFinalReport] = useState<FinalReport | InterviewReport | null>(initialReport || null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
 
@@ -171,23 +174,11 @@ export function InterviewRoom({
         setCameraLostGraceSec(message.grace_seconds);
       }
       setIsPausedByIntegrity(true);
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(
-          message.voice_prompt || 'Camera lost, please restore it'
-        );
-        utterance.rate = 1.0;
-        window.speechSynthesis.speak(utterance);
-      }
+      void ttsManager.speak(message.voice_prompt || 'Camera lost, please restore it');
     } else if (message.type === 'resume_integrity') {
       setIsCameraLostModalOpen(false);
       setIsPausedByIntegrity(false);
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance('Camera feed restored. Resuming interview.');
-        utterance.rate = 1.0;
-        window.speechSynthesis.speak(utterance);
-      }
+      void ttsManager.speak('Camera feed restored. Resuming interview.');
     } else if (message.type === 'challenge') {
       const step: LivenessChallengeStep = {
         id: message.challenge_id,
@@ -200,12 +191,7 @@ export function InterviewRoom({
       setChallengeRemainingSec(message.timeout_sec ?? 8.0);
       setChallengeNotification(null);
 
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(message.prompt);
-        utterance.rate = 1.0;
-        window.speechSynthesis.speak(utterance);
-      }
+      void ttsManager.speak(message.prompt);
       if (challengeTriggerRef.current) {
         challengeTriggerRef.current(step);
       }
@@ -216,7 +202,6 @@ export function InterviewRoom({
     status: _wsStatus,
     send: sendWSMessage,
     sendTelemetry: sendWSTelemetry,
-    ackedPacketCount,
   } = useWebSocketInterview({
     sessionId: session.id,
     token: token,
@@ -267,25 +252,11 @@ export function InterviewRoom({
             : 'Camera feed disconnected or hardware track ended.'
         );
         setIsPausedByIntegrity(true);
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
-          const utterance = new SpeechSynthesisUtterance(
-            'Camera feed lost. Please restore camera within 30 seconds.'
-          );
-          utterance.rate = 1.0;
-          window.speechSynthesis.speak(utterance);
-        }
+        void ttsManager.speak('Camera feed lost. Please restore camera within 30 seconds.');
       } else if (event.type === 'feed_resumed' || event.type === 'track_unmuted') {
         setIsCameraLostModalOpen(false);
         setIsPausedByIntegrity(false);
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
-          const utterance = new SpeechSynthesisUtterance(
-            'Camera feed restored. Resuming interview.'
-          );
-          utterance.rate = 1.0;
-          window.speechSynthesis.speak(utterance);
-        }
+        void ttsManager.speak('Camera feed restored. Resuming interview.');
       }
     },
     onAntiSpoofFlag: (flag) => {
@@ -387,12 +358,7 @@ export function InterviewRoom({
           )
         ),
       });
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(
-          new SpeechSynthesisUtterance('Camera feed restored. Resuming interview.')
-        );
-      }
+      void ttsManager.speak('Camera feed restored. Resuming interview.');
     } catch (err) {
       console.error('Failed to restore camera:', err);
     }
@@ -400,38 +366,38 @@ export function InterviewRoom({
 
   // Wrap-up Flow (§3.7): Natural spoken closing line, stage fade, tracks stopped via stopAll()
   const handleWrapUp = useCallback(
-    (report?: FinalReport) => {
+    (report?: FinalReport | InterviewReport) => {
       setRoomPhase('wrapping_up');
       if (report) {
         setFinalReport(report);
       } else {
         setIsGeneratingReport(true);
         apiClient
-          .get<FinalReport>(`/api/v1/interview/sessions/${session.id}/report`)
+          .get<InterviewReport>(`/api/v1/sessions/${session.id}/report`)
           .then((rep) => setFinalReport(rep))
-          .catch(() => {})
+          .catch(() => {
+            return apiClient
+              .get<FinalReport>(`/api/v1/interview/sessions/${session.id}/report`)
+              .then((rep) => setFinalReport(rep));
+          })
+          .catch((err) => {
+            console.error('Failed to retrieve interview report:', err);
+          })
           .finally(() => setIsGeneratingReport(false));
       }
 
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const closingUtterance = new SpeechSynthesisUtterance(
-          'That concludes our interview today. Thank you for your time and thoughtful responses.'
-        );
-        closingUtterance.rate = 1.0;
-        closingUtterance.onend = () => {
+      void ttsManager
+        .speak('That concludes our interview today. Thank you for your time and thoughtful responses.')
+        .finally(() => {
           stopAll();
           setRoomPhase('complete');
-        };
-        window.speechSynthesis.speak(closingUtterance);
-        setTimeout(() => {
-          stopAll();
-          setRoomPhase('complete');
-        }, 2600);
-      } else {
+        });
+
+      // Safety fallback timeout to guarantee stage transition
+      setTimeout(() => {
         stopAll();
         setRoomPhase('complete');
-      }
+      }, 3000);
     },
     [session.id, stopAll]
   );
@@ -445,87 +411,56 @@ export function InterviewRoom({
     setRoomPhase('aborted');
   };
 
-  // Remaining duration countdown timer
-  useEffect(() => {
-    if (isUserPaused || isPausedByIntegrity || roomPhase !== 'live') return;
-
-    const interval = setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          sendWSMessage({ type: 'end_interview', reason: 'time_budget_expired' });
-          handleWrapUp();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isUserPaused, isPausedByIntegrity, roomPhase, sendWSMessage, handleWrapUp]);
-
-  // Spacebar shortcut to toggle Pause/Resume
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.code === 'Space') {
-        e.preventDefault();
-        setIsUserPaused((prev) => !prev);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
   // Answer submission pipeline
-  const executeAnswerSubmission = useCallback(async (answerText: string) => {
-    const trimmed = answerText.trim();
-    if (!trimmed || isSubmitting) return;
+  const executeAnswerSubmission = useCallback(
+    async (answerText: string, metadata?: { source?: 'voice' | 'typed' }) => {
+      const trimmed = answerText.trim();
+      if (!trimmed || isSubmitting) return;
 
-    setIsSubmitting(true);
-    setErrorMessage(null);
+      setIsSubmitting(true);
+      setErrorMessage(null);
 
-    // Section 3.6: Latency hiding conversational acknowledgement (deterministic based on turn index)
-    if ('speechSynthesis' in window && !isUserPaused && !isPausedByIntegrity) {
-      const acks = [
-        'Got it.',
-        'Understood, thank you.',
-        "Thanks, that's helpful.",
-        'Noted.',
-      ];
-      const deterministicAck = acks[questionIndex % acks.length];
-      const ackUtterance = new SpeechSynthesisUtterance(deterministicAck);
-      ackUtterance.rate = 1.1;
-      window.speechSynthesis.speak(ackUtterance);
-    }
-
-    try {
-      const res = await apiClient.post<InterviewStepResponse>(
-        `/api/v1/interview/sessions/${session.id}/answer`,
-        { answer: trimmed }
-      );
-
-      if (res.evaluation) {
-        setLastEvaluation(res.evaluation);
+      // Section 3.6: Latency hiding conversational acknowledgement (deterministic based on turn index)
+      if (!isUserPaused && !isPausedByIntegrity) {
+        const acks = [
+          'Got it.',
+          'Understood, thank you.',
+          "Thanks, that's helpful.",
+          'Noted.',
+        ];
+        const deterministicAck = acks[questionIndex % acks.length];
+        void ttsManager.speak(deterministicAck, { rate: 1.1 });
       }
-      if (res.difficulty_change && res.difficulty_change !== 'UNCHANGED') {
-        setLastDifficultyChange(res.difficulty_change);
-      }
-      setCurrentDifficulty(res.difficulty);
 
-      if (res.status === 'COMPLETED' || res.final_report) {
-        handleWrapUp(res.final_report);
-      } else if (res.next_question) {
-        setCurrentQuestion(res.next_question);
-        setQuestionIndex(res.current_question_index);
+      try {
+        const res = await apiClient.post<InterviewStepResponse>(
+          `/api/v1/interview/sessions/${session.id}/answer`,
+          { answer: trimmed, source: metadata?.source || 'voice' }
+        );
+
+        if (res.evaluation) {
+          setLastEvaluation(res.evaluation);
+        }
+        if (res.difficulty_change && res.difficulty_change !== 'UNCHANGED') {
+          setLastDifficultyChange(res.difficulty_change);
+        }
+        setCurrentDifficulty(res.difficulty);
+
+        if (res.status === 'COMPLETED' || res.final_report) {
+          handleWrapUp(res.final_report);
+        } else if (res.next_question) {
+          setCurrentQuestion(res.next_question);
+          setQuestionIndex(res.current_question_index);
+        }
+      } catch (err) {
+        const msg = err instanceof ApiError ? err.message : 'Failed to evaluate response.';
+        setErrorMessage(msg);
+      } finally {
+        setIsSubmitting(false);
       }
-    } catch (err) {
-      const msg = err instanceof ApiError ? err.message : 'Failed to evaluate response.';
-      setErrorMessage(msg);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [session.id, isSubmitting, isUserPaused, isPausedByIntegrity, questionIndex, handleWrapUp]);
+    },
+    [session.id, isSubmitting, isUserPaused, isPausedByIntegrity, questionIndex, handleWrapUp]
+  );
 
   // Voice Turn Engine
   const isOverallPaused =
@@ -538,6 +473,7 @@ export function InterviewRoom({
 
   const {
     turnState,
+    ttsState,
     isAiSpeaking,
     isCandidateSpeaking,
     isListening,
@@ -546,10 +482,15 @@ export function InterviewRoom({
     audioLevel,
     silenceProgress,
     isSpeechSupported,
+    isReconnectingVoice,
+    sttStatusNotice,
+    activeSTTProvider,
+    retryVoice,
     sttError,
     clearTranscript,
     setTranscript,
-    speakQuestion: speakCurrentQuestion,
+    speakQuestion: _speakCurrentQuestion,
+    replayQuestion,
     stopAudio: _stopAudio,
     interruptAI: _interruptAI,
     submitAnswer: _completeVoiceAnswer,
@@ -565,16 +506,75 @@ export function InterviewRoom({
     minSpeechDurationMs: 400,
   });
 
+  // Remaining duration countdown timer
+  useEffect(() => {
+    if (isUserPaused || isPausedByIntegrity || isReconnectingVoice || roomPhase !== 'live') return;
+
+    const interval = setInterval(() => {
+      setRemainingSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          sendWSMessage({ type: 'end_interview', reason: 'time_budget_expired' });
+          handleWrapUp();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isUserPaused, isPausedByIntegrity, isReconnectingVoice, roomPhase, sendWSMessage, handleWrapUp]);
+
+  // Spacebar shortcut to toggle Pause/Resume
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        setIsUserPaused((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Reset repeat question allowance on new question
   useEffect(() => {
     setHasRepeatedCurrentQuestion(false);
   }, [currentQuestion]);
 
   const handleRepeatQuestion = useCallback(() => {
-    if (hasRepeatedCurrentQuestion || !currentQuestion) return;
+    if (!currentQuestion || isAiSpeaking || isOverallPaused) return;
     setHasRepeatedCurrentQuestion(true);
-    void speakCurrentQuestion();
-  }, [hasRepeatedCurrentQuestion, currentQuestion, speakCurrentQuestion]);
+    void replayQuestion();
+  }, [currentQuestion, isAiSpeaking, isOverallPaused, replayQuestion]);
+
+  // Global 'R' shortcut to replay current question (§B2)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'r' || e.key === 'R') {
+        const activeTag = document.activeElement?.tagName;
+        if (
+          activeTag === 'INPUT' ||
+          activeTag === 'TEXTAREA' ||
+          (document.activeElement as HTMLElement)?.isContentEditable
+        ) {
+          return;
+        }
+        if (!isOverallPaused && currentQuestion && !isAiSpeaking) {
+          e.preventDefault();
+          handleRepeatQuestion();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleRepeatQuestion, isOverallPaused, currentQuestion, isAiSpeaking]);
+
+  // Initial user gesture audio unlock (§B2)
+  useEffect(() => {
+    ttsManager.unlockAudio();
+  }, []);
 
   const handleRetryCamera = useCallback(async () => {
     try {
@@ -605,17 +605,11 @@ export function InterviewRoom({
           if (next >= 3.0 && !isFaceLostModalOpen) {
             setIsFaceLostModalOpen(true);
           }
-          if (next >= 10.0 && prev < 10.0 && 'speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            window.speechSynthesis.speak(
-              new SpeechSynthesisUtterance('Warning 1 of 2: Face not detected. Please return to camera frame.')
-            );
+          if (next >= 10.0 && prev < 10.0) {
+            void ttsManager.speak('Warning 1 of 2: Face not detected. Please return to camera frame.');
           }
-          if (next >= 20.0 && prev < 20.0 && 'speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            window.speechSynthesis.speak(
-              new SpeechSynthesisUtterance('Warning 2 of 2: Final notice. Continued face absence will end the interview.')
-            );
+          if (next >= 20.0 && prev < 20.0) {
+            void ttsManager.speak('Warning 2 of 2: Final notice. Continued face absence will end the interview.');
           }
           if (next >= 30.0) {
             clearInterval(interval);
@@ -663,10 +657,7 @@ export function InterviewRoom({
 
       if (left <= 0) {
         clearInterval(interval);
-        if ('speechSynthesis' in window) {
-          const skipMsg = new SpeechSynthesisUtterance("Let's move on to the next question.");
-          window.speechSynthesis.speak(skipMsg);
-        }
+        void ttsManager.speak("Let's move on to the next question.");
         void executeAnswerSubmission('No response provided (timed out).');
       }
     }, 400);
@@ -706,7 +697,7 @@ export function InterviewRoom({
     try {
       const { pdf } = await import('@react-pdf/renderer');
       const { PDFReportDocument } = await import('../report/PDFReportDocument');
-      const blob = await pdf(<PDFReportDocument session={session} report={finalReport} />).toBlob();
+      const blob = await pdf(<PDFReportDocument session={session} report={finalReport as any} />).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -856,6 +847,11 @@ export function InterviewRoom({
 
       {/* Main Immersive Interview Stage */}
       <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 flex flex-col items-center justify-center relative select-none z-10">
+        {/* Subtle Stage Branding Watermark */}
+        <div className="absolute top-4 right-4 pointer-events-none opacity-20 hidden md:block">
+          <Logo variant="mark" size={40} />
+        </div>
+
         {/* Error notification if any */}
         {errorMessage && (
           <div className="absolute top-4 left-4 right-4 max-w-lg mx-auto p-3 rounded-xl bg-destructive/15 border border-destructive/30 text-destructive text-xs text-center z-20">
@@ -879,8 +875,8 @@ export function InterviewRoom({
             className="mt-4"
           />
 
-          {/* Subtle State Hint */}
-          <div className="flex flex-col items-center justify-center gap-2 pt-2">
+          {/* Subtle State Hint + Replay Question Button (§B2) */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#0F4A3A]/60 border border-[#E3DED2]/15 text-xs text-[#E3DED2]/80 font-mono transition-all">
               {noSpeechRemaining !== null && (
                 <div className="relative w-4 h-4 flex items-center justify-center">
@@ -890,9 +886,24 @@ export function InterviewRoom({
               )}
               <span>{stateHint}</span>
             </div>
+
+            {currentQuestion && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRepeatQuestion}
+                disabled={isAiSpeaking || isOverallPaused}
+                className="h-7 px-2.5 text-xs font-medium gap-1.5 rounded-full border border-[#E3DED2]/20 text-[#E3DED2]/80 hover:text-white hover:bg-white/10 hover:border-mint/30 transition-all"
+                title="Replay question audio (Shortcut: R)"
+                aria-label="Replay current question (Press R)"
+              >
+                <Volume2 className="h-3.5 w-3.5 text-mint" />
+                <span>Replay (R)</span>
+              </Button>
+            )}
           </div>
 
-          {/* Dedicated Live Candidate Answer Transcript (§Q6) */}
+          {/* Dedicated Live Candidate Answer Transcript (§Q6, §B3) */}
           {showCandidateCaptions && (
             <CandidateAnswerTranscript
               transcript={transcript}
@@ -904,11 +915,14 @@ export function InterviewRoom({
               audioLevel={audioLevel}
               silenceProgress={silenceProgress}
               isSpeechSupported={isSpeechSupported}
+              isReconnectingVoice={isReconnectingVoice}
+              sttStatusNotice={sttStatusNotice}
+              activeSTTProvider={activeSTTProvider}
               sttError={sttError}
               onSubmit={executeAnswerSubmission}
               onClearAndRetry={clearTranscript}
               onManualTextChange={setTranscript}
-              onRetryMic={handleRetryMic}
+              onRetryMic={retryVoice}
               className="mt-4"
             />
           )}
@@ -919,7 +933,6 @@ export function InterviewRoom({
           <div className="fixed top-16 right-4 z-50 w-80 p-3 rounded-2xl bg-[#0A2E24]/95 border border-[#E3DED2]/20 shadow-2xl backdrop-blur-md text-xs space-y-2 animate-in fade-in text-[#FBFAF6]">
             <div className="flex items-center justify-between pb-1.5 border-b border-[#E3DED2]/15 font-mono">
               <span className="font-bold text-[#FBFAF6]">DEBUG TELEMETRY HUD</span>
-              <span className="text-mint">{ackedPacketCount} acked</span>
             </div>
             <div className="grid grid-cols-2 gap-2 font-mono text-[11px]">
               <div className="p-1.5 rounded bg-white/5 border border-white/5">
@@ -946,6 +959,30 @@ export function InterviewRoom({
                 <span className="text-[#E3DED2]/60 block">Face Present</span>
                 <span className={`font-bold ${latestMetrics.facePresent ? 'text-mint' : 'text-accent-soft'}`}>
                   {latestMetrics.facePresent ? 'True' : 'False'}
+                </span>
+              </div>
+              <div className="p-1.5 rounded bg-white/5 border border-white/5 col-span-2 flex items-center justify-between">
+                <span className="text-[#E3DED2]/60">TTS Audio Engine</span>
+                <span className={`font-bold uppercase ${
+                  ttsState === 'speaking'
+                    ? 'text-mint'
+                    : ttsState === 'silent-fallback' || ttsState === 'error'
+                    ? 'text-amber-300'
+                    : 'text-[#FBFAF6]'
+                }`}>
+                  {ttsState}
+                </span>
+              </div>
+              <div className="p-1.5 rounded bg-white/5 border border-white/5 col-span-2 flex items-center justify-between">
+                <span className="text-[#E3DED2]/60">STT Engine</span>
+                <span className={`font-bold uppercase ${
+                  isReconnectingVoice
+                    ? 'text-amber-300 animate-pulse'
+                    : activeSTTProvider === 'typed'
+                    ? 'text-accent-soft'
+                    : 'text-mint'
+                }`}>
+                  {isReconnectingVoice ? 'RECONNECTING' : activeSTTProvider}
                 </span>
               </div>
             </div>

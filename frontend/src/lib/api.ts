@@ -20,11 +20,22 @@ export class ApiError extends Error {
   }
 }
 
+// In-memory token storage to avoid exposing JWTs in localStorage/sessionStorage
+let inMemoryToken: string | null = null;
+
+export function setAuthToken(token: string | null): void {
+  inMemoryToken = token;
+}
+
+export function getAuthToken(): string | null {
+  return inMemoryToken;
+}
+
 export async function apiRequest<T = unknown>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = localStorage.getItem('access_token');
+  const token = inMemoryToken;
   const headers = new Headers(options.headers || {});
 
   if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
@@ -40,6 +51,7 @@ export async function apiRequest<T = unknown>(
   let response: Response;
   try {
     response = await fetch(url, {
+      credentials: options.credentials || 'same-origin',
       ...options,
       headers,
     });

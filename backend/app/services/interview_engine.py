@@ -926,6 +926,18 @@ async def update_summary_node(state: InterviewState) -> Dict[str, Any]:
         "completeness": eval_data.get("completeness"),
     }
 
+    # Pre-compute turn_review in background during the interview (§B5)
+    try:
+        from app.services.report_pipeline import _build_heuristic_turn_review
+        turn_rev = _build_heuristic_turn_review(
+            turn_record,
+            state.get("role", "Software Engineer"),
+            state.get("seniority", "Mid"),
+        )
+        turn_record["turn_review"] = turn_rev.model_dump()
+    except Exception as exc:
+        logger.warning("Failed to precompute turn review: %s", exc)
+
     turns = list(state.get("turns_history", []))
     turns.append(turn_record)
 
@@ -1120,6 +1132,30 @@ async def end_interview_node(state: InterviewState) -> Dict[str, Any]:
         "final_report": report.model_dump(),
         "is_finished": True,
     }
+
+
+async def generate_report_node(state: InterviewState) -> Dict[str, Any]:
+    """LangGraph node: generate comprehensive InterviewReport via pipeline (§4.1, RP3)."""
+    from app.services.report_pipeline import generate_interview_report_pipeline
+
+    session_id = state.get("session_id", "default_session")
+    user_id = state.get("user_id", "default_user")
+
+    session_doc = {
+        "job_role": state.get("role", "Software Engineer"),
+        "target_seniority": state.get("seniority", "Mid"),
+        "interview_state": state,
+        "turns": state.get("turns_history", []),
+        "telemetry_summary": state.get("telemetry_summary"),
+        "integrity_summary": state.get("integrity_summary"),
+    }
+
+    report = await generate_interview_report_pipeline(session_id, user_id, session_doc)
+    return {
+        "final_report": report.model_dump(),
+        "is_finished": True,
+    }
+
 
 
 def build_interview_graph() -> Any:

@@ -3,8 +3,12 @@ import { ArrowLeft, ShieldCheck, Cpu, HardDrive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { LogoWordmark } from '@/components/common/LogoWordmark';
+import { formatPageTitle } from '@/copy/glossary';
 
 export default function PrivacyPage(): React.ReactElement {
+  React.useEffect(() => {
+    document.title = formatPageTitle('Privacy Policy');
+  }, []);
   return (
     <div className="min-h-screen bg-bg text-text selection:bg-accent-soft selection:text-accent font-sans">
       {/* Top Nav */}

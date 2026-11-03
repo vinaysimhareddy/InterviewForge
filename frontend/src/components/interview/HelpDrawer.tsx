@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ClientWSMessage } from '@/lib/types';
+import { ttsManager } from '@/services/speech/ttsManager';
 
 export interface HelpDrawerProps {
   isOpen: boolean;
@@ -105,18 +106,15 @@ export function HelpDrawer({
     }
   };
 
-  const handlePlayTestSound = useCallback(() => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+  const handlePlayTestSound = useCallback(async () => {
     setIsPlayingTestSound(true);
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(
-      'This is a test sound from your AI Interviewer. If you can hear this clearly, your audio output is functioning properly.'
-    );
-    utterance.rate = 1.0;
-    utterance.onend = () => setIsPlayingTestSound(false);
-    utterance.onerror = () => setIsPlayingTestSound(false);
-    window.speechSynthesis.speak(utterance);
+    try {
+      await ttsManager.speak(
+        'This is a test sound from your AI Interviewer. If you can hear this clearly, your audio output is functioning properly.'
+      );
+    } finally {
+      setIsPlayingTestSound(false);
+    }
   }, []);
 
   const handleCopyDiagnostics = useCallback(async () => {

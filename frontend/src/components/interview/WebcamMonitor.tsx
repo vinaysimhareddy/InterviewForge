@@ -122,7 +122,7 @@ export function WebcamMonitor({
             <div className="space-y-1">
               <h4 className="text-sm font-semibold text-white">Initializing Physical Camera</h4>
               <p className="text-xs text-slate-400 max-w-xs">
-                Verifying physical hardware feed and loading local MediaPipe neural models...
+                Verifying camera feed and preparing composure analysis...
               </p>
             </div>
           </div>

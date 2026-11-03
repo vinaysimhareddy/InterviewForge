@@ -1,0 +1,62 @@
+[
+  {
+    "id": "ans_01",
+    "wav_file": "ans_01.wav",
+    "reference_text": "To guarantee distributed idempotency across payment services we persist unique request tokens and apply transactional outbox patterns",
+    "size_bytes": 378312
+  },
+  {
+    "id": "ans_02",
+    "wav_file": "ans_02.wav",
+    "reference_text": "In React reconciliation compares virtual DOM trees using unique keys to minimize real DOM mutations and layout reflows",
+    "size_bytes": 376780
+  },
+  {
+    "id": "ans_03",
+    "wav_file": "ans_03.wav",
+    "reference_text": "Circuit breakers prevent cascading failures in microservices by intercepting failing endpoints and falling back gracefully",
+    "size_bytes": 343710
+  },
+  {
+    "id": "ans_04",
+    "wav_file": "ans_04.wav",
+    "reference_text": "The CAP theorem forces distributed databases to choose between strong consistency and high availability during network partitions",
+    "size_bytes": 355832
+  },
+  {
+    "id": "ans_05",
+    "wav_file": "ans_05.wav",
+    "reference_text": "B-trees excel at range queries and sequential disk scans whereas hash indexes provide constant time single key lookups",
+    "size_bytes": 347896
+  },
+  {
+    "id": "ans_06",
+    "wav_file": "ans_06.wav",
+    "reference_text": "We protect public REST endpoints by validating JWT tokens on incoming requests and throttling traffic via Redis token buckets",
+    "size_bytes": 392868
+  },
+  {
+    "id": "ans_07",
+    "wav_file": "ans_07.wav",
+    "reference_text": "Python uses a global interpreter lock to ensure thread safety preventing multiple native threads from executing bytecode in parallel",
+    "size_bytes": 373474
+  },
+  {
+    "id": "ans_08",
+    "wav_file": "ans_08.wav",
+    "reference_text": "Kafka achieves high throughput through sequential disk append logs partition parallelism and zero copy kernel page caching",
+    "size_bytes": 337096
+  },
+  {
+    "id": "ans_09",
+    "wav_file": "ans_09.wav",
+    "reference_text": "Continuous integration pipelines validate pull requests by executing unit tests and code linters before building container images",
+    "size_bytes": 364866
+  },
+  {
+    "id": "ans_10",
+    "wav_file": "ans_10.wav",
+    "reference_text": "To prevent SQL injection attacks developers must always use parameterized queries instead of string concatenation",
+    "size_bytes": 334014
+  }
+]

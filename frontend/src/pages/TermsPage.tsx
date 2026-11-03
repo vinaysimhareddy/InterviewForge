@@ -2,8 +2,13 @@ import React from 'react';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LogoWordmark } from '@/components/common/LogoWordmark';
+import { formatPageTitle } from '@/copy/glossary';
 
 export default function TermsPage(): React.ReactElement {
+  React.useEffect(() => {
+    document.title = formatPageTitle('Terms of Service');
+  }, []);
+
   return (
     <div className="min-h-screen bg-bg text-text selection:bg-accent-soft selection:text-accent font-sans">
       {/* Top Nav */}

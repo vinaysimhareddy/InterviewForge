@@ -18,11 +18,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await mongo_manager.close(app=app)
 
 
+is_prod = settings.ENVIRONMENT == "production"
+
 app = FastAPI(
-    title="Mock-interview simulator API",
-    description="Backend services for real-time telemetry processing, adaptive LangGraph interviewing, and multi-dimensional scoring.",
+    title="InterviewForge API",
+    description="Backend services for real-time telemetry processing, adaptive technical interviewing, and multi-dimensional scoring.",
     version="1.0.0",
     lifespan=lifespan,
+    docs_url=None if is_prod else "/docs",
+    redoc_url=None if is_prod else "/redoc",
+    openapi_url=None if is_prod else "/openapi.json",
 )
 
 # Enforce explicit CORS whitelist from settings - never use wildcard in authenticated environments
@@ -36,9 +41,43 @@ app.add_middleware(
 
 
 import time
+import logging
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from pymongo.errors import ConnectionFailure
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.core.database import get_error_hint
+
+logger = logging.getLogger("app.main")
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+    """Standardize HTTP exception envelopes with short error code and clean message."""
+    code = "AUTH_REQUIRED" if exc.status_code == 401 else "FORBIDDEN" if exc.status_code == 403 else "NOT_FOUND" if exc.status_code == 404 else "HTTP_ERROR"
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail, "code": code},
+        headers=getattr(exc, "headers", None),
+    )
+
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Ensure unexpected exceptions return safe, generic error envelopes without leaking traces or vendors."""
+    logger.error("Unhandled server exception: %s", exc, exc_info=True)
+    if is_prod:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "detail": "We are experiencing a temporary issue. Please try again shortly.",
+                "code": "INTERNAL_ERROR",
+            },
+        )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc), "code": "INTERNAL_ERROR"},
+    )
 
 
 @app.get("/health", tags=["health"])

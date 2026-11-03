@@ -191,3 +191,50 @@
     animation: none !important;
   }
 }
+
+/* ==============================================================================
+   Print Stylesheet for Browser Print (Cmd+P / Ctrl+P, RP5)
+   ============================================================================== */
+@media print {
+  @page {
+    margin: 1.2cm;
+    size: A4 portrait;
+  }
+
+  body {
+    background-color: #F4F1EA !important;
+    color: #1C2420 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  nav,
+  button,
+  .sticky,
+  .no-print,
+  [role="dialog"],
+  [aria-modal="true"] {
+    display: none !important;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  section {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  .card-editorial,
+  [data-testid^="question-coverage-item"],
+  tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  * {
+    box-shadow: none !important;
+  }
+}

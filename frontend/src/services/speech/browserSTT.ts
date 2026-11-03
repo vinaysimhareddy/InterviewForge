@@ -1,6 +1,7 @@
 /**
  * Browser-native SpeechToText implementation using Web Speech API.
- * Features auto-restarting to combat Chrome's 60-second cutoff and seamless transcript stitching.
+ * Features single-instance reuse, debounced restarts (>= 300ms), rapid restart loop guards,
+ * silent handling of benign errors ('no-speech', 'aborted'), and seamless transcript stitching.
  */
 
 import { SpeechToText, TranscriptEvent, SpeechError, STTState } from './types';
@@ -14,12 +15,17 @@ declare global {
 }
 
 export class BrowserSpeechToText implements SpeechToText {
+  // Shared underlying SpeechRecognition instance across instances and turns to avoid instance leak
+  private static sharedRecognitionInstance: any = null;
+
   private recognition: any = null;
   private stitcher: TranscriptStitcher = new TranscriptStitcher();
   private state: STTState = 'idle';
   private desiredListening: boolean = false;
-  private restartTimeout: number | null = null;
-  private restartCount: number = 0;
+  private restartTimeout: any = null;
+  private lastStopTime: number = 0;
+  private lastStartTime: number = 0;
+  private restartHistory: number[] = [];
 
   private transcriptListeners: Array<(event: TranscriptEvent) => void> = [];
   private errorListeners: Array<(err: SpeechError) => void> = [];
@@ -37,19 +43,27 @@ export class BrowserSpeechToText implements SpeechToText {
     return this.state === 'listening';
   }
 
+  public get uptimeMs(): number {
+    return this.lastStartTime ? Date.now() - this.lastStartTime : 0;
+  }
+
   private initRecognition(): void {
     if (!this.isSupported) return;
 
-    const SpeechRecClass = window.SpeechRecognition || window.webkitSpeechRecognition;
-    this.recognition = new SpeechRecClass();
-    this.recognition.continuous = true;
-    this.recognition.interimResults = true;
-    this.recognition.lang = 'en-US';
-    this.recognition.maxAlternatives = 1;
+    if (!BrowserSpeechToText.sharedRecognitionInstance) {
+      const SpeechRecClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+      BrowserSpeechToText.sharedRecognitionInstance = new SpeechRecClass();
+      BrowserSpeechToText.sharedRecognitionInstance.continuous = true;
+      BrowserSpeechToText.sharedRecognitionInstance.interimResults = true;
+      BrowserSpeechToText.sharedRecognitionInstance.lang = 'en-US';
+      BrowserSpeechToText.sharedRecognitionInstance.maxAlternatives = 1;
+    }
+
+    this.recognition = BrowserSpeechToText.sharedRecognitionInstance;
 
     this.recognition.onstart = () => {
       this.setState('listening');
-      this.restartCount = 0;
+      this.lastStartTime = Date.now();
     };
 
     this.recognition.onresult = (event: any) => {
@@ -88,12 +102,15 @@ export class BrowserSpeechToText implements SpeechToText {
     this.recognition.onerror = (event: any) => {
       const errName = event.error || 'unknown';
 
-      // Ignore benign errors like no-speech or aborted during graceful turn changes
+      // 'no-speech' and 'aborted': silent restart, no user alert, do not count as errors
       if (errName === 'no-speech' || errName === 'aborted') {
+        if (this.desiredListening && this.isSupported) {
+          this.scheduleRestart(300);
+        }
         return;
       }
 
-      const isFatal = errName === 'not-allowed' || errName === 'audio-capture';
+      const isFatal = errName === 'not-allowed' || errName === 'audio-capture' || errName === 'service-not-allowed';
       if (isFatal) {
         this.desiredListening = false;
         this.setState('error');
@@ -109,28 +126,39 @@ export class BrowserSpeechToText implements SpeechToText {
     this.recognition.onend = () => {
       // If we still want to be listening (e.g. Chrome 60s timeout occurred), auto-restart seamlessly
       if (this.desiredListening && this.isSupported) {
-        this.scheduleRestart();
+        this.scheduleRestart(300);
       } else {
         this.setState('idle');
       }
     };
   }
 
-  private scheduleRestart(): void {
+  private scheduleRestart(minDelay = 300): void {
     if (this.restartTimeout) {
-      window.clearTimeout(this.restartTimeout);
+      clearTimeout(this.restartTimeout);
     }
 
-    this.restartCount++;
-    const delay = Math.min(100 * this.restartCount, 500);
+    const now = Date.now();
+    // Prune restart history older than 5 seconds
+    this.restartHistory = this.restartHistory.filter((t) => now - t < 5000);
 
-    this.restartTimeout = window.setTimeout(() => {
+    // If 3 restarts in 5s occurred, enforce a backoff to prevent Chrome spam blocking
+    let delay = minDelay;
+    if (this.restartHistory.length >= 3) {
+      console.warn('[BrowserSTT] 3 restarts failed within 5s. Applying exponential backoff delay.');
+      this.restartHistory = [];
+      delay = Math.max(delay, 2500);
+    }
+
+    this.restartHistory.push(now);
+
+    this.restartTimeout = setTimeout(() => {
       if (this.desiredListening && this.recognition) {
         try {
           this.recognition.start();
         } catch {
-          // If already started or browser throws, retry gently
-          this.scheduleRestart();
+          // If already active or failed, retry gently
+          this.scheduleRestart(minDelay + 200);
         }
       }
     }, delay);
@@ -147,22 +175,54 @@ export class BrowserSpeechToText implements SpeechToText {
     }
 
     this.desiredListening = true;
+
+    // Enforce >= 300ms debounce between stop and start
+    const now = Date.now();
+    const timeSinceStop = now - this.lastStopTime;
+    const minDebounceMs = 300;
+
+    if (timeSinceStop < minDebounceMs) {
+      const remainingDelay = minDebounceMs - timeSinceStop;
+      if (this.restartTimeout) clearTimeout(this.restartTimeout);
+      this.restartTimeout = setTimeout(() => this.executeStart(), remainingDelay);
+      return;
+    }
+
+    this.executeStart();
+  }
+
+  private executeStart(): void {
+    if (!this.desiredListening || !this.recognition) return;
+
     if (this.restartTimeout) {
-      window.clearTimeout(this.restartTimeout);
+      clearTimeout(this.restartTimeout);
       this.restartTimeout = null;
     }
+
+    const now = Date.now();
+    // Check restart loop history (>= 3 restarts within 5s)
+    this.restartHistory = this.restartHistory.filter((t) => now - t < 5000);
+    if (this.restartHistory.length >= 3) {
+      console.warn('[BrowserSTT] Rapid start/stop loop detected. Backing off 2.5s...');
+      this.restartHistory = [];
+      this.restartTimeout = setTimeout(() => this.executeStart(), 2500);
+      return;
+    }
+    this.restartHistory.push(now);
 
     try {
       this.recognition.start();
     } catch {
-      // If already started, do nothing
+      // If recognition is already started, ignore error
     }
   }
 
   public stop(): void {
     this.desiredListening = false;
+    this.lastStopTime = Date.now();
+
     if (this.restartTimeout) {
-      window.clearTimeout(this.restartTimeout);
+      clearTimeout(this.restartTimeout);
       this.restartTimeout = null;
     }
 
@@ -178,8 +238,10 @@ export class BrowserSpeechToText implements SpeechToText {
 
   public abort(): void {
     this.desiredListening = false;
+    this.lastStopTime = Date.now();
+
     if (this.restartTimeout) {
-      window.clearTimeout(this.restartTimeout);
+      clearTimeout(this.restartTimeout);
       this.restartTimeout = null;
     }
 
@@ -224,6 +286,7 @@ export class BrowserSpeechToText implements SpeechToText {
   }
 
   private setState(state: STTState): void {
+    if (this.state === state) return;
     this.state = state;
     this.stateListeners.forEach((cb) => cb(state));
   }

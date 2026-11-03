@@ -52,7 +52,7 @@ export function MetricsHUD({
       <div className="flex items-center justify-between pb-2 border-b border-slate-800 text-xs text-slate-400">
         <div className="flex items-center gap-2">
           <Camera className="h-4 w-4 text-indigo-400" />
-          <span className="font-semibold text-slate-200">Local Telemetry (WASM 1 Hz)</span>
+          <span className="font-semibold text-slate-200">Local Telemetry (1 Hz)</span>
           <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 font-mono text-slate-300">
             {fps} FPS
           </span>

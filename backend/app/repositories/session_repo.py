@@ -192,6 +192,25 @@ class SessionRepository:
             {"$set": {"integrity_score": score, "integrity_events": events}},
         )
 
+    async def record_outcome_feedback(
+        self, session_id: str, user_id: str, outcome: str, notes: Optional[str] = None
+    ) -> bool:
+        """Record candidate-reported real interview outcome for calibration (§6)."""
+        now = datetime.now(timezone.utc)
+        res = await self.collection.update_one(
+            {"$or": [{"_id": session_id}, {"id": session_id}], "user_id": str(user_id)},
+            {
+                "$set": {
+                    "outcome_feedback": {
+                        "outcome": outcome,
+                        "notes": notes,
+                        "submitted_at": now,
+                    }
+                }
+            },
+        )
+        return res.modified_count > 0
+
     def _format(self, doc: Dict[str, Any]) -> Dict[str, Any]:
         data = dict(doc)
         doc_id = str(data.get("_id") or data.get("id"))

@@ -235,3 +235,219 @@ export interface FinalReport {
   difficulty_progression?: DifficultyProgressionPoint[];
 }
 
+// ==============================================================================
+// Comprehensive Post-Interview Review & Readiness Report Schema (§4.2, RP2-RP4)
+// ==============================================================================
+
+export type SkillRating = 'Met' | 'Partly' | 'Not shown';
+export type TurnStatus = 'answered' | 'skipped';
+export type CorrectnessVerdict =
+  | 'correct'
+  | 'mostly'
+  | 'partly'
+  | 'incorrect'
+  | 'not_answered'
+  | 'cannot_judge';
+export type SatisfactionVerdict = 'Satisfied' | 'Partly satisfied' | 'Not satisfied';
+export type ConfidenceLevel = 'Low' | 'Medium' | 'High';
+export type FactorImpact = '+' | '-' | 'neutral';
+
+export interface SkillMatchItem {
+  skill: string;
+  evidence: string;
+  rating: SkillRating;
+}
+
+export interface RoleSummary {
+  title: string;
+  level: string;
+  purpose: string;
+  expectations: string[];
+  skill_match: SkillMatchItem[];
+}
+
+export interface DimensionScores {
+  technical_accuracy: number;
+  depth: number;
+  communication: number;
+  completeness: number;
+  composure: number;
+}
+
+export interface TurnCounts {
+  asked: number;
+  answered: number;
+  skipped: number;
+}
+
+export interface SessionDuration {
+  planned_minutes: number;
+  actual_minutes: number;
+}
+
+export interface OverviewSummary {
+  summary: string;
+  verdict: string;
+  overall_score: number;
+  dimension_scores: DimensionScores;
+  counts: TurnCounts;
+  duration: SessionDuration;
+}
+
+export interface TurnDimensionScores {
+  technical: number;
+  depth: number;
+  clarity: number;
+  completeness: number;
+}
+
+export interface TurnReview {
+  turn_id: string;
+  index: number;
+  topic: string;
+  difficulty: string;
+  why_asked: string;
+  question: string;
+  answer_clean: string;
+  answer_raw: string;
+  stt_confidence: number;
+  status: TurnStatus;
+  correctness: CorrectnessVerdict;
+  scores: TurnDimensionScores;
+  reason: string;
+  right: string[];
+  missing_or_wrong: string[];
+  concepts_mentioned: string[];
+  concepts_missed: string[];
+  model_answer: string;
+  improvement_tips: string[];
+  needs_verification: boolean;
+  excluded: boolean;
+}
+
+export interface SatisfactionArea {
+  name: string;
+  verdict: SatisfactionVerdict;
+  evidence: string[];
+}
+
+export interface SatisfactionSummary {
+  areas: SatisfactionArea[];
+  overall_statement: string;
+}
+
+export interface TopicScore {
+  topic: string;
+  score: number;
+  question_count: number;
+}
+
+export interface CommunicationMetrics {
+  avg_len_words: number;
+  wpm: number;
+  fillers_per_min: number;
+  latency_ms: number;
+  structure_notes: string;
+}
+
+export interface SkillsAnalysis {
+  topic_scores: TopicScore[];
+  strengths: string[];
+  gaps: string[];
+  communication: CommunicationMetrics;
+}
+
+export interface NonVerbalSummary {
+  eye_contact_ratio: number;
+  posture_score: number;
+  face_presence_rate: number;
+  pauses_count: number;
+  advisory_note: string;
+}
+
+export interface IntegrityReportSummary {
+  verdict: string;
+  integrity_score: number;
+  events_summary: string[];
+  disclaimer: string;
+}
+
+export interface ReadinessFactor {
+  name: string;
+  value: string;
+  weight: number;
+  impact: FactorImpact;
+  description: string;
+}
+
+export interface ReadinessEstimate {
+  range_low: number;
+  range_high: number;
+  band: string;
+  confidence: ConfidenceLevel;
+  factors: ReadinessFactor[];
+  raise_chances: string[];
+  disclaimer: string;
+  available: bool_or_boolean;
+  advance_verdict: string;
+  reason_if_unavailable?: string | null;
+}
+
+type bool_or_boolean = boolean;
+
+export interface ActionPriority {
+  priority: number;
+  area: string;
+  reason: string;
+  study_practice: string;
+  estimated_effort: string;
+}
+
+export interface DayPlanItem {
+  day: number;
+  title: string;
+  task: string;
+}
+
+export interface NextSessionSuggestion {
+  role: string;
+  level: string;
+  focus_topics: string[];
+}
+
+export interface ActionPlan {
+  priorities: ActionPriority[];
+  seven_day_plan: DayPlanItem[];
+  next_session_suggestion: NextSessionSuggestion;
+}
+
+export interface InterviewReport {
+  schema_version: string;
+  session_id: string;
+  user_id: string;
+  generated_at: string;
+  models_used: string[];
+  resume_id?: string | null;
+  role: RoleSummary;
+  overview: OverviewSummary;
+  turns: TurnReview[];
+  satisfaction: SatisfactionSummary;
+  skills: SkillsAnalysis;
+  nonverbal: NonVerbalSummary;
+  integrity: IntegrityReportSummary;
+  readiness: ReadinessEstimate;
+  action_plan: ActionPlan;
+  difficulty_progression?: DifficultyProgressionPoint[];
+  question_coverage?: QuestionCoverageItem[];
+}
+
+export interface ReportStatusResponse {
+  session_id: string;
+  status: 'not_started' | 'generating' | 'completed' | 'failed';
+  step: string;
+  progress: number;
+  error?: string | null;
+  report_id?: string | null;
+}
+
+

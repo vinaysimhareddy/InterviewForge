@@ -254,7 +254,7 @@ export default function DesignSystemPage(): React.ReactElement {
               </div>
               <div>
                 <span className="label-mono text-[10px]">PEACH TINT</span>
-                <h4 className="font-semibold text-text text-sm">Resume-Aware RAG</h4>
+                <h4 className="font-semibold text-text text-sm">Resume Grounding</h4>
                 <p className="text-xs text-text-muted mt-1">Grounded strictly in candidate projects and skills.</p>
               </div>
             </div>

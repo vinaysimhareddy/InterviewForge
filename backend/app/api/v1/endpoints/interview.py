@@ -179,6 +179,8 @@ async def submit_answer_endpoint(
     # Persist the structured turn to session document in MongoDB (§Q7)
     if updated_state.get("turns_history"):
         latest_turn = updated_state["turns_history"][-1]
+        if submission.source:
+            latest_turn["source"] = submission.source
         try:
             await session_repo.record_turn(
                 session_id=session_id,
@@ -190,14 +192,29 @@ async def submit_answer_endpoint(
 
     # Persist final report to evaluations collection if interview has finished (§M4)
     final_report_dict: Optional[Dict[str, Any]] = updated_state.get("final_report")
-    if updated_state["is_finished"] and final_report_dict is not None:
-        final_score = final_report_dict.get("overall_score")
-        await evaluation_repo.save_evaluation(
-            session_id=session_id,
-            user_id=current_user.id,
-            report=final_report_dict,
-            final_score=float(final_score) if final_score is not None else None,
-        )
+    if updated_state["is_finished"]:
+        if final_report_dict is not None:
+            final_score = final_report_dict.get("overall_score")
+            await evaluation_repo.save_evaluation(
+                session_id=session_id,
+                user_id=current_user.id,
+                report=final_report_dict,
+                final_score=float(final_score) if final_score is not None else None,
+            )
+
+        # Immediately synthesize and persist deterministic v2 InterviewReport so review is instantly visible (§B5)
+        try:
+            from app.services.report_scoring import build_deterministic_report
+            session_doc_for_rep = {
+                **session_doc,
+                "interview_state": updated_state,
+                "turns": updated_state.get("turns_history", session_doc.get("turns", [])),
+                "ended_at": now,
+            }
+            interview_rep = build_deterministic_report(session_id, current_user.id, session_doc_for_rep)
+            await evaluation_repo.save_interview_report(session_id, current_user.id, interview_rep.model_dump())
+        except Exception as exc:
+            logger.warning("Failed to immediately save deterministic interview report in submit_answer_endpoint: %s", exc)
 
     # Per UX security & anti-bias requirements: withhold per-answer scores/critiques from client mid-interview.
     # Evaluations are stored in updated_state["evaluations_history"] in MongoDB and exposed only in the final report.
@@ -341,6 +358,18 @@ async def end_interview_endpoint(
             report=final_report_dict,
             final_score=float(final_report_dict.get("overall_score", 0)),
         )
+        try:
+            from app.services.report_scoring import build_deterministic_report
+            session_doc_for_rep = {
+                **session_doc,
+                "interview_state": state,
+                "turns": state.get("turns_history", session_doc.get("turns", [])),
+                "ended_at": datetime.now(timezone.utc),
+            }
+            interview_rep = build_deterministic_report(session_id, current_user.id, session_doc_for_rep)
+            await evaluation_repo.save_interview_report(session_id, current_user.id, interview_rep.model_dump())
+        except Exception as exc:
+            logger.warning("Failed to immediately save deterministic interview report in end_interview_endpoint: %s", exc)
 
     return InterviewStepResponse(
         session_id=session_id,

@@ -11,6 +11,7 @@ from pydantic import TypeAdapter, ValidationError
 
 from app.core.config import get_settings
 from app.core.security import decode_access_token
+from app.core.ws_ticket import consume_ws_ticket
 from app.models.ws_messages import ClientWSMessage
 from app.repositories.auth_repo import auth_repo
 from app.repositories.integrity_repo import integrity_repo
@@ -37,9 +38,10 @@ client_message_adapter: TypeAdapter[ClientWSMessage] = TypeAdapter(ClientWSMessa
 
 
 def scrub_log_token(url_str: str) -> str:
-    """Scrub JWT tokens from query strings in logs to prevent secret leakage."""
+    """Scrub JWT tokens and single-use tickets from query strings in logs to prevent secret leakage."""
     import re
-    return re.sub(r"token=[^&\s]+", "token=[REDACTED]", url_str)
+    cleaned = re.sub(r"token=[^&\s]+", "token=[REDACTED]", url_str)
+    return re.sub(r"ticket=[^&\s]+", "ticket=[REDACTED]", cleaned)
 
 
 class TelemetryBuffer:
@@ -104,20 +106,30 @@ async def interview_websocket_endpoint(
     raw_query = str(websocket.scope.get("query_string", b"").decode("utf-8"))
     logger.info("WebSocket handshake request for session %s (query: %s)", session_id, scrub_log_token(raw_query))
 
+    ticket: Optional[str] = websocket.query_params.get("ticket")
     token: Optional[str] = websocket.query_params.get("token")
 
-    # 1. JWT Handshake Validation
-    if not token:
-        logger.warning("WebSocket handshake rejected: Missing ?token query parameter.")
-        await websocket.close(code=4008, reason="Policy violation: Authentication token required in query string")
+    user_id: Optional[str] = None
+
+    # 1. Authentication: Single-use ticket (preferred) or token fallback
+    if ticket:
+        user_id = consume_ws_ticket(ticket=ticket, session_id=session_id)
+        if not user_id:
+            logger.warning("WebSocket handshake rejected: Invalid, expired, or already consumed ticket.")
+            await websocket.close(code=4008, reason="Policy violation: Invalid or expired ticket")
+            return
+    elif token:
+        payload = decode_access_token(token)
+        if not payload or "sub" not in payload:
+            logger.warning("WebSocket handshake rejected: Invalid or expired token.")
+            await websocket.close(code=4008, reason="Policy violation: Invalid or expired access token")
+            return
+        user_id = str(payload["sub"])
+    else:
+        logger.warning("WebSocket handshake rejected: Missing ticket or token query parameter.")
+        await websocket.close(code=4008, reason="Policy violation: Authentication ticket required in query string")
         return
 
-    payload = decode_access_token(token)
-    if not payload or "sub" not in payload:
-        logger.warning("WebSocket handshake rejected: Invalid or expired token.")
-        await websocket.close(code=4008, reason="Policy violation: Invalid or expired access token")
-        return
-    user_id = str(payload["sub"])
     user = await auth_repo.get_by_id(user_id)
     if user is None or not user.is_active:
         logger.warning("WebSocket handshake rejected: User %s not found or inactive in auth collection.", user_id)

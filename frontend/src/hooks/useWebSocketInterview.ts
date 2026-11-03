@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ClientWSMessage, ServerWSMessage, TelemetrySample } from '../lib/types';
 import { computeTelemetryHmac, sha256Hex } from '../lib/hmacSignature';
+import { apiClient } from '../lib/api';
 
 export type WebSocketConnectionStatus =
   | 'idle'
@@ -175,9 +176,9 @@ export function useWebSocketInterview({
     [send]
   );
 
-  const connect = useCallback(() => {
-    if (!sessionId || !token) {
-      setError('Cannot connect: session ID and authentication token are required.');
+  const connect = useCallback(async () => {
+    if (!sessionId) {
+      setError('Cannot connect: session ID is required.');
       return;
     }
 
@@ -199,7 +200,24 @@ export function useWebSocketInterview({
     const isHttps = window.location.protocol === 'https:';
     const wsProto = isHttps ? 'wss:' : 'ws:';
     const host = window.location.host;
-    const wsUrl = `${wsProto}//${host}/api/v1/ws/interview/${encodeURIComponent(sessionId)}?token=${encodeURIComponent(token)}`;
+
+    let wsUrl: string;
+    try {
+      // Obtain single-use WebSocket ticket without exposing long-lived token in URL
+      const ticketRes = await apiClient.post<{ ticket: string; expires_in: number }>('/api/v1/auth/ws-ticket', {
+        session_id: sessionId,
+      });
+      wsUrl = `${wsProto}//${host}/api/v1/ws/interview/${encodeURIComponent(sessionId)}?ticket=${encodeURIComponent(ticketRes.ticket)}`;
+    } catch {
+      // Fallback if ticket endpoint unavailable (e.g. offline testing)
+      if (token) {
+        wsUrl = `${wsProto}//${host}/api/v1/ws/interview/${encodeURIComponent(sessionId)}?token=${encodeURIComponent(token)}`;
+      } else {
+        setError('Failed to establish authenticated connection ticket.');
+        setStatus('error');
+        return;
+      }
+    }
 
     try {
       const socket = new WebSocket(wsUrl);

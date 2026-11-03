@@ -21,11 +21,16 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LogoWordmark } from '@/components/common/LogoWordmark';
 import { useAuth } from '@/context/AuthContext';
+import { formatPageTitle } from '@/copy/glossary';
 
 export default function LandingPage(): React.ReactElement {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = React.useState<number>(0);
   const [openFaq, setOpenFaq] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    document.title = formatPageTitle('Practice Technical Interviews');
+  }, []);
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -895,7 +900,7 @@ export default function LandingPage(): React.ReactElement {
             <div className="space-y-2">
               <h5 className="font-mono uppercase tracking-wider text-mint/90 font-semibold">Contact</h5>
               <p className="text-mint/70">
-                support@adaptivemock.local
+                support@interviewforge.local
               </p>
               <p className="text-[11px] text-mint/50 font-mono mt-1">
                 Version 1.0.0 (Editorial)
@@ -904,7 +909,7 @@ export default function LandingPage(): React.ReactElement {
           </div>
 
           <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-mint/60">
-            <span>© 2026 AdaptiveMock. All rights reserved.</span>
+            <span>© 2026 InterviewForge. All rights reserved.</span>
             <span className="font-mono text-[11px] text-mint/50 mt-2 sm:mt-0">
               Zero Synthetic Social Proof • Privacy-First Telemetry
             </span>

@@ -206,7 +206,7 @@ export function InterviewWelcome({
                   Privacy & On-Device Processing
                 </h3>
                 <p className="text-xs text-text-muted leading-relaxed">
-                  Your camera and microphone are on during the interview. Camera monitoring and facial analysis run entirely on your device. Spoken answers are transcribed using your browser’s speech recognition service. Only numeric behavior signals and the transcribed text of your answers are saved. No raw audio or video recordings are stored on our servers.
+                  Your camera and microphone are on during the interview. Camera monitoring and facial analysis run entirely on your device. Spoken answers are transcribed either locally in your browser or sent to our server for real-time transcription only. Audio is never stored or recorded on our servers. Only numeric behavior signals and the transcribed text of your answers are saved.
                 </p>
               </div>
             </div>

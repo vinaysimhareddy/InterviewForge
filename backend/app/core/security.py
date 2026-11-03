@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any, Dict, Optional
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from passlib.context import CryptContext
@@ -61,19 +61,26 @@ from app.repositories.auth_repo import auth_repo
 
 
 async def get_current_user(
+    request: Request,
     credentials: Annotated[Optional[HTTPAuthorizationCredentials], Depends(security_bearer)],
 ) -> UserInDB:
-    """Dependency validating JWT Bearer token and resolving current authenticated user from auth repository."""
+    """Dependency validating JWT token via Bearer header or HttpOnly cookie, and resolving current authenticated user."""
     unauthorized_exc = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    if not credentials or not credentials.credentials:
+    token: Optional[str] = None
+    if credentials and credentials.credentials:
+        token = credentials.credentials
+    elif request and request.cookies and "access_token" in request.cookies:
+        token = request.cookies.get("access_token")
+
+    if not token:
         raise unauthorized_exc
 
-    payload = decode_access_token(credentials.credentials)
+    payload = decode_access_token(token)
     if payload is None:
         raise unauthorized_exc
 

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { apiClient, ApiError } from '@/lib/api';
+import { apiClient, ApiError, setAuthToken } from '@/lib/api';
 
 export interface UserProfile {
   id: string;
@@ -30,19 +30,36 @@ export interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }): React.ReactElement {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('access_token'));
+  const [token, setTokenState] = useState<string | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const setToken = useCallback((newToken: string | null) => {
+    setTokenState(newToken);
+    setAuthToken(newToken);
+  }, []);
+
   const clearError = useCallback(() => setError(null), []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('access_token');
+  const logout = useCallback(async () => {
+    try {
+      await apiClient.post('/api/v1/auth/logout');
+    } catch {
+      // Ignore network errors during logout
+    }
     setToken(null);
     setUser(null);
     setError(null);
-  }, []);
+    try {
+      localStorage.removeItem('access_token');
+    } catch {
+      // Ignore
+    }
+    if (typeof window !== 'undefined' && window.location.pathname !== '/' && !window.location.pathname.startsWith('/login')) {
+      window.location.href = '/';
+    }
+  }, [setToken]);
 
   const fetchProfile = useCallback(async (): Promise<UserProfile> => {
     try {
@@ -60,23 +77,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
   useEffect(() => {
     let isMounted = true;
     async function restoreSession() {
-      const storedToken = localStorage.getItem('access_token');
-      if (storedToken) {
-        try {
-          const profile = await apiClient.get<UserProfile>('/api/v1/auth/me');
-          if (isMounted) {
-            setUser(profile);
+      // Remove any legacy token from localStorage
+      try {
+        localStorage.removeItem('access_token');
+      } catch {
+        // Ignore
+      }
+
+      try {
+        // Restore session via HttpOnly cookie
+        const profile = await apiClient.get<UserProfile>('/api/v1/auth/me');
+        if (isMounted) {
+          setUser(profile);
+        }
+      } catch (err) {
+        if (isMounted) {
+          if (err instanceof ApiError && (err.status === 503 || err.status === 502 || err.status === 504)) {
+            setError('Server unavailable');
+          } else {
+            setToken(null);
           }
-        } catch (err) {
-          if (isMounted) {
-            if (err instanceof ApiError && (err.status === 503 || err.status === 502 || err.status === 504)) {
-              setError('Server unavailable');
-            } else {
-              localStorage.removeItem('access_token');
-              setToken(null);
-            }
-            setUser(null);
-          }
+          setUser(null);
         }
       }
       if (isMounted) {
@@ -87,7 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [setToken]);
 
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
@@ -97,11 +118,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
         email,
         password,
       });
-      localStorage.setItem('access_token', res.access_token);
+      // Token is kept in memory only; HttpOnly cookie is set by server
       setToken(res.access_token);
-      const profile = await apiClient.get<UserProfile>('/api/v1/auth/me', {
-        headers: { Authorization: `Bearer ${res.access_token}` },
-      });
+      const profile = await apiClient.get<UserProfile>('/api/v1/auth/me');
       setUser(profile);
     } catch (err) {
       let message = 'Login failed. Please check your credentials.';

@@ -20,6 +20,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import {
   collectDiagnosticsReport,
   formatDiagnosticsAsMarkdown,
+  sanitizeTrackSettings,
   DiagnosticsReport,
 } from '@/lib/diagnosticsCollector';
 
@@ -152,6 +153,16 @@ export function DiagnosticsModal({
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open('?latency-lab=true', '_blank')}
+              className="h-8 text-xs border-card-border text-text gap-1.5 hover:bg-bg-subtle cursor-pointer"
+              title="Open Latency Lab in new tab"
+            >
+              <Zap className="h-3.5 w-3.5 text-primary" />
+              Latency Lab
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -423,13 +434,13 @@ export function DiagnosticsModal({
                       : 'SpeechRecognition: Unsupported'}
                   </Badge>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-text">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-text">
                   <div>
                     <span className="text-text-muted block text-[10px]">Mic Permission:</span>
                     <strong className="text-text text-xs">{report.microphonePermission}</strong>
                   </div>
                   <div>
-                    <span className="text-text-muted block text-[10px]">AudioContext State:</span>
+                    <span className="text-text-muted block text-[10px]">AudioContext:</span>
                     <strong
                       className={`text-xs ${
                         report.audioDiagnostics.audioContextState === 'running'
@@ -441,7 +452,21 @@ export function DiagnosticsModal({
                     </strong>
                   </div>
                   <div>
-                    <span className="text-text-muted block text-[10px]">Last getUserMedia Error:</span>
+                    <span className="text-text-muted block text-[10px]">TTS State:</span>
+                    <strong
+                      className={`text-xs ${
+                        report.audioDiagnostics.ttsState === 'speaking'
+                          ? 'text-mint font-bold uppercase'
+                          : report.audioDiagnostics.ttsState === 'silent-fallback' || report.audioDiagnostics.ttsState === 'error'
+                          ? 'text-amber-400 font-bold uppercase'
+                          : 'text-text uppercase'
+                      }`}
+                    >
+                      {report.audioDiagnostics.ttsState || 'idle'}
+                    </strong>
+                  </div>
+                  <div>
+                    <span className="text-text-muted block text-[10px]">Last getUserMedia:</span>
                     <strong
                       className="text-danger text-xs truncate block"
                       title={report.audioDiagnostics.lastGetUserMediaError || 'None'}
@@ -503,9 +528,9 @@ export function DiagnosticsModal({
                         key={input.deviceId || idx}
                         className="text-[11px] text-text flex items-center justify-between"
                       >
-                        <span className="truncate max-w-sm">{input.label}</span>
+                        <span className="truncate max-w-sm">{input.label || `Microphone ${idx + 1}`}</span>
                         <span className="text-[10px] font-mono text-text-faint">
-                          {input.isDeviceIdEmpty ? 'ID: (empty)' : `ID: ${input.deviceId.slice(0, 8)}...`}
+                          {input.isDeviceIdEmpty ? 'Status: Unassigned' : 'Status: Ready'}
                         </span>
                       </div>
                     ))}
@@ -516,7 +541,7 @@ export function DiagnosticsModal({
               {/* Active Track Settings */}
               <div className="p-3 rounded-xl bg-card border border-card-border space-y-2">
                 <span className="text-xs font-semibold text-primary font-mono uppercase tracking-wider flex items-center gap-1.5">
-                  <Monitor className="h-4 w-4" /> Active Camera Track & Settings
+                  <Monitor className="h-4 w-4" /> Active Camera Track &amp; Settings
                 </span>
                 {report.activeVideoTrack ? (
                   <div className="space-y-1 text-text-muted">
@@ -527,7 +552,7 @@ export function DiagnosticsModal({
                       Live: <span className="text-success font-semibold">{String(report.activeVideoTrack.readyState === 'live')}</span> | Enabled: <span className="text-success font-semibold">{String(report.activeVideoTrack.enabled)}</span> | Muted: <span className="text-text font-semibold">{String(report.activeVideoTrack.muted)}</span>
                     </div>
                     <pre className="p-2.5 rounded-xl bg-bg-subtle border border-card-border text-[11px] text-text-muted overflow-x-auto">
-                      {JSON.stringify(report.activeVideoTrack.settings, null, 2)}
+                      {JSON.stringify(sanitizeTrackSettings(report.activeVideoTrack.settings), null, 2)}
                     </pre>
                   </div>
                 ) : (
@@ -568,7 +593,7 @@ export function DiagnosticsModal({
         {/* Footer Actions */}
         <div className="p-3 border-t border-card-border bg-bg-subtle flex items-center justify-between shrink-0">
           <span className="text-[11px] text-text-muted font-sans">
-            Diagnostic logs exclude biometric vectors.
+            Diagnostic logs exclude biometric telemetry.
           </span>
           <div className="flex items-center gap-2">
             <Button

@@ -529,7 +529,7 @@ npm run build
 
 For questions, issues, or contributions, please contact:
 - **Support & Developer Contact:** Vinay Simha Reddy ([pvinaysimhareddy333@gmail.com](mailto:pvinaysimhareddy333@gmail.com))
-- **Repository:** [https://github.com/vinaysimhareddy/Mock-Interview-Simulator](https://github.com/vinaysimhareddy/Mock-Interview-Simulator)
+- **Repository:** [https://github.com/vinaysimhareddy/Mock-Interview-Simulator](https://github.com/vinaysimhareddy/InterveiwForge)
 
 ---
 

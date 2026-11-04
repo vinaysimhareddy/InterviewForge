@@ -193,8 +193,8 @@ Before starting, ensure you have the following installed:
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/vinaysimhareddy/Mock-Interview-Simulator.git
-cd Mock-Interview-Simulator
+git clone https://github.com/vinaysimhareddy/InterviewForge.git
+cd InterviewForge
 ```
 
 ---
@@ -374,7 +374,7 @@ docker compose -f docker-compose.prod.yml up -d --build
 ## 6. Directory Layout
 
 ```text
-adaptive-ai-mock-interview-platform/
+InterviewForge/
 ├── .env.example                # Root environment variables template
 ├── Caddyfile                   # Alternative automated SSL configuration
 ├── DEPLOYMENT.md               # Production deployment runbook (VPS, Nginx, SSL)
@@ -556,7 +556,7 @@ npm run build
 
 For questions, issues, or contributions, please contact:
 - **Support & Developer Contact:** Vinay Simha Reddy ([pvinaysimhareddy333@gmail.com](mailto:pvinaysimhareddy333@gmail.com))
-- **Repository:** [https://github.com/vinaysimhareddy/Mock-Interview-Simulator](https://github.com/vinaysimhareddy/InterveiwForge)
+- **Repository:** [https://github.com/vinaysimhareddy/InterviewForge](https://github.com/vinaysimhareddy/InterviewForge)
 
 ---
 

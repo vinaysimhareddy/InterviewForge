@@ -6,7 +6,11 @@ import { ttsManager, TTSManager } from '../services/speech/ttsManager';
 import { isSignificantSpeech, VoiceActivityDetector } from '../services/speech/vad';
 import { mapSpeechRecognitionError, SpeechErrorInfo } from '../services/speech/speechErrors';
 import { sttTimingLogger } from '../services/speech/sttTimingLogger';
-import { computeTurnSilenceTimeoutMs, MAX_ANSWER_DURATION_SEC } from '../services/speech/adaptiveSilence';
+import {
+  computeTurnSilenceTimeoutMs,
+  MAX_ANSWER_DURATION_SEC,
+  ANSWER_WARNING_THRESHOLD_SEC,
+} from '../services/speech/adaptiveSilence';
 import { normalizeTranscript, computeTurnConfidence } from '../services/speech/termNormalizer';
 import { ClientWSMessage } from '../lib/types';
 
@@ -19,6 +23,7 @@ export type VoiceTurnState =
 
 export interface AnswerSubmissionMetadata {
   source?: 'voice' | 'typed';
+  reason?: 'silence' | 'cap' | 'user' | string;
   answer_raw?: string;
   stt_confidence?: number;
   is_low_confidence?: boolean;
@@ -66,6 +71,7 @@ export interface UseVoiceTurnEngineReturn {
   setTranscript: (text: string) => void;
   toggleDictation: () => void;
   sttError?: SpeechErrorInfo | null;
+  isAnswerTimeWarning?: boolean;
   clearSttError?: () => void;
 }
 
@@ -96,6 +102,7 @@ export function useVoiceTurnEngine({
   const [sttError, setSttError] = useState<SpeechErrorInfo | null>(null);
   const [ttsState, setTtsState] = useState<TTSState>(ttsManager.getAudioState());
   const [isReconnectingVoice, setIsReconnectingVoice] = useState<boolean>(false);
+  const [isAnswerTimeWarning, setIsAnswerTimeWarning] = useState<boolean>(false);
   const [sttStatusNotice, setSttStatusNotice] = useState<string | null>(null);
   const [activeSTTProvider, setActiveSTTProvider] = useState<STTProviderMode>('browser');
   const isReconnectingVoiceRef = useRef<boolean>(false);
@@ -324,10 +331,13 @@ export function useVoiceTurnEngine({
               hasSpokenMeaningfullyRef.current = true;
             }
 
-            // Cap 120s per answer check (§B4)
+            // Cap 300s (5 minutes) per answer check (§B4, PR3)
             const elapsedAnswerSec = (Date.now() - questionStartTimeRef.current) / 1000;
+            if (elapsedAnswerSec >= ANSWER_WARNING_THRESHOLD_SEC) {
+              setIsAnswerTimeWarning(true);
+            }
             if (elapsedAnswerSec >= MAX_ANSWER_DURATION_SEC && !isSubmittingRef.current) {
-              void triggerAnswerCompletion();
+              void triggerAnswerCompletion({ reason: 'cap' });
               return;
             }
 
@@ -451,6 +461,7 @@ export function useVoiceTurnEngine({
   const triggerAnswerCompletion = useCallback(async (metadata?: AnswerSubmissionMetadata) => {
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
+    setIsAnswerTimeWarning(false);
 
     sttTimingLogger.recordEvent('answer_end_decision', questionIndex);
 
@@ -562,6 +573,7 @@ export function useVoiceTurnEngine({
     try {
       await onSubmitAnswer(finalClean, {
         source,
+        reason: metadata?.reason,
         answer_raw: finalRaw || finalClean,
         stt_confidence: confResult.confidence,
         is_low_confidence: confResult.isLowConfidence,
@@ -600,6 +612,7 @@ export function useVoiceTurnEngine({
     rawTranscriptRef.current = '';
     hasAskedToRepeatRef.current = false;
     accumulatedSpeechDurationSecRef.current = 0;
+    setIsAnswerTimeWarning(false);
     setTurnConfidence(0.90);
     setIsLowConfidence(false);
     hasSpokenMeaningfullyRef.current = false;
@@ -738,6 +751,7 @@ export function useVoiceTurnEngine({
     },
     toggleDictation,
     sttError,
+    isAnswerTimeWarning,
     clearSttError: () => setSttError(null),
   };
 }

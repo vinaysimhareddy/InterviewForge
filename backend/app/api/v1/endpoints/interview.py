@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
 from app.api.deps import get_current_user
+from app.core.rate_limiter import limiter
 from app.models.interview import AnswerSubmission, FinalReport, InterviewStepResponse, QuestionEvaluation
 from app.models.user import UserInDB
 from app.repositories.evaluation_repo import evaluation_repo
@@ -18,6 +19,73 @@ logger = logging.getLogger("uvicorn.error")
 router = APIRouter(prefix="/interview", tags=["interview"])
 
 
+def _extract_final_report_from_docs(
+    session_id: str,
+    session_doc: Optional[Dict[str, Any]],
+    eval_doc: Optional[Dict[str, Any]],
+) -> Optional[FinalReport]:
+    """Adapt and parse FinalReport from session state or evaluation document with fallback resilience (§PR7)."""
+    state_report = (session_doc or {}).get("interview_state", {}).get("final_report")
+    raw_report: Optional[Dict[str, Any]] = None
+
+    if isinstance(state_report, dict) and "category_scores" in state_report:
+        raw_report = dict(state_report)
+    elif eval_doc and "category_scores" in (eval_doc.get("report") or {}):
+        raw_report = dict(eval_doc["report"])
+    elif eval_doc and "overview" in (eval_doc.get("report") or {}):
+        rep = eval_doc["report"]
+        overview = rep.get("overview", {})
+        dim = overview.get("dimension_scores", {})
+        raw_report = {
+            "overall_score": float(overview.get("overall_score", 70.0)),
+            "category_scores": {
+                "technical": float(dim.get("technical_accuracy", 70.0)),
+                "communication": float(dim.get("communication", 70.0)),
+                "composure": float(dim.get("composure", 70.0)),
+            },
+            "hiring_recommendation": str(overview.get("verdict", "Hire")),
+            "strengths": rep.get("strengths") or [
+                f"Demonstrated solid knowledge of {(session_doc or {}).get('role', 'engineering')} conventions.",
+                "Articulated system trade-offs with structured communication.",
+            ],
+            "weaknesses": rep.get("weaknesses") or [
+                "Could provide more quantitative performance metrics when proposing architectures.",
+                "Consider discussing edge cases and disaster recovery runbooks in greater depth.",
+            ],
+            "executive_summary": str(overview.get("summary") or "Interview completed successfully."),
+            "integrity_summary": rep.get("integrity_summary"),
+            "question_coverage": rep.get("question_coverage", []),
+            "difficulty_progression": rep.get("difficulty_progression", []),
+        }
+    elif state_report and isinstance(state_report, dict):
+        raw_report = dict(state_report)
+    elif eval_doc and eval_doc.get("report"):
+        raw_report = dict(eval_doc["report"])
+
+    if not raw_report:
+        return None
+
+    if not raw_report.get("integrity_summary") and session_doc:
+        score = float(session_doc.get("integrity_score", 95.0))
+        events = session_doc.get("integrity_events", [])
+        cam = session_doc.get("camera_device_name") or session_doc.get("activeCameraLabel")
+        raw_report["integrity_summary"] = build_integrity_summary(
+            session_id=session_id,
+            integrity_score=score,
+            events=events,
+            samples=[],
+            camera_device_name=cam,
+            challenges_passed=int(session_doc.get("challenges_passed", 0)),
+            challenges_failed=int(session_doc.get("challenges_failed", 0)),
+        )
+
+    try:
+        return FinalReport(**raw_report)
+    except Exception as exc:
+        logger.warning("Could not parse FinalReport for session %s: %s", session_id, exc)
+        return None
+
+
 @router.post(
     "/sessions/{session_id}/start",
     response_model=InterviewStepResponse,
@@ -27,12 +95,27 @@ async def start_interview_endpoint(
     session_id: str,
     current_user: UserInDB = Depends(get_current_user),
 ) -> InterviewStepResponse:
-    """Start or resume the adaptive interview workflow with user isolation."""
+    """Start or resume the adaptive interview workflow with user isolation (§PR7)."""
     session_doc = await session_repo.get_by_id_and_user(session_id, current_user.id)
     if not session_doc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Interview session not found.")
 
-    # If already running with an active question, return current state
+    # Resumption case 1: Session has already concluded (COMPLETED or ABORTED)
+    if session_doc.get("status") in ("COMPLETED", "ABORTED"):
+        eval_doc = await evaluation_repo.get_by_session_and_user(session_id, current_user.id)
+        final_rep = _extract_final_report_from_docs(session_id, session_doc, eval_doc)
+        state_dict = session_doc.get("interview_state") or {}
+        return InterviewStepResponse(
+            session_id=session_id,
+            status=session_doc["status"],
+            current_question_index=state_dict.get("current_question_index", 0),
+            max_questions=state_dict.get("max_questions", 5),
+            next_question=None,
+            difficulty=state_dict.get("difficulty", session_doc.get("difficulty", "Adaptive")),
+            final_report=final_rep,
+        )
+
+    # Resumption case 2: If already running with an active question, resume cleanly
     if session_doc.get("interview_state") and session_doc.get("status") == "IN_PROGRESS":
         state: InterviewState = session_doc["interview_state"]
         return InterviewStepResponse(
@@ -102,6 +185,7 @@ async def submit_answer_endpoint(
     current_user: UserInDB = Depends(get_current_user),
 ) -> InterviewStepResponse:
     """Submit candidate response to current question; updates score and dynamic difficulty."""
+    limiter.check(f"answer:{session_id}", limit=30, window_seconds=60.0)
     session_doc = await session_repo.get_by_id_and_user(session_id, current_user.id)
     if not session_doc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Interview session not found.")
@@ -216,8 +300,12 @@ async def submit_answer_endpoint(
             }
             interview_rep = build_deterministic_report(session_id, current_user.id, session_doc_for_rep)
             await evaluation_repo.save_interview_report(session_id, current_user.id, interview_rep.model_dump())
+            
+            # Asynchronously synthesize full AI report in background (§4.1, RP3)
+            from app.services.report_pipeline import generate_interview_report_pipeline
+            asyncio.create_task(generate_interview_report_pipeline(session_id, current_user.id, session_doc_for_rep))
         except Exception as exc:
-            logger.warning("Failed to immediately save deterministic interview report in submit_answer_endpoint: %s", exc)
+            logger.warning("Failed to immediately save report or trigger background generation in submit_answer_endpoint: %s", exc)
 
     # Per UX security & anti-bias requirements: withhold per-answer scores/critiques from client mid-interview.
     # Evaluations are stored in updated_state["evaluations_history"] in MongoDB and exposed only in the final report.
@@ -250,31 +338,14 @@ async def get_interview_report(
     eval_doc = await evaluation_repo.get_by_session_and_user(session_id, current_user.id)
     session_doc = await session_repo.get_by_id_and_user(session_id, current_user.id)
 
-    if not eval_doc and not (session_doc and session_doc.get("interview_state", {}).get("final_report")):
+    report_obj = _extract_final_report_from_docs(session_id, session_doc, eval_doc)
+    if not report_obj:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Report not found. The interview session may not be completed yet.",
         )
 
-    raw_report: Dict[str, Any] = (
-        eval_doc["report"] if eval_doc else session_doc["interview_state"]["final_report"]  # type: ignore[index]
-    )
-
-    if not raw_report.get("integrity_summary") and session_doc:
-        score = float(session_doc.get("integrity_score", 95.0))
-        events = session_doc.get("integrity_events", [])
-        cam = session_doc.get("camera_device_name") or session_doc.get("activeCameraLabel")
-        raw_report["integrity_summary"] = build_integrity_summary(
-            session_id=session_id,
-            integrity_score=score,
-            events=events,
-            samples=[],
-            camera_device_name=cam,
-            challenges_passed=int(session_doc.get("challenges_passed", 0)),
-            challenges_failed=int(session_doc.get("challenges_failed", 0)),
-        )
-
-    return FinalReport(**raw_report)
+    return report_obj
 
 
 @router.get(
@@ -355,7 +426,7 @@ async def end_interview_endpoint(
     )
 
     if final_report_dict:
-        await evaluation_repo.create_or_update(
+        await evaluation_repo.save_evaluation(
             session_id=session_id,
             user_id=current_user.id,
             report=final_report_dict,

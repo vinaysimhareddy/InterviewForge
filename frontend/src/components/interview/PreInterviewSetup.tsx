@@ -58,7 +58,11 @@ import { LivenessChallengeStep } from '@/lib/integrityTypes';
 import { formatPageTitle, USER_FLOW_STEPS } from '@/copy/glossary';
 import { Logo } from '@/components/common/Logo';
 import { PermissionHelpModal } from './PermissionHelpModal';
-import { DiagnosticsModal } from './DiagnosticsModal';
+
+// Dev diagnostics: lazily imported in development only; tree-shaken in production builds
+const DiagnosticsModal = import.meta.env.DEV
+  ? React.lazy(() => import('./DiagnosticsModal').then((m) => ({ default: m.DiagnosticsModal })))
+  : null;
 import {
   evaluateFaceQuality,
   FaceQualityHysteresis,
@@ -1764,15 +1768,17 @@ export function PreInterviewSetup({
                       </select>
                     )}
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsDiagnosticsOpen(true)}
-                    className="h-6 text-[10px] text-primary hover:text-primary-hover underline underline-offset-2 p-0"
-                  >
-                    Run Diagnostics
-                  </Button>
+                  {import.meta.env.DEV && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsDiagnosticsOpen(true)}
+                      className="h-6 text-[10px] text-primary hover:text-primary-hover underline underline-offset-2 p-0"
+                    >
+                      Run Diagnostics
+                    </Button>
+                  )}
                 </div>
 
                 <p className="text-[10px] text-text-faint pt-1 leading-relaxed border-t border-card-border">
@@ -2319,65 +2325,69 @@ export function PreInterviewSetup({
         onRetry={handleRetestMic}
       />
 
-      {/* Diagnostics Report Modal */}
-      <DiagnosticsModal
-        isOpen={isDiagnosticsOpen}
-        onClose={() => setIsDiagnosticsOpen(false)}
-        stream={cameraStream}
-        audioStream={audioStream ?? audioStreamRef.current}
-        audioContext={audioContextRef.current}
-        videoEl={videoRef.current}
-        measuredFps={pipelineRef.current?.getStatus().fps}
-        meanLuminance={pipelineRef.current?.getStatus().luminance}
-        faceCount={pipelineRef.current?.getStatus().currentFaceCount}
-        centeringOffsetPct={
-          typeof faceQualityReport?.criteria?.centered?.value === 'number'
-            ? faceQualityReport.criteria.centered.value
-            : undefined
-        }
-        faceHeightPct={
-          typeof faceQualityReport?.criteria?.distance?.value === 'number'
-            ? faceQualityReport.criteria.distance.value
-            : undefined
-        }
-        sharpnessScore={
-          typeof faceQualityReport?.criteria?.sharpness?.value === 'number'
-            ? faceQualityReport.criteria.sharpness.value
-            : undefined
-        }
-        headPose={
-          (faceQualityReport?.criteria?.facing_camera?.value as
-            | { yaw: number; pitch: number; roll: number }
-            | undefined) || undefined
-        }
-        noiseFloorRms={
-          micReport?.noiseFloorRms ??
-          (noiseFloorCalibratorRef.current.isCalibrated(performance.now())
-            ? noiseFloorCalibratorRef.current.getAverageRms()
-            : null)
-        }
-        noiseFloorDb={
-          micReport?.noiseFloorDb ??
-          (noiseFloorCalibratorRef.current.isCalibrated(performance.now())
-            ? noiseFloorCalibratorRef.current.getAverageDb()
-            : null)
-        }
-        estimatedSnrDb={micReport?.estimatedSnrDb ?? null}
-        voicedSeconds={
-          micReport?.voicedSeconds ??
-          voicedAccumulatorRef.current.getCumulativeVoicedSeconds(performance.now())
-        }
-        lastError={
-          state.camera.status === 'error' ||
-          state.camera.status === 'denied' ||
-          state.camera.status === 'in_use' ||
-          state.camera.status === 'not_found'
-            ? (state.camera as { error: string }).error
-            : null
-        }
-        lastGetUserMediaError={lastMicErrorName}
-        lastSpeechRecognitionError={lastSttErrorCode}
-      />
+      {/* Diagnostics Report Modal (dev only) */}
+      {import.meta.env.DEV && DiagnosticsModal && isDiagnosticsOpen && (
+        <React.Suspense fallback={null}>
+          <DiagnosticsModal
+            isOpen={isDiagnosticsOpen}
+            onClose={() => setIsDiagnosticsOpen(false)}
+            stream={cameraStream}
+            audioStream={audioStream ?? audioStreamRef.current}
+            audioContext={audioContextRef.current}
+            videoEl={videoRef.current}
+            measuredFps={pipelineRef.current?.getStatus().fps}
+            meanLuminance={pipelineRef.current?.getStatus().luminance}
+            faceCount={pipelineRef.current?.getStatus().currentFaceCount}
+            centeringOffsetPct={
+              typeof faceQualityReport?.criteria?.centered?.value === 'number'
+                ? faceQualityReport.criteria.centered.value
+                : undefined
+            }
+            faceHeightPct={
+              typeof faceQualityReport?.criteria?.distance?.value === 'number'
+                ? faceQualityReport.criteria.distance.value
+                : undefined
+            }
+            sharpnessScore={
+              typeof faceQualityReport?.criteria?.sharpness?.value === 'number'
+                ? faceQualityReport.criteria.sharpness.value
+                : undefined
+            }
+            headPose={
+              (faceQualityReport?.criteria?.facing_camera?.value as
+                | { yaw: number; pitch: number; roll: number }
+                | undefined) || undefined
+            }
+            noiseFloorRms={
+              micReport?.noiseFloorRms ??
+              (noiseFloorCalibratorRef.current.isCalibrated(performance.now())
+                ? noiseFloorCalibratorRef.current.getAverageRms()
+                : null)
+            }
+            noiseFloorDb={
+              micReport?.noiseFloorDb ??
+              (noiseFloorCalibratorRef.current.isCalibrated(performance.now())
+                ? noiseFloorCalibratorRef.current.getAverageDb()
+                : null)
+            }
+            estimatedSnrDb={micReport?.estimatedSnrDb ?? null}
+            voicedSeconds={
+              micReport?.voicedSeconds ??
+              voicedAccumulatorRef.current.getCumulativeVoicedSeconds(performance.now())
+            }
+            lastError={
+              state.camera.status === 'error' ||
+              state.camera.status === 'denied' ||
+              state.camera.status === 'in_use' ||
+              state.camera.status === 'not_found'
+                ? (state.camera as { error: string }).error
+                : null
+            }
+            lastGetUserMediaError={lastMicErrorName}
+            lastSpeechRecognitionError={lastSttErrorCode}
+          />
+        </React.Suspense>
+      )}
     </div>
   );
 }

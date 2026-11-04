@@ -1,0 +1,3740 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "InterviewForge API",
+    "description": "Backend services for real-time telemetry processing, adaptive technical interviewing, and multi-dimensional scoring.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health Check",
+        "description": "Health check endpoint to verify ASGI backend vitality.",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Check Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/db": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health Db Check",
+        "description": "Database connectivity and health diagnostic check.\nIn production: returns minimal {\"status\": \"ok\"} without leaking collection names or internal metrics.\nIn dev/test: returns extended diagnostic fields.\nNever exposes raw URI, credentials, or user data.",
+        "operationId": "health_db_check_health_db_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Register a new user account in ai-mock-interview.auth",
+        "description": "Register a new user account directly into ai-mock-interview.auth collection.\nEmail is normalized, password is typed and hashed with Argon2id.\nRate limited by client IP (\u00a7PR6).",
+        "operationId": "register_api_v1_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Authenticate user and issue JWT bearer token",
+        "description": "Authenticate user credentials against ai-mock-interview.auth.\nRate limited by client IP (\u00a7PR6).",
+        "operationId": "login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLogin"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Sign out user and clear auth cookies",
+        "description": "Clear HttpOnly access_token cookie.",
+        "operationId": "logout_api_v1_auth_logout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Logout Api V1 Auth Logout Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/ws-ticket": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Generate a single-use short-lived WebSocket ticket",
+        "description": "Generate a 30s single-use ticket for authenticating WebSocket connections\nwithout exposing long-lived JWTs in URLs or query strings.",
+        "operationId": "get_ws_ticket_api_v1_auth_ws_ticket_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WSTicketRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WSTicketResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Get authenticated user profile",
+        "description": "Return sanitized public user profile loaded from ai-mock-interview.auth.\nGuarantees hashed_password and internal lockout fields are never returned.",
+        "operationId": "get_me_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPublic"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/resumes/upload": {
+      "post": {
+        "tags": [
+          "resumes"
+        ],
+        "summary": "Upload and parse a candidate resume PDF",
+        "description": "Validate, extract text in-memory, and parse resume profile using LangChain structured outputs.\nPersists parsed resume to ai-mock-interview.resumes collection via resume_repo.\nGuarantees that files are never written to disk, magic-bytes are verified (%PDF),\nfile size is checked against MAX_UPLOAD_MB, and LLM failure returns 502 with no partial save.",
+        "operationId": "upload_resume_api_v1_resumes_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_resume_api_v1_resumes_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/resumes": {
+      "get": {
+        "tags": [
+          "resumes"
+        ],
+        "summary": "List all resumes uploaded by the authenticated candidate",
+        "description": "Retrieve all resumes owned by the authenticated candidate, sorted by creation date.",
+        "operationId": "list_resumes_api_v1_resumes_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ResumeResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Resumes Api V1 Resumes Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/resumes/{resume_id}": {
+      "get": {
+        "tags": [
+          "resumes"
+        ],
+        "summary": "Get a specific resume by ID with ownership enforcement",
+        "description": "Retrieve a single resume by ID. Returns 404 if not found or owned by another user.",
+        "operationId": "get_resume_api_v1_resumes__resume_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "resume_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Resume Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "resumes"
+        ],
+        "summary": "Update candidate skills or summary on resume",
+        "description": "Update technical skills or profile summary on a candidate resume.",
+        "operationId": "update_resume_api_v1_resumes__resume_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "resume_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Resume Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResumeUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "resumes"
+        ],
+        "summary": "Delete a resume and all its vector chunks",
+        "description": "Delete candidate resume and all associated chunks with user ownership enforcement.",
+        "operationId": "delete_resume_api_v1_resumes__resume_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "resume_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Resume Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/reports": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "List all completed interview reports for the current candidate (\u00a76)",
+        "description": "Retrieve all completed reports for the authenticated candidate.\nSelf-heals and reconciles any completed sessions that lack an evaluation report in DB (\u00a7B6).",
+        "operationId": "list_candidate_reports_api_v1_sessions_reports_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/InterviewReport"
+                  },
+                  "type": "array",
+                  "title": "Response List Candidate Reports Api V1 Sessions Reports Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/sessions": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "List all interview sessions for current user",
+        "description": "Retrieve all interview sessions for current user ordered by creation time.",
+        "operationId": "list_sessions_api_v1_sessions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SessionResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Sessions Api V1 Sessions Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Create a new adaptive interview session",
+        "description": "Create a new interview session configured with candidate resume, target role, seniority, and difficulty.\nPersists to ai-mock-interview.interview_sessions collection via session_repo.\nEnforces user isolation on referenced resume.",
+        "operationId": "create_session_api_v1_sessions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/sessions/{session_id}": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Get single interview session by ID",
+        "description": "Retrieve session details by ID. Returns 404 if session not found or owned by another user.",
+        "operationId": "get_session_api_v1_sessions__session_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/status": {
+      "patch": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Transition session lifecycle state",
+        "description": "Update session state to IN_PROGRESS, COMPLETED, or TERMINATED with timestamp recording.",
+        "operationId": "update_session_status_api_v1_sessions__session_id__status_patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/report": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Retrieve post-interview detailed review and readiness report (\u00a74.2)",
+        "description": "Retrieve InterviewReport with strict ownership isolation.\nIf a session ended without a report (crash, timeout, early close),\ngenerates it on first access to the review page using whatever turns were completed (\u00a7B6).",
+        "operationId": "get_session_report_api_v1_sessions__session_id__report_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/report/generate": {
+      "post": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Generate or regenerate post-interview review report (\u00a74.1)",
+        "description": "Generate or regenerate InterviewReport with deterministic scoring fallback.",
+        "operationId": "generate_session_report_api_v1_sessions__session_id__report_generate_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/report/status": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Poll status and progress of report generation (\u00a74.1)",
+        "description": "Retrieve async report generation status for polling UX.",
+        "operationId": "get_report_generation_status_api_v1_sessions__session_id__report_status_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportStatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/report/turns/{turn_id}/exclude": {
+      "post": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Mark turn as unreliable/excluded ('Transcription looks wrong') and recompute (\u00a73.3)",
+        "description": "Mark turn as excluded and immediately recompute deterministic scores and readiness.",
+        "operationId": "exclude_turn_and_recompute_report_api_v1_sessions__session_id__report_turns__turn_id__exclude_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "turn_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Turn Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sessions/{session_id}/outcome": {
+      "post": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Record optional, opt-in real interview outcome for future calibration (\u00a76)",
+        "description": "Record real-world interview outcome to calibrate future readiness models.",
+        "operationId": "record_session_outcome_api_v1_sessions__session_id__outcome_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionOutcomeFeedback"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Record Session Outcome Api V1 Sessions  Session Id  Outcome Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/interview/sessions/{session_id}/start": {
+      "post": {
+        "tags": [
+          "interview"
+        ],
+        "summary": "Initialize adaptive LangGraph workflow and generate Question #1",
+        "description": "Start or resume the adaptive interview workflow with user isolation (\u00a7PR7).",
+        "operationId": "start_interview_endpoint_api_v1_interview_sessions__session_id__start_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewStepResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/interview/sessions/{session_id}/answer": {
+      "post": {
+        "tags": [
+          "interview"
+        ],
+        "summary": "Submit answer, evaluate against rubric, and adaptively route next step",
+        "description": "Submit candidate response to current question; updates score and dynamic difficulty.",
+        "operationId": "submit_answer_endpoint_api_v1_interview_sessions__session_id__answer_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerSubmission"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewStepResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/interview/sessions/{session_id}/report": {
+      "get": {
+        "tags": [
+          "interview"
+        ],
+        "summary": "Retrieve final interview report and category scorecard",
+        "description": "Retrieve scorecard report from evaluations collection with strict user ownership isolation (\u00a77, \u00a7M4).",
+        "operationId": "get_interview_report_api_v1_interview_sessions__session_id__report_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinalReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/interview/sessions/{session_id}/state": {
+      "get": {
+        "tags": [
+          "interview"
+        ],
+        "summary": "Retrieve full conversation and question state",
+        "description": "Retrieve interview transcript, evaluations, and current difficulty with user ownership enforcement.",
+        "operationId": "get_interview_state_api_v1_interview_sessions__session_id__state_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Get Interview State Api V1 Interview Sessions  Session Id  State Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/interview/sessions/{session_id}/end": {
+      "post": {
+        "tags": [
+          "interview"
+        ],
+        "summary": "Conclude or abort interview session (\u00a73.6, \u00a73.7, Item 9)",
+        "description": "End interview session strictly on time-up, user end, or face/camera policy abort.",
+        "operationId": "end_interview_endpoint_api_v1_interview_sessions__session_id__end_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EndInterviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewStepResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ping": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Ping",
+        "description": "Lightweight ping endpoint for v1 API namespace.",
+        "operationId": "ping_api_v1_ping_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Ping Api V1 Ping Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActionPlan": {
+        "properties": {
+          "priorities": {
+            "items": {
+              "$ref": "#/components/schemas/ActionPriority"
+            },
+            "type": "array",
+            "title": "Priorities"
+          },
+          "seven_day_plan": {
+            "items": {
+              "$ref": "#/components/schemas/DayPlanItem"
+            },
+            "type": "array",
+            "title": "Seven Day Plan"
+          },
+          "next_session_suggestion": {
+            "$ref": "#/components/schemas/NextSessionSuggestion"
+          }
+        },
+        "type": "object",
+        "required": [
+          "next_session_suggestion"
+        ],
+        "title": "ActionPlan",
+        "description": "Comprehensive post-interview action plan (\u00a73.8)."
+      },
+      "ActionPriority": {
+        "properties": {
+          "priority": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Priority"
+          },
+          "area": {
+            "type": "string",
+            "title": "Area",
+            "description": "Competency or technology area"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "description": "Why this matters for the target role"
+          },
+          "study_practice": {
+            "type": "string",
+            "title": "Study Practice",
+            "description": "Specific topics and concrete practice task"
+          },
+          "estimated_effort": {
+            "type": "string",
+            "title": "Estimated Effort",
+            "description": "Estimated time effort (e.g. '3-5 hours')"
+          }
+        },
+        "type": "object",
+        "required": [
+          "priority",
+          "area",
+          "reason",
+          "study_practice",
+          "estimated_effort"
+        ],
+        "title": "ActionPriority",
+        "description": "Top-priority improvement area (\u00a73.8)."
+      },
+      "AnswerSubmission": {
+        "properties": {
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer",
+            "description": "Candidate response text or transcribed speech",
+            "default": ""
+          },
+          "answer_raw": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Raw",
+            "description": "Raw unnormalized speech-to-text transcript (\u00a7T7)"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status",
+            "description": "answered | skipped",
+            "default": "answered"
+          },
+          "turn_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turn Id"
+          },
+          "response_latency_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response Latency Ms"
+          },
+          "answer_duration_sec": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Duration Sec"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source",
+            "description": "voice | typed",
+            "default": "voice"
+          },
+          "stt_confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stt Confidence",
+            "description": "Per-turn STT confidence score 0.0-1.0 (\u00a7T7)"
+          },
+          "is_low_confidence": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Low Confidence",
+            "description": "Flag indicating potential transcription inaccuracies (\u00a7T7)",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "AnswerSubmission",
+        "description": "Schema for candidate submitting an answer to current question."
+      },
+      "Body_upload_resume_api_v1_resumes_upload_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_resume_api_v1_resumes_upload_post"
+      },
+      "CategoryScores": {
+        "properties": {
+          "technical": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Technical"
+          },
+          "communication": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Communication"
+          },
+          "composure": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Composure"
+          }
+        },
+        "type": "object",
+        "required": [
+          "technical",
+          "communication",
+          "composure"
+        ],
+        "title": "CategoryScores",
+        "description": "Categorical performance breakdown."
+      },
+      "CommunicationMetrics": {
+        "properties": {
+          "avg_len_words": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Avg Len Words"
+          },
+          "wpm": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Wpm"
+          },
+          "fillers_per_min": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Fillers Per Min"
+          },
+          "latency_ms": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Latency Ms"
+          },
+          "structure_notes": {
+            "type": "string",
+            "title": "Structure Notes",
+            "description": "Assessment of answer structuring (e.g. STAR, clear opening/summary)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "avg_len_words",
+          "wpm",
+          "fillers_per_min",
+          "latency_ms",
+          "structure_notes"
+        ],
+        "title": "CommunicationMetrics",
+        "description": "Quantitative speech and structure metrics (\u00a73.5)."
+      },
+      "DayPlanItem": {
+        "properties": {
+          "day": {
+            "type": "integer",
+            "maximum": 7.0,
+            "minimum": 1.0,
+            "title": "Day"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "Focus topic title"
+          },
+          "task": {
+            "type": "string",
+            "title": "Task",
+            "description": "Concrete 20-30 minute actionable practice task"
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "title",
+          "task"
+        ],
+        "title": "DayPlanItem",
+        "description": "Daily practice agenda item in 7-day plan (\u00a73.8)."
+      },
+      "DifficultyProgressionPoint": {
+        "properties": {
+          "question_index": {
+            "type": "integer",
+            "title": "Question Index"
+          },
+          "difficulty_tier": {
+            "type": "number",
+            "title": "Difficulty Tier"
+          },
+          "difficulty_label": {
+            "type": "string",
+            "title": "Difficulty Label"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "change": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_index",
+          "difficulty_tier",
+          "difficulty_label"
+        ],
+        "title": "DifficultyProgressionPoint",
+        "description": "Point on the candidate difficulty progression timeline (\u00a7Q7)."
+      },
+      "DimensionScores": {
+        "properties": {
+          "technical_accuracy": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Technical Accuracy",
+            "description": "Accuracy of technical explanations"
+          },
+          "depth": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Depth",
+            "description": "Architectural depth and trade-off rigor"
+          },
+          "communication": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Communication",
+            "description": "Clarity, structure, and concision"
+          },
+          "completeness": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Completeness",
+            "description": "Completeness of coverage across question sub-facets"
+          },
+          "composure": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Composure",
+            "description": "Verified-live non-verbal composure (low weight)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "technical_accuracy",
+          "depth",
+          "communication",
+          "completeness",
+          "composure"
+        ],
+        "title": "DimensionScores",
+        "description": "Aggregate multi-axis dimension scores (0..100)."
+      },
+      "EndInterviewRequest": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "description": "Reason: 'time_budget_expired' | 'user_ended' | 'aborted_face_not_visible' | 'aborted_camera_lost'",
+            "default": "user_ended"
+          }
+        },
+        "type": "object",
+        "title": "EndInterviewRequest"
+      },
+      "FinalReport": {
+        "properties": {
+          "overall_score": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Overall Score"
+          },
+          "category_scores": {
+            "$ref": "#/components/schemas/CategoryScores"
+          },
+          "hiring_recommendation": {
+            "type": "string",
+            "title": "Hiring Recommendation",
+            "description": "Strong Hire | Hire | Leaning Hire | No Hire"
+          },
+          "strengths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Strengths"
+          },
+          "weaknesses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Weaknesses"
+          },
+          "executive_summary": {
+            "type": "string",
+            "title": "Executive Summary"
+          },
+          "integrity_summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IntegritySummary"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Formal camera integrity and biometric verification report section (\u00a77)"
+          },
+          "question_coverage": {
+            "items": {
+              "$ref": "#/components/schemas/QuestionCoverageItem"
+            },
+            "type": "array",
+            "title": "Question Coverage",
+            "description": "Detailed record of all asked questions, their sources, evaluated difficulty, and candidate performance (\u00a7Q7)"
+          },
+          "difficulty_progression": {
+            "items": {
+              "$ref": "#/components/schemas/DifficultyProgressionPoint"
+            },
+            "type": "array",
+            "title": "Difficulty Progression",
+            "description": "Timeline of difficulty tier progression throughout the interview (\u00a7Q7)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "overall_score",
+          "category_scores",
+          "hiring_recommendation",
+          "executive_summary"
+        ],
+        "title": "FinalReport",
+        "description": "Comprehensive post-interview scorecard."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "IntegrityReportSummary": {
+        "properties": {
+          "verdict": {
+            "type": "string",
+            "title": "Verdict",
+            "description": "Verified | Verified with warnings | Not verified"
+          },
+          "integrity_score": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Integrity Score"
+          },
+          "events_summary": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Events Summary"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "description": "Integrity disclaimer",
+            "default": "Camera integrity checks are automated heuristics and may produce false positives."
+          }
+        },
+        "type": "object",
+        "required": [
+          "verdict",
+          "integrity_score"
+        ],
+        "title": "IntegrityReportSummary",
+        "description": "Physical biometric and camera integrity summary (\u00a73.6)."
+      },
+      "IntegritySummary": {
+        "properties": {
+          "verdict": {
+            "type": "string",
+            "title": "Verdict",
+            "description": "Overall verdict: Verified | Verified with warnings | Not verified"
+          },
+          "integrity_score": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Integrity Score",
+            "description": "Final deterministic integrity score (0-100)"
+          },
+          "camera_device_name": {
+            "type": "string",
+            "title": "Camera Device Name",
+            "description": "Active physical camera device descriptor",
+            "default": "Physical Built-in Webcam / USB Camera"
+          },
+          "challenges_passed": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Challenges Passed",
+            "description": "Active liveness challenges successfully passed",
+            "default": 0
+          },
+          "challenges_failed": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Challenges Failed",
+            "description": "Active liveness challenges failed",
+            "default": 0
+          },
+          "face_present_percentage": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Face Present Percentage",
+            "description": "Percentage of interview session with human face detected",
+            "default": 100.0
+          },
+          "pauses_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Pauses Count",
+            "description": "Number of times session was paused due to camera loss",
+            "default": 0
+          },
+          "camera_loss_incidents": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Camera Loss Incidents",
+            "description": "Number of distinct camera disconnects or occlusions",
+            "default": 0
+          },
+          "timeline_events": {
+            "items": {
+              "$ref": "#/components/schemas/IntegrityTimelineEvent"
+            },
+            "type": "array",
+            "title": "Timeline Events",
+            "description": "Chronological audit timeline of flagged events"
+          },
+          "excluded_segments_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Excluded Segments Count",
+            "description": "Telemetry frames excluded from non-verbal metrics due to active integrity flags",
+            "default": 0
+          },
+          "non_verbal_excluded_note": {
+            "type": "string",
+            "title": "Non Verbal Excluded Note",
+            "description": "Explicit notice regarding non-verbal metric filtering",
+            "default": "Non-verbal scores (eye contact, posture) are computed only from verified-live segments; segments with active integrity flags were excluded."
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "description": "Automated heuristic disclaimer",
+            "default": "Integrity checks are automated heuristics and may produce false positives. Review flagged events before drawing conclusions."
+          }
+        },
+        "type": "object",
+        "required": [
+          "verdict",
+          "integrity_score"
+        ],
+        "title": "IntegritySummary",
+        "description": "Post-interview integrity evaluation summary (\u00a77)."
+      },
+      "IntegrityTimelineEvent": {
+        "properties": {
+          "flag": {
+            "type": "string",
+            "title": "Flag",
+            "description": "Integrity flag identifier (e.g. static_feed, face_missing)"
+          },
+          "timestamp": {
+            "type": "number",
+            "title": "Timestamp",
+            "description": "Offset or epoch timestamp in seconds"
+          },
+          "duration_sec": {
+            "type": "number",
+            "title": "Duration Sec",
+            "description": "Duration flag persisted in seconds",
+            "default": 1.0
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "description": "Detection confidence 0-1",
+            "default": 1.0
+          },
+          "details": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details",
+            "description": "Optional diagnostic attributes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "flag",
+          "timestamp"
+        ],
+        "title": "IntegrityTimelineEvent",
+        "description": "Timestamped audit flag in candidate session (\u00a77)."
+      },
+      "InterviewReport": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "title": "Schema Version",
+            "description": "Schema version identifier",
+            "default": "2.0"
+          },
+          "session_id": {
+            "type": "string",
+            "title": "Session Id",
+            "description": "Evaluated interview session identifier"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id",
+            "description": "Candidate user identifier"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At",
+            "description": "Timestamp report was generated (UTC)"
+          },
+          "models_used": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Models Used",
+            "description": "AI models utilized in synthesis"
+          },
+          "resume_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resume Id",
+            "description": "Referenced candidate resume identifier"
+          },
+          "role": {
+            "$ref": "#/components/schemas/RoleSummary"
+          },
+          "overview": {
+            "$ref": "#/components/schemas/OverviewSummary"
+          },
+          "turns": {
+            "items": {
+              "$ref": "#/components/schemas/TurnReview"
+            },
+            "type": "array",
+            "title": "Turns"
+          },
+          "satisfaction": {
+            "$ref": "#/components/schemas/SatisfactionSummary"
+          },
+          "skills": {
+            "$ref": "#/components/schemas/SkillsAnalysis"
+          },
+          "nonverbal": {
+            "$ref": "#/components/schemas/NonVerbalSummary"
+          },
+          "integrity": {
+            "$ref": "#/components/schemas/IntegrityReportSummary"
+          },
+          "readiness": {
+            "$ref": "#/components/schemas/ReadinessEstimate"
+          },
+          "action_plan": {
+            "$ref": "#/components/schemas/ActionPlan"
+          },
+          "stage_timings": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Stage Timings",
+            "description": "Measured execution duration in seconds per pipeline stage (PR3)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "user_id",
+          "role",
+          "overview",
+          "satisfaction",
+          "skills",
+          "nonverbal",
+          "integrity",
+          "readiness",
+          "action_plan"
+        ],
+        "title": "InterviewReport",
+        "description": "Complete, versioned Interview Review and Readiness Report (\u00a74.2)."
+      },
+      "InterviewStepResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "current_question_index": {
+            "type": "integer",
+            "title": "Current Question Index"
+          },
+          "max_questions": {
+            "type": "integer",
+            "title": "Max Questions"
+          },
+          "evaluation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QuestionEvaluation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "next_question": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Question"
+          },
+          "difficulty": {
+            "type": "string",
+            "title": "Difficulty"
+          },
+          "difficulty_change": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Difficulty Change"
+          },
+          "final_report": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FinalReport"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current_action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Action"
+          },
+          "question_sources": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question Sources"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "status",
+          "current_question_index",
+          "max_questions",
+          "difficulty"
+        ],
+        "title": "InterviewStepResponse",
+        "description": "Payload returned after candidate submits an answer."
+      },
+      "NextSessionSuggestion": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "level": {
+            "type": "string",
+            "title": "Level"
+          },
+          "focus_topics": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Focus Topics"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "level"
+        ],
+        "title": "NextSessionSuggestion",
+        "description": "Suggested configuration for candidate's next mock interview session (\u00a73.8)."
+      },
+      "NonVerbalSummary": {
+        "properties": {
+          "eye_contact_ratio": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Eye Contact Ratio"
+          },
+          "posture_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Posture Score"
+          },
+          "face_presence_rate": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Face Presence Rate"
+          },
+          "pauses_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Pauses Count",
+            "default": 0
+          },
+          "advisory_note": {
+            "type": "string",
+            "title": "Advisory Note",
+            "description": "Heuristic disclaimer",
+            "default": "Non-verbal observations are advisory heuristics only, have low score weight, and do not infer personal traits."
+          }
+        },
+        "type": "object",
+        "required": [
+          "eye_contact_ratio",
+          "posture_score",
+          "face_presence_rate"
+        ],
+        "title": "NonVerbalSummary",
+        "description": "Advisory non-verbal telemetry summary from verified-live segments (\u00a73.6)."
+      },
+      "OverviewSummary": {
+        "properties": {
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "description": "5-7 sentence plain language executive summary"
+          },
+          "verdict": {
+            "type": "string",
+            "title": "Verdict",
+            "description": "Strong Hire | Hire | Leaning Hire | No Hire"
+          },
+          "overall_score": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Overall Score",
+            "description": "Weighted composite score 0..100"
+          },
+          "dimension_scores": {
+            "$ref": "#/components/schemas/DimensionScores"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/TurnCounts"
+          },
+          "duration": {
+            "$ref": "#/components/schemas/SessionDuration"
+          }
+        },
+        "type": "object",
+        "required": [
+          "summary",
+          "verdict",
+          "overall_score",
+          "dimension_scores",
+          "counts",
+          "duration"
+        ],
+        "title": "OverviewSummary",
+        "description": "Executive overview of the interview performance (\u00a73.1)."
+      },
+      "ParsedProfile": {
+        "properties": {
+          "technical_skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Technical Skills",
+            "description": "Technical skills extracted"
+          },
+          "experience_years": {
+            "type": "number",
+            "title": "Experience Years",
+            "description": "Total estimated professional experience in years",
+            "default": 0.0
+          },
+          "work_history": {
+            "items": {
+              "$ref": "#/components/schemas/WorkHistoryItem"
+            },
+            "type": "array",
+            "title": "Work History",
+            "description": "Structured work history"
+          },
+          "skills": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Skills",
+            "description": "Alias for skills"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary",
+            "description": "Summary"
+          },
+          "experience": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Experience",
+            "description": "Structured experience alias"
+          },
+          "education": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Education",
+            "description": "Structured education alias"
+          }
+        },
+        "type": "object",
+        "title": "ParsedProfile"
+      },
+      "QuestionCoverageItem": {
+        "properties": {
+          "question_index": {
+            "type": "integer",
+            "title": "Question Index"
+          },
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "candidate_answer": {
+            "type": "string",
+            "title": "Candidate Answer",
+            "default": ""
+          },
+          "planner_action": {
+            "type": "string",
+            "title": "Planner Action"
+          },
+          "target_topic": {
+            "type": "string",
+            "title": "Target Topic"
+          },
+          "source_description": {
+            "type": "string",
+            "title": "Source Description"
+          },
+          "sources_used": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Sources Used"
+          },
+          "difficulty_tier": {
+            "type": "number",
+            "title": "Difficulty Tier"
+          },
+          "difficulty_label": {
+            "type": "string",
+            "title": "Difficulty Label"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "feedback": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feedback"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question_index",
+          "question",
+          "planner_action",
+          "target_topic",
+          "source_description",
+          "difficulty_tier",
+          "difficulty_label"
+        ],
+        "title": "QuestionCoverageItem",
+        "description": "Detailed metadata for an individual question turn in the final report (\u00a7Q7)."
+      },
+      "QuestionEvaluation": {
+        "properties": {
+          "score": {
+            "type": "number",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "description": "Overall answer score (0-10)"
+          },
+          "technical_accuracy": {
+            "type": "number",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Technical Accuracy",
+            "description": "Technical correctness score"
+          },
+          "clarity": {
+            "type": "number",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Clarity",
+            "description": "Communication clarity score"
+          },
+          "completeness": {
+            "type": "number",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Completeness",
+            "description": "Completeness of reasoning"
+          },
+          "feedback": {
+            "type": "string",
+            "title": "Feedback",
+            "description": "Actionable critique for the candidate"
+          },
+          "encouragement": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Encouragement",
+            "description": "Supportive coaching remark based on telemetry"
+          }
+        },
+        "type": "object",
+        "required": [
+          "score",
+          "technical_accuracy",
+          "clarity",
+          "completeness",
+          "feedback"
+        ],
+        "title": "QuestionEvaluation",
+        "description": "Rubric evaluation of candidate response."
+      },
+      "ReadinessEstimate": {
+        "properties": {
+          "range_low": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Range Low",
+            "description": "Lower bound percentage (rounded to nearest 5)"
+          },
+          "range_high": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Range High",
+            "description": "Upper bound percentage (rounded to nearest 5)"
+          },
+          "band": {
+            "type": "string",
+            "title": "Band",
+            "description": "Not ready | Developing | Borderline | Competitive | Strong | Not enough data"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "Low",
+              "Medium",
+              "High"
+            ],
+            "title": "Confidence",
+            "description": "Low | Medium | High"
+          },
+          "factors": {
+            "items": {
+              "$ref": "#/components/schemas/ReadinessFactor"
+            },
+            "type": "array",
+            "title": "Factors",
+            "description": "Factor breakdown table"
+          },
+          "raise_chances": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Raise Chances",
+            "description": "Top 5 concrete actions to improve readiness"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "description": "Mandatory transparency disclaimer"
+          },
+          "available": {
+            "type": "boolean",
+            "title": "Available",
+            "description": "False if evidence is too thin (< 4 answered or < 5 min)",
+            "default": true
+          },
+          "advance_verdict": {
+            "type": "string",
+            "title": "Advance Verdict",
+            "description": "likely to advance | borderline | unlikely to advance"
+          },
+          "reason_if_unavailable": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason If Unavailable",
+            "description": "Explanation if available=False"
+          }
+        },
+        "type": "object",
+        "required": [
+          "range_low",
+          "range_high",
+          "band",
+          "confidence",
+          "disclaimer",
+          "advance_verdict"
+        ],
+        "title": "ReadinessEstimate",
+        "description": "Transparent, deterministic interview readiness estimate (\u00a72, \u00a74.5)."
+      },
+      "ReadinessFactor": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Factor name (e.g. Technical Accuracy, Depth)"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value",
+            "description": "Formatted value or score"
+          },
+          "weight": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Weight",
+            "description": "Contribution weight"
+          },
+          "impact": {
+            "type": "string",
+            "enum": [
+              "+",
+              "-",
+              "neutral"
+            ],
+            "title": "Impact",
+            "description": "Positive (+), negative (-), or neutral impact"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "Brief explanation of effect"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "value",
+          "weight",
+          "impact",
+          "description"
+        ],
+        "title": "ReadinessFactor",
+        "description": "Transparent factor influencing the readiness estimate (\u00a72, \u00a74.5)."
+      },
+      "ReportStatusResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_started",
+              "generating",
+              "completed",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "step": {
+            "type": "string",
+            "title": "Step",
+            "description": "Collecting | Reviewing answers | Scoring | Writing summary",
+            "default": ""
+          },
+          "progress": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Progress",
+            "default": 0.0
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "report_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "status"
+        ],
+        "title": "ReportStatusResponse",
+        "description": "Progress and status of asynchronous report generation."
+      },
+      "ResumeResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique resume ID"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id",
+            "description": "Owner user ID"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename",
+            "description": "Uploaded file name"
+          },
+          "file_size": {
+            "type": "integer",
+            "title": "File Size",
+            "description": "File size in bytes",
+            "default": 0
+          },
+          "raw_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Text",
+            "description": "Raw text parsed from PDF",
+            "default": ""
+          },
+          "parsed_profile": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ParsedProfile"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Structured parsed profile"
+          },
+          "parsed_data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ParsedProfile"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Alias for parsed profile"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Upload timestamp (UTC)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "filename",
+          "created_at"
+        ],
+        "title": "ResumeResponse"
+      },
+      "ResumeUpdate": {
+        "properties": {
+          "skills": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skills"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          }
+        },
+        "type": "object",
+        "title": "ResumeUpdate"
+      },
+      "RoleSummary": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "Target role name (e.g. Backend Engineer)"
+          },
+          "level": {
+            "type": "string",
+            "title": "Level",
+            "description": "Target seniority (Junior, Mid, Senior, Staff)"
+          },
+          "purpose": {
+            "type": "string",
+            "title": "Purpose",
+            "description": "2-3 sentences explaining day-to-day role purpose grounded in KB"
+          },
+          "expectations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Expectations",
+            "description": "Core responsibilities and depth expected at this level"
+          },
+          "skill_match": {
+            "items": {
+              "$ref": "#/components/schemas/SkillMatchItem"
+            },
+            "type": "array",
+            "title": "Skill Match",
+            "description": "Skill match matrix"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "level",
+          "purpose"
+        ],
+        "title": "RoleSummary",
+        "description": "Explanation of role purpose and expectations (\u00a73.2)."
+      },
+      "SatisfactionArea": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Technical knowledge | Depth and problem solving | Communication | Role fit for the level | Professionalism and composure"
+          },
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "Satisfied",
+              "Partly satisfied",
+              "Not satisfied"
+            ],
+            "title": "Verdict",
+            "description": "Satisfied | Partly satisfied | Not satisfied"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence",
+            "description": "1-2 citations or data points from the interview"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "verdict"
+        ],
+        "title": "SatisfactionArea",
+        "description": "Satisfaction verdict for a specific evaluation area (\u00a73.4)."
+      },
+      "SatisfactionSummary": {
+        "properties": {
+          "areas": {
+            "items": {
+              "$ref": "#/components/schemas/SatisfactionArea"
+            },
+            "type": "array",
+            "title": "Areas"
+          },
+          "overall_statement": {
+            "type": "string",
+            "title": "Overall Statement",
+            "description": "Clear overall satisfaction summary statement"
+          }
+        },
+        "type": "object",
+        "required": [
+          "overall_statement"
+        ],
+        "title": "SatisfactionSummary",
+        "description": "Satisfaction breakdown across 5 competency areas (\u00a73.4)."
+      },
+      "SessionCreate": {
+        "properties": {
+          "resume_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resume Id",
+            "description": "Resume ID to ground interview questions"
+          },
+          "job_role": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Job Role",
+            "description": "Target job title or role"
+          },
+          "target_seniority": {
+            "type": "string",
+            "title": "Target Seniority",
+            "description": "Seniority level (Junior, Mid, Senior, Lead)",
+            "default": "Mid"
+          },
+          "difficulty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Difficulty",
+            "description": "Interview difficulty setting",
+            "default": "Adaptive"
+          },
+          "integrity_mode": {
+            "type": "string",
+            "enum": [
+              "off",
+              "advisory",
+              "strict"
+            ],
+            "title": "Integrity Mode",
+            "description": "Camera integrity enforcement mode: off | advisory | strict",
+            "default": "strict"
+          },
+          "max_questions": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Questions",
+            "description": "Optional cap on question count (for testing); default None for unlimited"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_role"
+        ],
+        "title": "SessionCreate",
+        "description": "Payload for initializing an interview session."
+      },
+      "SessionDuration": {
+        "properties": {
+          "planned_minutes": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Planned Minutes"
+          },
+          "actual_minutes": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Actual Minutes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "planned_minutes",
+          "actual_minutes"
+        ],
+        "title": "SessionDuration",
+        "description": "Duration in minutes."
+      },
+      "SessionOutcomeFeedback": {
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "title": "Outcome",
+            "description": "Outcome: offer | final_round | rejection | ghosted | not_yet"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes",
+            "description": "Optional notes on the real interview"
+          }
+        },
+        "type": "object",
+        "required": [
+          "outcome"
+        ],
+        "title": "SessionOutcomeFeedback",
+        "description": "Schema for candidate-reported real interview outcome (\u00a76)."
+      },
+      "SessionResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique session ID"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id",
+            "description": "Candidate user ID"
+          },
+          "resume_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resume Id",
+            "description": "Resume ID"
+          },
+          "job_role": {
+            "type": "string",
+            "title": "Job Role",
+            "description": "Job role"
+          },
+          "target_seniority": {
+            "type": "string",
+            "title": "Target Seniority",
+            "description": "Seniority level"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role",
+            "description": "Role alias"
+          },
+          "seniority": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seniority",
+            "description": "Seniority alias"
+          },
+          "difficulty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Difficulty",
+            "default": "Adaptive"
+          },
+          "integrity_mode": {
+            "type": "string",
+            "enum": [
+              "off",
+              "advisory",
+              "strict"
+            ],
+            "title": "Integrity Mode",
+            "default": "strict"
+          },
+          "session_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Status",
+            "default": "created"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status",
+            "default": "created"
+          },
+          "transcript": {
+            "items": {
+              "$ref": "#/components/schemas/TranscriptTurn"
+            },
+            "type": "array",
+            "title": "Transcript"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "job_role",
+          "target_seniority",
+          "created_at"
+        ],
+        "title": "SessionResponse",
+        "description": "Public API response schema for interview session."
+      },
+      "SkillMatchItem": {
+        "properties": {
+          "skill": {
+            "type": "string",
+            "title": "Skill",
+            "description": "Expected core skill for this role and seniority level"
+          },
+          "evidence": {
+            "type": "string",
+            "title": "Evidence",
+            "description": "Verbatim or summarized evidence from transcript or resume"
+          },
+          "rating": {
+            "type": "string",
+            "enum": [
+              "Met",
+              "Partly",
+              "Not shown"
+            ],
+            "title": "Rating",
+            "description": "Met | Partly | Not shown"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill",
+          "evidence",
+          "rating"
+        ],
+        "title": "SkillMatchItem",
+        "description": "Evaluation of an expected role skill against candidate transcript and resume evidence."
+      },
+      "SkillsAnalysis": {
+        "properties": {
+          "topic_scores": {
+            "items": {
+              "$ref": "#/components/schemas/TopicScore"
+            },
+            "type": "array",
+            "title": "Topic Scores"
+          },
+          "strengths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Strengths"
+          },
+          "gaps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Gaps"
+          },
+          "communication": {
+            "$ref": "#/components/schemas/CommunicationMetrics"
+          }
+        },
+        "type": "object",
+        "required": [
+          "communication"
+        ],
+        "title": "SkillsAnalysis",
+        "description": "Topic radar, communication analysis, and strengths/gaps (\u00a73.5)."
+      },
+      "StatusUpdate": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "created",
+              "active",
+              "completed",
+              "aborted",
+              "CREATED",
+              "IN_PROGRESS",
+              "COMPLETED",
+              "TERMINATED"
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "StatusUpdate",
+        "description": "Schema to transition session status."
+      },
+      "Token": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token",
+            "description": "Signed JWT access token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "description": "Token type identifier",
+            "default": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In",
+            "description": "Token lifespan in seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "expires_in"
+        ],
+        "title": "Token",
+        "description": "JWT bearer token response schema."
+      },
+      "TopicScore": {
+        "properties": {
+          "topic": {
+            "type": "string",
+            "title": "Topic"
+          },
+          "score": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Score"
+          },
+          "question_count": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Question Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "topic",
+          "score",
+          "question_count"
+        ],
+        "title": "TopicScore",
+        "description": "Topic performance breakdown."
+      },
+      "TranscriptTurn": {
+        "properties": {
+          "turn_id": {
+            "type": "string",
+            "title": "Turn Id",
+            "description": "Unique turn identifier"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "interviewer",
+              "candidate"
+            ],
+            "title": "Role",
+            "description": "Speaker role"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "Turn content text"
+          },
+          "t_start": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "T Start",
+            "description": "Start offset in seconds"
+          },
+          "t_end": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "T End",
+            "description": "End offset in seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "turn_id",
+          "role",
+          "text",
+          "t_start"
+        ],
+        "title": "TranscriptTurn"
+      },
+      "TurnCounts": {
+        "properties": {
+          "asked": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Asked"
+          },
+          "answered": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Answered"
+          },
+          "skipped": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Skipped"
+          }
+        },
+        "type": "object",
+        "required": [
+          "asked",
+          "answered",
+          "skipped"
+        ],
+        "title": "TurnCounts",
+        "description": "Question turn counters."
+      },
+      "TurnDimensionScores": {
+        "properties": {
+          "technical": {
+            "type": "number",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Technical"
+          },
+          "depth": {
+            "type": "number",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Depth"
+          },
+          "clarity": {
+            "type": "number",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Clarity"
+          },
+          "completeness": {
+            "type": "number",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Completeness"
+          }
+        },
+        "type": "object",
+        "required": [
+          "technical",
+          "depth",
+          "clarity",
+          "completeness"
+        ],
+        "title": "TurnDimensionScores",
+        "description": "Per-turn 0..10 rubric scores."
+      },
+      "TurnReview": {
+        "properties": {
+          "turn_id": {
+            "type": "string",
+            "title": "Turn Id",
+            "description": "Unique turn identifier"
+          },
+          "index": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Index",
+            "description": "Question sequence index"
+          },
+          "topic": {
+            "type": "string",
+            "title": "Topic",
+            "description": "High-level topic area"
+          },
+          "difficulty": {
+            "type": "string",
+            "title": "Difficulty",
+            "description": "Difficulty label and numeric tier"
+          },
+          "why_asked": {
+            "type": "string",
+            "title": "Why Asked",
+            "description": "Provenance: resume probe, KB requirement, or follow-up"
+          },
+          "question": {
+            "type": "string",
+            "title": "Question",
+            "description": "Question prompt asked to candidate"
+          },
+          "answer_clean": {
+            "type": "string",
+            "title": "Answer Clean",
+            "description": "Cleaned transcript of candidate answer",
+            "default": ""
+          },
+          "answer_raw": {
+            "type": "string",
+            "title": "Answer Raw",
+            "description": "Raw transcript of candidate answer",
+            "default": ""
+          },
+          "stt_confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Stt Confidence",
+            "description": "Speech-to-text recognition confidence",
+            "default": 1.0
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "answered",
+              "skipped"
+            ],
+            "title": "Status",
+            "description": "answered | skipped",
+            "default": "answered"
+          },
+          "correctness": {
+            "type": "string",
+            "enum": [
+              "correct",
+              "mostly",
+              "partly",
+              "incorrect",
+              "not_answered",
+              "cannot_judge"
+            ],
+            "title": "Correctness",
+            "description": "correct | mostly | partly | incorrect | not_answered | cannot_judge"
+          },
+          "scores": {
+            "$ref": "#/components/schemas/TurnDimensionScores"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "description": "One-line justification for scores"
+          },
+          "right": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Right",
+            "description": "Specific accurate concepts demonstrated"
+          },
+          "missing_or_wrong": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Or Wrong",
+            "description": "Specific omissions or inaccuracies"
+          },
+          "concepts_mentioned": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Concepts Mentioned",
+            "description": "Keywords/concepts covered"
+          },
+          "concepts_missed": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Concepts Missed",
+            "description": "Key concepts expected but missed"
+          },
+          "model_answer": {
+            "type": "string",
+            "title": "Model Answer",
+            "description": "Level-appropriate model answer (4-7 sentences)"
+          },
+          "improvement_tips": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Improvement Tips",
+            "description": "1-2 concrete coaching tips"
+          },
+          "needs_verification": {
+            "type": "boolean",
+            "title": "Needs Verification",
+            "description": "Flagged if answer made dubious claims needing verification",
+            "default": false
+          },
+          "excluded": {
+            "type": "boolean",
+            "title": "Excluded",
+            "description": "Whether turn is excluded from aggregate scoring",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "turn_id",
+          "index",
+          "topic",
+          "difficulty",
+          "why_asked",
+          "question",
+          "correctness",
+          "scores",
+          "reason",
+          "model_answer"
+        ],
+        "title": "TurnReview",
+        "description": "Detailed per-question evaluation card (\u00a73.3, \u00a74.2)."
+      },
+      "UserCreate": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "Unique email address for user authentication"
+          },
+          "full_name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Full Name",
+            "description": "Candidate's full name"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password",
+            "description": "Plaintext password, min 8 characters"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "description": "User role: candidate | admin",
+            "default": "candidate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "full_name",
+          "password"
+        ],
+        "title": "UserCreate",
+        "description": "Schema for candidate registration."
+      },
+      "UserLogin": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "Registered email address"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Password",
+            "description": "Account password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "UserLogin",
+        "description": "Schema for authentication credentials."
+      },
+      "UserPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique user identifier"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email",
+            "description": "Unique email address"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name",
+            "description": "User's full name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "description": "User role: candidate | admin",
+            "default": "candidate"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "description": "Account active status",
+            "default": true
+          },
+          "is_email_verified": {
+            "type": "boolean",
+            "title": "Is Email Verified",
+            "description": "Email verification status",
+            "default": false
+          },
+          "settings": {
+            "type": "object",
+            "title": "Settings",
+            "description": "User customizable settings"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Account creation timestamp (UTC)"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Account last update timestamp (UTC)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "full_name",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "UserPublic",
+        "description": "Public user schema returned in API responses. Never returns hashed_password or internal fields."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "WSTicketRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id",
+            "description": "Target interview session ID"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id"
+        ],
+        "title": "WSTicketRequest"
+      },
+      "WSTicketResponse": {
+        "properties": {
+          "ticket": {
+            "type": "string",
+            "title": "Ticket"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In",
+            "default": 30
+          }
+        },
+        "type": "object",
+        "required": [
+          "ticket"
+        ],
+        "title": "WSTicketResponse"
+      },
+      "WorkHistoryItem": {
+        "properties": {
+          "company": {
+            "type": "string",
+            "title": "Company",
+            "description": "Company name"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "Job title"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start",
+            "description": "Start date"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End",
+            "description": "End date or 'Present'"
+          },
+          "highlights": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Highlights",
+            "description": "Key project highlights"
+          }
+        },
+        "type": "object",
+        "required": [
+          "company",
+          "title"
+        ],
+        "title": "WorkHistoryItem"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

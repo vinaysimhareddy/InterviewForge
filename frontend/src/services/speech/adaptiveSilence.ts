@@ -15,7 +15,13 @@
 export const MIN_SILENCE_TIMEOUT_MS = 1200; // 1.2s
 export const MAX_SILENCE_TIMEOUT_MS = 2500; // 2.5s
 export const DEFAULT_SILENCE_TIMEOUT_MS = 1800; // 1.8s
-export const MAX_ANSWER_DURATION_SEC = 120; // 120s per answer cap
+export const MAX_ANSWER_DURATION_SEC = 300; // 300s (5 minutes) per answer cap
+export const MAX_ANSWER_SEC = 300; // 300s (5 minutes) per answer cap
+export const ANSWER_WARNING_THRESHOLD_SEC = 240; // 240s (4 minutes) soft warning threshold
+export const ANSWER_SOFT_WARNING_SEC = 240; // PR4 alias
+export const MAX_ANSWER_CHARS = 30000; // PR4 30k char ceiling
+export const MAX_TRANSCRIPT_CHARS_PER_TURN = 30000; // PR4
+export const WS_MAX_MESSAGE_BYTES = 262144; // 256 KB per frame limit (PR4)
 
 const TERMINAL_PUNCTUATION_REGEX = /[.?!][)"'\s]*$/;
 const MID_SENTENCE_TRAILING_REGEX = /[,;:\-\u2013\u2014]\s*$/;

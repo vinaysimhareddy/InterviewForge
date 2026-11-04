@@ -11,6 +11,7 @@ import logging
 import math
 import os
 import re
+import time
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -128,7 +129,7 @@ def _get_pipeline_llm():
         try:
             from langchain_google_genai import ChatGoogleGenerativeAI
             return ChatGoogleGenerativeAI(
-                model="gemini-1.5-flash",
+                model=settings.GEMINI_MODEL,
                 google_api_key=settings.GOOGLE_API_KEY,
                 temperature=0.2,
                 max_retries=1,
@@ -140,7 +141,7 @@ def _get_pipeline_llm():
         try:
             from langchain_openai import ChatOpenAI
             return ChatOpenAI(
-                model="gpt-4o-mini",
+                model=settings.OPENAI_MODEL,
                 openai_api_key=settings.OPENAI_API_KEY,
                 temperature=0.2,
                 max_retries=1,
@@ -215,7 +216,7 @@ async def review_turns_batch(
     )
 
     try:
-        response = await llm.ainvoke(prompt)
+        response = await asyncio.wait_for(llm.ainvoke(prompt), timeout=25.0)
         content = response.content if hasattr(response, "content") else str(response)
         cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", content.strip())
         data = json.loads(cleaned)
@@ -238,10 +239,10 @@ async def review_turns_batch(
     except Exception as exc:
         err_msg = str(exc).lower()
         if "429" in err_msg or "resource_exhausted" in err_msg or "quota" in err_msg:
-            logger.warning("Gemini 429 rate limit in batch review. Applying 600ms backoff retry once...")
-            await asyncio.sleep(0.6)
+            logger.warning("Gemini 429 rate limit in batch review. Applying 1.0s backoff retry once...")
+            await asyncio.sleep(1.0)
             try:
-                retry_resp = await llm.ainvoke(prompt)
+                retry_resp = await asyncio.wait_for(llm.ainvoke(prompt), timeout=25.0)
                 retry_content = retry_resp.content if hasattr(retry_resp, "content") else str(retry_resp)
                 retry_clean = re.sub(r"^```(?:json)?\s*|\s*```$", "", retry_content.strip())
                 retry_data = json.loads(retry_clean)
@@ -394,230 +395,276 @@ async def generate_interview_report_pipeline(
     active_llm = llm if llm is not None else _get_pipeline_llm()
     models_used = ["adaptive-scoring-engine"] if active_llm is not None else ["deterministic-rubric-engine"]
 
-    # Step 1: Collect
-    await progress_callback("Collecting interview evidence", 0.15)
-    state = session_doc.get("interview_state") or {}
-    role = (
-        session_doc.get("job_role")
-        or session_doc.get("role")
-        or state.get("job_role")
-        or state.get("role")
-        or "Software Engineer"
-    )
-    seniority = (
-        session_doc.get("target_seniority")
-        or session_doc.get("seniority")
-        or state.get("target_seniority")
-        or state.get("seniority")
-        or "Mid"
-    )
-    resume_id = (
-        session_doc.get("resume_id")
-        or session_doc.get("resumeId")
-        or state.get("resume_id")
-        or state.get("resumeId")
-        or None
-    )
-    if resume_id:
-        resume_id = str(resume_id).strip()
-
-    raw_turns = session_doc.get("turns") or state.get("turns_history") or []
-
-    started_at = session_doc.get("started_at")
-    ended_at = session_doc.get("ended_at")
-    if started_at and ended_at:
-        try:
-            delta_sec = (ended_at - started_at).total_seconds()
-            actual_minutes = max(0.5, round(delta_sec / 60.0, 1))
-        except Exception:
-            actual_minutes = max(1.0, float(len(raw_turns)) * 2.0)
-    else:
-        actual_minutes = max(1.0, float(len(raw_turns)) * 2.0)
-
-    # Step 2: Batched Per-Turn Review (parallelized across batches via asyncio.gather §B5)
-    await progress_callback("Reviewing answers", 0.40)
-    batches = partition_batches(raw_turns, batch_size=5)
-    all_turn_reviews: List[TurnReview] = []
-
-    async def _evaluate_batch(batch_items: List[Dict[str, Any]]) -> List[TurnReview]:
-        if all(t.get("turn_review") for t in batch_items):
-            return [TurnReview(**t["turn_review"]) for t in batch_items]
-        return await review_turns_batch(batch_items, role, seniority, active_llm)
-
-    if batches:
-        batch_tasks = [_evaluate_batch(b) for b in batches]
-        batch_results = await asyncio.gather(*batch_tasks, return_exceptions=True)
-
-        for i, res in enumerate(batch_results):
-            if isinstance(res, Exception):
-                logger.warning("Batch evaluation %d failed (%s), using heuristic fallback", i, res)
-                fallback = [_build_heuristic_turn_review(t, role, seniority) for t in batches[i]]
-                all_turn_reviews.extend(fallback)
-            else:
-                all_turn_reviews.extend(res)
-
-    # Step 3: Deterministic Scoring (in code, not LLM)
-    await progress_callback("Scoring answers", 0.70)
-    counts = compute_turn_counts(all_turn_reviews)
-    tel_summary = state.get("telemetry_summary") or session_doc.get("telemetry_summary") or {}
-    dim_scores = compute_dimension_scores(all_turn_reviews, tel_summary)
-    overall_score, verdict = compute_overall_score(dim_scores)
-
-    satisfaction = compute_satisfaction_summary(dim_scores, all_turn_reviews, role, seniority)
-    skills = compute_skills_analysis(all_turn_reviews, actual_minutes)
-
-    integrity_dict = state.get("integrity_summary") or {}
-    integ_verdict = integrity_dict.get("verdict", session_doc.get("integrity_verdict", "Verified"))
-
-    readiness = compute_readiness_estimate(
-        dim=dim_scores,
-        turns=all_turn_reviews,
-        role=role,
-        seniority=seniority,
-        actual_duration_minutes=actual_minutes,
-        integrity_summary={"verdict": integ_verdict},
-    )
-
-    # Step 4: Synthesis Call (with fixed computed numbers)
-    await progress_callback("Writing summary", 0.90)
-
-    executive_summary = (
-        f"The candidate completed an adaptive technical mock interview for the {seniority} {role} position. "
-        f"Across {counts.answered} answered question(s), the candidate demonstrated an overall weighted score of "
-        f"{overall_score}/100, receiving an evaluation verdict of {verdict}. Technical accuracy averaged {dim_scores.technical_accuracy:.1f}/100, "
-        f"while communication clarity was rated at {dim_scores.communication:.1f}/100. "
-        f"The Interview Readiness Estimate is currently rated as {readiness.band} ({readiness.range_low} to {readiness.range_high}%)."
-    )
-
-    # Validate synthesis numbers
-    validate_synthesis_numbers(executive_summary, overall_score, readiness.range_low, readiness.range_high)
-
-    # Build Role Summary (using in-memory rubric cache §B5)
-    cached_role = get_cached_role_summary(role, seniority)
-    if cached_role:
-        role_summary = RoleSummary(**cached_role)
-    else:
-        role_summary = RoleSummary(
-            title=role,
-            level=seniority,
-            purpose=(
-                f"The {seniority} {role} is responsible for designing, delivering, and maintaining dependable software systems. "
-                f"Day to day, this involves implementing robust APIs, optimizing query performance, collaborating on architectural "
-                f"reviews, and proactively resolving production bottlenecks."
-            ),
-            expectations=[
-                f"Proficiency in core language idioms and standard library conventions.",
-                f"Practical familiarity with caching, database indexing, and query optimization.",
-                f"Demonstrated ability to write comprehensive unit and integration tests.",
-                f"Effective communication regarding trade-offs, failure recovery, and architectural constraints.",
-            ],
-            skill_match=[
-                SkillMatchItem(
-                    skill=ts.topic,
-                    evidence=f"Addressed in Q&A session with score {ts.score:.0f}/100.",
-                    rating="Met" if ts.score >= 70.0 else ("Partly" if ts.score >= 45.0 else "Not shown"),
-                )
-                for ts in skills.topic_scores[:5]
-            ] or [
-                SkillMatchItem(skill="System Design", evidence="Demonstrated in dialogue", rating="Met"),
-                SkillMatchItem(skill="Data Structures", evidence="Discussed implementation details", rating="Met"),
-            ],
+    t0 = time.perf_counter()
+    try:
+        # Step 1: Collect
+        await progress_callback("Collecting interview evidence", 0.15)
+        state = session_doc.get("interview_state") or {}
+        role = (
+            session_doc.get("job_role")
+            or session_doc.get("role")
+            or state.get("job_role")
+            or state.get("role")
+            or "Software Engineer"
         )
-        cache_role_summary(role, seniority, role_summary.model_dump())
+        seniority = (
+            session_doc.get("target_seniority")
+            or session_doc.get("seniority")
+            or state.get("target_seniority")
+            or state.get("seniority")
+            or "Mid"
+        )
+        resume_id = (
+            session_doc.get("resume_id")
+            or session_doc.get("resumeId")
+            or state.get("resume_id")
+            or state.get("resumeId")
+            or None
+        )
+        if resume_id:
+            resume_id = str(resume_id).strip()
 
-    # Build Action Plan
-    weak_topics = [ts.topic for ts in skills.topic_scores if ts.score < 65.0]
-    action_priorities = [
-        ActionPriority(
-            priority=1,
-            area=weak_topics[0] if weak_topics else "System Design & Scaling",
-            reason="Core technical requirement for the target role where answers showed opportunity for greater depth.",
-            study_practice=f"Review standard architecture patterns for {weak_topics[0] if weak_topics else 'system design'} and implement a reference mock prototype.",
-            estimated_effort="3-4 hours",
-        ),
-        ActionPriority(
-            priority=2,
-            area=weak_topics[1] if len(weak_topics) > 1 else "Database Optimization",
-            reason="High impact on technical evaluation criteria and backend stability.",
-            study_practice="Analyze query execution plans, B-tree vs hash index trade-offs, and connection pool sizing.",
-            estimated_effort="2-3 hours",
-        ),
-        ActionPriority(
-            priority=3,
-            area="Structured Technical Communication",
-            reason="Clear, concise answers improve interviewer alignment and save time for technical depth probes.",
-            study_practice="Practice answering behavioral and architectural questions using the STAR format with time caps of 90 seconds.",
-            estimated_effort="2 hours",
-        ),
-    ]
+        raw_turns = session_doc.get("turns") or state.get("turns_history") or []
 
-    seven_day_plan = [
-        DayPlanItem(day=1, title="Foundations Review", task=f"Review fundamentals and core concepts in {weak_topics[0] if weak_topics else 'core architecture'}."),
-        DayPlanItem(day=2, title="Hands-on Code Practice", task="Implement a small working example focusing on error handling and boundary conditions."),
-        DayPlanItem(day=3, title="Trade-off Analysis", task="Write down pros and cons for two competing technologies or libraries used in your projects."),
-        DayPlanItem(day=4, title="Database & Storage", task="Practice writing and explaining query optimization techniques and indexing strategies."),
-        DayPlanItem(day=5, title="Mock Spoken Rehearsal", task="Speak aloud your technical answer to an architectural failure recovery scenario without notes."),
-        DayPlanItem(day=6, title="System Observability", task="Review key metrics for distributed health: p99 latency, error rates, and CPU/memory profiling."),
-        DayPlanItem(day=7, title="Simulated Mock Turn", task="Conduct another adaptive mock interview targeting your newly prepared focus topics."),
-    ]
+        started_at = session_doc.get("started_at")
+        ended_at = session_doc.get("ended_at")
+        if started_at and ended_at:
+            try:
+                delta_sec = (ended_at - started_at).total_seconds()
+                actual_minutes = max(0.5, round(delta_sec / 60.0, 1))
+            except Exception:
+                actual_minutes = max(1.0, float(len(raw_turns)) * 2.0)
+        else:
+            actual_minutes = max(1.0, float(len(raw_turns)) * 2.0)
 
-    action_plan = ActionPlan(
-        priorities=action_priorities,
-        seven_day_plan=seven_day_plan,
-        next_session_suggestion=NextSessionSuggestion(
+        # Step 2: Batched Per-Turn Review (parallelized across batches via asyncio.gather §B5)
+        t1 = time.perf_counter()
+        await progress_callback("Reviewing answers", 0.40)
+        batches = partition_batches(raw_turns, batch_size=5)
+        all_turn_reviews: List[TurnReview] = []
+
+        async def _evaluate_batch(batch_items: List[Dict[str, Any]]) -> List[TurnReview]:
+            if all(t.get("turn_review") for t in batch_items):
+                return [TurnReview(**t["turn_review"]) for t in batch_items]
+            return await review_turns_batch(batch_items, role, seniority, active_llm)
+
+        if batches:
+            batch_tasks = [_evaluate_batch(b) for b in batches]
+            batch_results = await asyncio.gather(*batch_tasks, return_exceptions=True)
+
+            for i, res in enumerate(batch_results):
+                if isinstance(res, Exception):
+                    logger.warning("Batch evaluation %d failed (%s), using heuristic fallback", i, res)
+                    fallback = [_build_heuristic_turn_review(t, role, seniority) for t in batches[i]]
+                    all_turn_reviews.extend(fallback)
+                else:
+                    all_turn_reviews.extend(res)
+
+        # Step 3: Deterministic Scoring (in code, not LLM)
+        t2 = time.perf_counter()
+        await progress_callback("Scoring answers", 0.70)
+        counts = compute_turn_counts(all_turn_reviews)
+        tel_summary = state.get("telemetry_summary") or session_doc.get("telemetry_summary") or {}
+        dim_scores = compute_dimension_scores(all_turn_reviews, tel_summary)
+        overall_score, verdict = compute_overall_score(dim_scores)
+
+        satisfaction = compute_satisfaction_summary(dim_scores, all_turn_reviews, role, seniority)
+        skills = compute_skills_analysis(all_turn_reviews, actual_minutes)
+
+        integrity_dict = state.get("integrity_summary") or {}
+        integ_verdict = integrity_dict.get("verdict", session_doc.get("integrity_verdict", "Verified"))
+
+        readiness = compute_readiness_estimate(
+            dim=dim_scores,
+            turns=all_turn_reviews,
             role=role,
-            level=seniority,
-            focus_topics=weak_topics[:3] or ["System Design", "Caching Strategies", "REST APIs"],
-        ),
-    )
+            seniority=seniority,
+            actual_duration_minutes=actual_minutes,
+            integrity_summary={"verdict": integ_verdict},
+        )
 
-    overview = OverviewSummary(
-        summary=executive_summary,
-        verdict=verdict,
-        overall_score=overall_score,
-        dimension_scores=dim_scores,
-        counts=counts,
-        duration=SessionDuration(planned_minutes=15, actual_minutes=actual_minutes),
-    )
+        # Step 4: Synthesis Call (with fixed computed numbers)
+        t3 = time.perf_counter()
+        await progress_callback("Writing summary", 0.90)
 
-    from app.models.report import IntegrityReportSummary
-    integrity = IntegrityReportSummary(
-        verdict=integ_verdict,
-        integrity_score=float(integrity_dict.get("integrity_score", session_doc.get("integrity_score", 95.0))),
-        events_summary=integrity_dict.get("events_summary", ["Camera feed validated without synthetic injection flags."]),
-    )
+        executive_summary = (
+            f"The candidate completed an adaptive technical mock interview for the {seniority} {role} position. "
+            f"Across {counts.answered} answered question(s), the candidate demonstrated an overall weighted score of "
+            f"{overall_score}/100, receiving an evaluation verdict of {verdict}. Technical accuracy averaged {dim_scores.technical_accuracy:.1f}/100, "
+            f"while communication clarity was rated at {dim_scores.communication:.1f}/100. "
+            f"The Interview Readiness Estimate is currently rated as {readiness.band} ({readiness.range_low} to {readiness.range_high}%)."
+        )
 
-    nonverbal = NonVerbalSummary(
-        eye_contact_ratio=float(tel_summary.get("eye_contact_ratio", 0.78)),
-        posture_score=float(tel_summary.get("posture_score", 0.85)),
-        face_presence_rate=float(tel_summary.get("face_presence_percentage", 96.5)),
-        pauses_count=int(tel_summary.get("pauses_count", 0)),
-    )
+        # Validate synthesis numbers
+        validate_synthesis_numbers(executive_summary, overall_score, readiness.range_low, readiness.range_high)
 
-    report = InterviewReport(
-        schema_version="2.0",
-        session_id=session_id,
-        user_id=user_id,
-        generated_at=datetime.now(timezone.utc),
-        models_used=models_used,
-        resume_id=resume_id,
-        role=role_summary,
-        overview=overview,
-        turns=all_turn_reviews,
-        satisfaction=satisfaction,
-        skills=skills,
-        nonverbal=nonverbal,
-        integrity=integrity,
-        readiness=readiness,
-        action_plan=action_plan,
-    )
+        # Build Role Summary (using in-memory rubric cache §B5)
+        cached_role = get_cached_role_summary(role, seniority)
+        if cached_role:
+            role_summary = RoleSummary(**cached_role)
+        else:
+            role_summary = RoleSummary(
+                title=role,
+                level=seniority,
+                purpose=(
+                    f"The {seniority} {role} is responsible for designing, delivering, and maintaining dependable software systems. "
+                    f"Day to day, this involves implementing robust APIs, optimizing query performance, collaborating on architectural "
+                    f"reviews, and proactively resolving production bottlenecks."
+                ),
+                expectations=[
+                    f"Proficiency in core language idioms and standard library conventions.",
+                    f"Practical familiarity with caching, database indexing, and query optimization.",
+                    f"Demonstrated ability to write comprehensive unit and integration tests.",
+                    f"Effective communication regarding trade-offs, failure recovery, and architectural constraints.",
+                ],
+                skill_match=[
+                    SkillMatchItem(
+                        skill=ts.topic,
+                        evidence=f"Addressed in Q&A session with score {ts.score:.0f}/100.",
+                        rating="Met" if ts.score >= 70.0 else ("Partly" if ts.score >= 45.0 else "Not shown"),
+                    )
+                    for ts in skills.topic_scores[:5]
+                ] or [
+                    SkillMatchItem(skill="System Design", evidence="Demonstrated in dialogue", rating="Met"),
+                    SkillMatchItem(skill="Data Structures", evidence="Discussed implementation details", rating="Met"),
+                ],
+            )
+            cache_role_summary(role, seniority, role_summary.model_dump())
 
-    # Step 5: Persist report & archive version
-    await evaluation_repo.save_interview_report(session_id, user_id, report.model_dump())
-    await progress_callback("Completed", 1.0)
-    await evaluation_repo.save_generation_status(session_id, "completed", "Completed", 1.0)
+        # Build Action Plan
+        weak_topics = [ts.topic for ts in skills.topic_scores if ts.score < 65.0]
+        action_priorities = [
+            ActionPriority(
+                priority=1,
+                area=weak_topics[0] if weak_topics else "System Design & Scaling",
+                reason="Core technical requirement for the target role where answers showed opportunity for greater depth.",
+                study_practice=f"Review standard architecture patterns for {weak_topics[0] if weak_topics else 'system design'} and implement a reference mock prototype.",
+                estimated_effort="3-4 hours",
+            ),
+            ActionPriority(
+                priority=2,
+                area=weak_topics[1] if len(weak_topics) > 1 else "Database Optimization",
+                reason="High impact on technical evaluation criteria and backend stability.",
+                study_practice="Analyze query execution plans, B-tree vs hash index trade-offs, and connection pool sizing.",
+                estimated_effort="2-3 hours",
+            ),
+            ActionPriority(
+                priority=3,
+                area="Structured Technical Communication",
+                reason="Clear, concise answers improve interviewer alignment and save time for technical depth probes.",
+                study_practice="Practice answering behavioral and architectural questions using the STAR format with time caps of 90 seconds.",
+                estimated_effort="2 hours",
+            ),
+        ]
 
-    return report
+        seven_day_plan = [
+            DayPlanItem(day=1, title="Foundations Review", task=f"Review fundamentals and core concepts in {weak_topics[0] if weak_topics else 'core architecture'}."),
+            DayPlanItem(day=2, title="Hands-on Code Practice", task="Implement a small working example focusing on error handling and boundary conditions."),
+            DayPlanItem(day=3, title="Trade-off Analysis", task="Write down pros and cons for two competing technologies or libraries used in your projects."),
+            DayPlanItem(day=4, title="Database & Storage", task="Practice writing and explaining query optimization techniques and indexing strategies."),
+            DayPlanItem(day=5, title="Mock Spoken Rehearsal", task="Speak aloud your technical answer to an architectural failure recovery scenario without notes."),
+            DayPlanItem(day=6, title="System Observability", task="Review key metrics for distributed health: p99 latency, error rates, and CPU/memory profiling."),
+            DayPlanItem(day=7, title="Simulated Mock Turn", task="Conduct another adaptive mock interview targeting your newly prepared focus topics."),
+        ]
+
+        action_plan = ActionPlan(
+            priorities=action_priorities,
+            seven_day_plan=seven_day_plan,
+            next_session_suggestion=NextSessionSuggestion(
+                role=role,
+                level=seniority,
+                focus_topics=weak_topics[:3] or ["System Design", "Caching Strategies", "REST APIs"],
+            ),
+        )
+
+        overview = OverviewSummary(
+            summary=executive_summary,
+            verdict=verdict,
+            overall_score=overall_score,
+            dimension_scores=dim_scores,
+            counts=counts,
+            duration=SessionDuration(planned_minutes=15, actual_minutes=actual_minutes),
+        )
+
+        from app.models.report import IntegrityReportSummary
+        integ_score_raw = integrity_dict.get("integrity_score") if isinstance(integrity_dict, dict) else None
+        if integ_score_raw is None:
+            integ_score_raw = session_doc.get("integrity_score", 95.0)
+        try:
+            integ_score = float(integ_score_raw) if integ_score_raw is not None else 95.0
+        except (ValueError, TypeError):
+            integ_score = 95.0
+
+        integrity = IntegrityReportSummary(
+            verdict=integ_verdict,
+            integrity_score=integ_score,
+            events_summary=integrity_dict.get("events_summary", ["Camera feed validated without synthetic injection flags."]) if isinstance(integrity_dict, dict) else ["Camera feed validated without synthetic injection flags."],
+        )
+
+        eye_raw = tel_summary.get("eye_contact_ratio") if isinstance(tel_summary, dict) else None
+        posture_raw = tel_summary.get("posture_score") if isinstance(tel_summary, dict) else None
+        face_raw = tel_summary.get("face_presence_percentage") if isinstance(tel_summary, dict) else None
+        pauses_raw = tel_summary.get("pauses_count") if isinstance(tel_summary, dict) else None
+
+        nonverbal = NonVerbalSummary(
+            eye_contact_ratio=float(eye_raw) if eye_raw is not None else 0.78,
+            posture_score=float(posture_raw) if posture_raw is not None else 0.85,
+            face_presence_rate=float(face_raw) if face_raw is not None else 96.5,
+            pauses_count=int(pauses_raw) if pauses_raw is not None else 0,
+        )
+
+        t4 = time.perf_counter()
+        stage_timings: Dict[str, float] = {
+            "collect_sec": round(t1 - t0, 3),
+            "review_sec": round(t2 - t1, 3),
+            "scoring_sec": round(t3 - t2, 3),
+            "synthesis_sec": round(t4 - t3, 3),
+            "total_sec": round(t4 - t0, 3),
+        }
+        logger.info(
+            "Report pipeline finished in %.3fs for session %s: %s",
+            stage_timings["total_sec"],
+            session_id,
+            stage_timings,
+        )
+
+        report = InterviewReport(
+            schema_version="2.0",
+            session_id=session_id,
+            user_id=user_id,
+            generated_at=datetime.now(timezone.utc),
+            models_used=models_used,
+            resume_id=resume_id,
+            role=role_summary,
+            overview=overview,
+            turns=all_turn_reviews,
+            satisfaction=satisfaction,
+            skills=skills,
+            nonverbal=nonverbal,
+            integrity=integrity,
+            readiness=readiness,
+            action_plan=action_plan,
+            stage_timings=stage_timings,
+        )
+
+        # Step 5: Persist report & archive version
+        await evaluation_repo.save_interview_report(session_id, user_id, report.model_dump())
+        await progress_callback("Completed", 1.0)
+        await evaluation_repo.save_generation_status(session_id, "completed", "Completed", 1.0)
+
+        return report
+    except Exception as exc:
+        logger.error("Error in report generation pipeline for session %s: %s. Emitting limited fallback report.", session_id, exc, exc_info=True)
+        fallback = generate_limited_fallback_report(session_id, user_id, session_doc)
+        try:
+            await evaluation_repo.save_interview_report(session_id, user_id, fallback.model_dump())
+            await evaluation_repo.save_generation_status(session_id, "completed", "Completed", 1.0)
+            if progress_callback:
+                await progress_callback("Completed", 1.0)
+        except Exception as save_err:
+            logger.error("Failed to save limited fallback report: %s", save_err)
+            await evaluation_repo.save_generation_status(session_id, "failed", "Failed", 0.0, error=str(exc))
+        return fallback
 
 
 def generate_limited_fallback_report(

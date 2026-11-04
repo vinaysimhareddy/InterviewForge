@@ -4,6 +4,11 @@ import {
   MIN_SILENCE_TIMEOUT_MS,
   MAX_SILENCE_TIMEOUT_MS,
   MAX_ANSWER_DURATION_SEC,
+  MAX_ANSWER_SEC,
+  ANSWER_SOFT_WARNING_SEC,
+  MAX_ANSWER_CHARS,
+  MAX_TRANSCRIPT_CHARS_PER_TURN,
+  WS_MAX_MESSAGE_BYTES,
 } from '../src/services/speech/adaptiveSilence';
 import { sttTimingLogger } from '../src/services/speech/sttTimingLogger';
 
@@ -74,8 +79,16 @@ describe('B4: Adaptive Silence & Turn-Taking Latency Optimization', () => {
       expect(computeAdaptiveSilenceTimeoutMs('Incomplete thought and', 5, 4000)).toBeLessThanOrEqual(2500);
     });
 
-    it('defines maximum answer duration cap at 120 seconds', () => {
-      expect(MAX_ANSWER_DURATION_SEC).toBe(120);
+    it('defines maximum answer duration cap at 300 seconds (5 minutes)', () => {
+      expect(MAX_ANSWER_DURATION_SEC).toBe(300);
+      expect(MAX_ANSWER_SEC).toBe(300);
+    });
+
+    it('exports PR4 transcript limits configuration constants', () => {
+      expect(ANSWER_SOFT_WARNING_SEC).toBe(240);
+      expect(MAX_ANSWER_CHARS).toBe(30000);
+      expect(MAX_TRANSCRIPT_CHARS_PER_TURN).toBe(30000);
+      expect(WS_MAX_MESSAGE_BYTES).toBe(262144);
     });
   });
 

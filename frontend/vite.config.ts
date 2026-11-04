@@ -21,10 +21,48 @@ export default defineConfig(({ mode }) => {
       },
     },
     esbuild: {
-      drop: isProd ? ['console', 'debugger'] : [],
+      drop: isProd ? ['debugger'] : [],
+      pure: isProd ? ['console.log', 'console.debug', 'console.info'] : [],
     },
     build: {
       sourcemap: false,
+      chunkSizeWarningLimit: 1400,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            const normalizedId = id.replace(/\\/g, '/');
+            if (normalizedId.includes('node_modules')) {
+              if (
+                normalizedId.includes('@react-pdf') ||
+                normalizedId.includes('pdfkit') ||
+                normalizedId.includes('fontkit') ||
+                normalizedId.includes('png-js') ||
+                normalizedId.includes('restructure')
+              ) {
+                return 'vendor-pdf';
+              }
+              if (normalizedId.includes('@mediapipe')) {
+                return 'vendor-mediapipe';
+              }
+              if (normalizedId.includes('lucide-react')) {
+                return 'vendor-icons';
+              }
+              if (normalizedId.includes('@tanstack/react-query')) {
+                return 'vendor-query';
+              }
+              if (
+                normalizedId.includes('/react/') ||
+                normalizedId.includes('/react-dom/') ||
+                normalizedId.includes('/react-router/') ||
+                normalizedId.includes('/react-router-dom/') ||
+                normalizedId.includes('/scheduler/')
+              ) {
+                return 'vendor-react';
+              }
+            }
+          },
+        },
+      },
     },
     server: {
       host: '0.0.0.0',

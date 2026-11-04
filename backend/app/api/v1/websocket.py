@@ -29,7 +29,7 @@ logger = logging.getLogger("uvicorn.error")
 
 router = APIRouter(tags=["websocket"])
 
-MAX_MESSAGE_BYTES = 16 * 1024  # 16 KB per message limit (§10)
+MAX_MESSAGE_BYTES = 262144  # 256 KB per message frame limit (PR4)
 HEARTBEAT_INTERVAL_SECONDS = 20.0
 SILENCE_TIMEOUT_SECONDS = 60.0
 TELEMETRY_FLUSH_INTERVAL = 10.0

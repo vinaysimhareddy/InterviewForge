@@ -367,6 +367,7 @@ export function ExecutiveScorecard({
   const [qaSearch, setQaSearch] = useState<string>('');
   const [expandedTurns, setExpandedTurns] = useState<Record<string, boolean>>({});
   const [showRawAnswer, setShowRawAnswer] = useState<Record<string, boolean>>({});
+  const [expandedAnswers, setExpandedAnswers] = useState<Record<string, boolean>>({});
   const [excludingTurnId, setExcludingTurnId] = useState<string | null>(null);
   const [exclusionNotification, setExclusionNotification] = useState<string | null>(null);
 
@@ -428,6 +429,10 @@ export function ExecutiveScorecard({
 
   const toggleRawAnswer = (id: string) => {
     setShowRawAnswer((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const toggleAnswerExpanded = (id: string) => {
+    setExpandedAnswers((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   // Filtered turns
@@ -1059,13 +1064,39 @@ export function ExecutiveScorecard({
                             </div>
                           )}
 
-                          <p className="text-text-muted leading-relaxed font-sans italic">
-                            {turn.status === 'skipped'
-                              ? 'No answer given within the time window.'
-                              : isRaw
+                          {(() => {
+                            const answerText = isRaw
                               ? turn.answer_raw || turn.answer_clean
-                              : turn.answer_clean}
-                          </p>
+                              : turn.answer_clean;
+                            const isLong = (answerText || '').length > 350;
+                            const isExpanded = Boolean(expandedAnswers[turn.turn_id]);
+                            const displayText =
+                              turn.status === 'skipped'
+                                ? 'No answer given within the time window.'
+                                : isLong && !isExpanded
+                                ? `${answerText.slice(0, 350)}…`
+                                : answerText;
+
+                            return (
+                              <div className="space-y-1">
+                                <p className="text-text-muted leading-relaxed font-sans italic whitespace-pre-wrap">
+                                  {displayText}
+                                </p>
+                                {isLong && turn.status !== 'skipped' && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleAnswerExpanded(turn.turn_id);
+                                    }}
+                                    className="text-xs text-primary hover:underline font-mono inline-flex items-center gap-1 mt-1 focus:outline-none"
+                                  >
+                                    {isExpanded ? 'Show less' : 'Show more'}
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </div>
 
                         {/* Turn Scores Row */}

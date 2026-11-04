@@ -1,0 +1,41 @@
+# InterviewForge Production Caddyfile
+# Automatic HTTPS via Let's Encrypt / ZeroSSL with WebSocket Upgrade Support
+
+{
+    email admin@interviewforge.com
+    admin off
+}
+
+{$DOMAIN:localhost} {
+    # Encode responses with zstd or gzip
+    encode zstd gzip
+
+    # Frontend Single Page Application
+    handle /api/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /ws/* {
+        reverse_proxy backend:8000
+    }
+
+    handle /health* {
+        reverse_proxy backend:8000
+    }
+
+    handle {
+        root * /srv/dist
+        try_files {path} /index.html
+        file_server
+    }
+
+    # Security Headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(self), microphone=(self), display-capture=()"
+    }
+}
+

@@ -1,3 +1,4 @@
+import time
 import pytest
 from httpx import ASGITransport, AsyncClient
 
@@ -7,19 +8,20 @@ from app.main import app
 @pytest.mark.asyncio
 async def test_adaptive_interview_workflow_all_5_questions() -> None:
     """Run candidate through all 5 questions, verify dynamic difficulty changes, and check final report."""
+    test_email = f"candidate.{int(time.time())}@example.com"
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://testserver"
     ) as client:
         # 1. Register & login candidate
         reg_payload = {
-            "email": "langgraph.candidate@example.com",
+            "email": test_email,
             "full_name": "LangGraph Candidate",
             "password": "Password123!",
         }
         await client.post("/api/v1/auth/register", json=reg_payload)
         login_resp = await client.post(
             "/api/v1/auth/login",
-            json={"email": "langgraph.candidate@example.com", "password": "Password123!"},
+            json={"email": test_email, "password": "Password123!"},
         )
         assert login_resp.status_code == 200
         token = login_resp.json()["access_token"]

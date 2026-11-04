@@ -151,16 +151,14 @@ export async function collectDiagnosticsReport(
 
   if (typeof navigator !== 'undefined' && 'permissions' in navigator && navigator.permissions?.query) {
     try {
-      // @ts-expect-error PermissionName 'camera' is standard in Chromium/Edge
-      const camStatus = await navigator.permissions.query({ name: 'camera' });
+      const camStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
       cameraPermission = camStatus.state;
     } catch {
       cameraPermission = 'unsupported';
     }
 
     try {
-      // @ts-expect-error PermissionName 'microphone' is standard in Chromium/Edge
-      const micStatus = await navigator.permissions.query({ name: 'microphone' });
+      const micStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
       micPermission = micStatus.state;
     } catch {
       micPermission = 'unsupported';

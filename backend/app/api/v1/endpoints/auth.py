@@ -1,9 +1,10 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 from pymongo.errors import ConnectionFailure, DuplicateKeyError, PyMongoError, ServerSelectionTimeoutError
 
 from app.core.config import get_settings
+from app.core.rate_limiter import get_client_ip, limiter
 from app.core.security import create_access_token, get_current_user, hash_password, verify_password
 from app.core.ws_ticket import create_ws_ticket
 from app.models.user import Token, UserCreate, UserInDB, UserLogin, UserPublic
@@ -32,14 +33,13 @@ class WSTicketResponse(BaseModel):
     status_code=status.HTTP_201_CREATED,
     summary="Register a new user account in ai-mock-interview.auth",
 )
-async def register(user_in: UserCreate) -> UserPublic:
+async def register(user_in: UserCreate, request: Request) -> UserPublic:
     """
     Register a new user account directly into ai-mock-interview.auth collection.
     Email is normalized, password is typed and hashed with Argon2id.
-    Duplicate email raises 409 Conflict via caught DuplicateKeyError (no check-then-insert).
-    Database connection errors raise 503 Database unavailable.
-    Never exposes hashed_password or internal fields.
+    Rate limited by client IP (§PR6).
     """
+    limiter.check(f"register:{get_client_ip(request)}", limit=10, window_seconds=60.0)
     hashed_pwd = hash_password(user_in.password)
 
     try:
@@ -68,13 +68,12 @@ async def register(user_in: UserCreate) -> UserPublic:
     response_model=Token,
     summary="Authenticate user and issue JWT bearer token",
 )
-async def login(credentials: UserLogin, response: Response) -> Token:
+async def login(credentials: UserLogin, response: Response, request: Request) -> Token:
     """
     Authenticate user credentials against ai-mock-interview.auth.
-    Performs constant-time verification, returns generic error message on failure,
-    tracks failed logins, locks out for 15 minutes after 5 failures, and resets on success.
-    Database connection errors raise 503 Database unavailable.
+    Rate limited by client IP (§PR6).
     """
+    limiter.check(f"login:{get_client_ip(request)}", limit=20, window_seconds=60.0)
     try:
         user = await auth_repo.get_by_email(credentials.email)
     except (PyMongoError, ConnectionFailure, ServerSelectionTimeoutError, RuntimeError):

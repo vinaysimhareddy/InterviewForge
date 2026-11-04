@@ -52,7 +52,8 @@ const DEFAULT_WS_FAILOVER_TIMEOUT_MS = 1500; // Trigger failover if WS down > 1.
 const DEFAULT_SPEECH_STALL_TIMEOUT_MS = 2500; // Trigger failover if 2.5s speech with 0 partials
 
 export function parseConfiguredProviderChain(): STTProviderMode[] {
-  if (typeof window !== 'undefined' && typeof window.localStorage !== 'undefined') {
+  // localStorage chain overrides are strictly disabled in production builds
+  if (!import.meta.env.PROD && typeof window !== 'undefined' && typeof window.localStorage !== 'undefined') {
     const override = window.localStorage.getItem('STT_PROVIDER_CHAIN');
     if (override) {
       const parts = override.split(',').map((s) => s.trim().toLowerCase()) as STTProviderMode[];

@@ -1,10 +1,11 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface Props {
   children: ReactNode;
   fallbackTitle?: string;
+  onReset?: () => void;
 }
 
 interface State {
@@ -28,16 +29,26 @@ export class ErrorBoundary extends Component<Props, State> {
 
   private handleReset = () => {
     this.setState({ hasError: false, error: null });
+    if (this.props.onReset) {
+      this.props.onReset();
+    }
   };
 
   private handleReload = () => {
     window.location.reload();
   };
 
+  private handleDashboard = () => {
+    window.location.href = '/app/dashboard';
+  };
+
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="w-full max-w-xl mx-auto my-12 p-6 rounded-2xl bg-rose-950/30 border border-rose-800/60 backdrop-blur-md shadow-2xl text-center space-y-4">
+        <div
+          className="w-full max-w-xl mx-auto my-12 p-6 rounded-2xl bg-rose-950/40 border border-rose-800/60 backdrop-blur-md shadow-2xl text-center space-y-4"
+          data-testid="error-boundary-recovery-card"
+        >
           <div className="h-12 w-12 rounded-full bg-rose-600/20 border border-rose-500/40 text-rose-400 flex items-center justify-center mx-auto">
             <AlertTriangle className="h-6 w-6" />
           </div>
@@ -46,15 +57,16 @@ export class ErrorBoundary extends Component<Props, State> {
               {this.props.fallbackTitle || 'A component error occurred'}
             </h3>
             <p className="text-xs text-rose-300/80 mt-1">
-              {this.state.error?.message || 'An unexpected error interrupted the view.'}
+              {this.state.error?.message || 'An unexpected error interrupted the view. Your progress has been saved.'}
             </p>
           </div>
-          <div className="flex items-center justify-center gap-3 pt-2">
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Button
               size="sm"
               variant="outline"
               onClick={this.handleReset}
               className="border-rose-800 text-rose-300 hover:bg-rose-900/40"
+              data-testid="error-boundary-try-again"
             >
               Try Again
             </Button>
@@ -62,9 +74,20 @@ export class ErrorBoundary extends Component<Props, State> {
               size="sm"
               onClick={this.handleReload}
               className="bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5"
+              data-testid="error-boundary-reload-button"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               Reload Page
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={this.handleDashboard}
+              className="border-white/20 text-[#FBFAF6] hover:bg-white/10 gap-1.5"
+              data-testid="error-boundary-dashboard-button"
+            >
+              <Home className="h-3.5 w-3.5" />
+              Return to Dashboard
             </Button>
           </div>
         </div>

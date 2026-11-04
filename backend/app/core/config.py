@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from typing import List, Optional
 import urllib.parse
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Single source of truth for auth collection
@@ -67,14 +67,6 @@ class Settings(BaseSettings):
         if not v or not v.strip():
             raise ValueError("MONGODB_DB_NAME is required and cannot be empty. Set MONGODB_DB_NAME in backend/.env.")
         return v.strip()
-    MONGODB_SERVER_SELECTION_TIMEOUT_MS: int = Field(
-        default=8000,
-        description="Server selection timeout in milliseconds",
-    )
-    MONGODB_CONNECT_TIMEOUT_MS: int = Field(
-        default=8000,
-        description="Socket connection timeout in milliseconds",
-    )
 
     # Security & Authentication
     JWT_SECRET: str = Field(
@@ -94,6 +86,14 @@ class Settings(BaseSettings):
     LLM_PROVIDER: str = Field(
         default="google",
         description="Active LLM provider: 'google' or 'openai'",
+    )
+    GEMINI_MODEL: str = Field(
+        default="gemini-3.5-flash-lite",
+        description="Default Gemini model name for interview turns and report generation",
+    )
+    OPENAI_MODEL: str = Field(
+        default="gpt-4o-mini",
+        description="Default OpenAI model name for interview turns and report generation",
     )
     OPENAI_API_KEY: str = Field(
         default="",
@@ -152,6 +152,30 @@ class Settings(BaseSettings):
         description="Maximum permitted resume upload size in megabytes",
     )
 
+    # Speech-to-Text & Transcript Limits (PR4)
+    MAX_ANSWER_SEC: int = Field(
+        default=300,
+        ge=60,
+        le=600,
+        description="Maximum permitted spoken answer duration per turn in seconds (PR4)",
+    )
+    ANSWER_SOFT_WARNING_SEC: int = Field(
+        default=240,
+        description="Soft warning threshold in seconds before max answer duration (PR4)",
+    )
+    MAX_ANSWER_CHARS: int = Field(
+        default=30000,
+        description="Maximum characters accepted for a single candidate answer (PR4)",
+    )
+    MAX_TRANSCRIPT_CHARS_PER_TURN: int = Field(
+        default=30000,
+        description="Maximum transcript character limit per turn in persistence and evaluation (PR4)",
+    )
+    WS_MAX_MESSAGE_BYTES: int = Field(
+        default=262144,
+        description="Maximum WebSocket frame message size in bytes: 256 KB (PR4)",
+    )
+
     # Server Configuration
     HOST: str = Field(
         default="0.0.0.0",
@@ -178,6 +202,40 @@ class Settings(BaseSettings):
     def cors_origin_list(self) -> List[str]:
         """Parse comma-delimited CORS_ORIGINS into a list of strings."""
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+
+    @model_validator(mode="after")
+    def validate_production_security(self) -> "Settings":
+        """
+        Enforce critical security invariants (§PR6):
+        1. When ENVIRONMENT is 'production', default/insecure JWT_SECRET is strictly forbidden.
+        2. When ENVIRONMENT is 'production', wildcard CORS ('*') is strictly forbidden.
+        3. JWT_SECRET must have at least 32 characters of cryptographic entropy.
+        """
+        is_production = self.ENVIRONMENT.lower() == "production"
+
+        if is_production:
+            insecure_defaults = {
+                "changeme_replace_with_a_secure_random_hex_key_at_least_32_chars",
+                "secret",
+                "changeme",
+                "password",
+                "jwt_secret",
+            }
+            sec = self.JWT_SECRET.strip() if self.JWT_SECRET else ""
+            if not sec or sec in insecure_defaults or "changeme" in sec.lower() or len(sec) < 32:
+                raise ValueError(
+                    "[SECURITY FATAL] Default, weak, or placeholder JWT_SECRET is strictly forbidden in production mode. "
+                    "You must provide a high-entropy secret key of at least 32 characters via the JWT_SECRET environment variable."
+                )
+
+            origins = self.cors_origin_list
+            if "*" in origins:
+                raise ValueError(
+                    "[SECURITY FATAL] Wildcard CORS ('*') is strictly forbidden in production mode when credentials are enabled. "
+                    "Configure explicit trusted domains in CORS_ORIGINS."
+                )
+
+        return self
 
     def get_effective_mongodb_uri(self) -> str:
         """

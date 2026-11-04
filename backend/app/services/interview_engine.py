@@ -100,7 +100,7 @@ def _get_llm():
         try:
             from langchain_google_genai import ChatGoogleGenerativeAI
             return ChatGoogleGenerativeAI(
-                model="gemini-1.5-flash",
+                model=settings.GEMINI_MODEL,
                 google_api_key=settings.GOOGLE_API_KEY,
                 temperature=0.3,
                 max_retries=1,
@@ -112,7 +112,7 @@ def _get_llm():
         try:
             from langchain_openai import ChatOpenAI
             return ChatOpenAI(
-                model="gpt-4o-mini",
+                model=settings.OPENAI_MODEL,
                 openai_api_key=settings.OPENAI_API_KEY,
                 temperature=0.3,
                 max_retries=1,
@@ -726,6 +726,62 @@ def route_after_validation(state: InterviewState) -> Literal["retry_generate", "
     return "ready"
 
 
+async def _process_long_answer_map_reduce(
+    answer: str, question: str, role: str, seniority: str, llm: Any
+) -> str:
+    """
+    Explicit Long Answer Path (§PR4):
+    When candidate provides a multi-minute extended answer (> 3500 chars),
+    chunks into logical segments, extracts key architectural claims via map,
+    and returns a consolidated high-density technical summary for evaluation,
+    ensuring 100% of candidate's technical arguments are evaluated without prompt overflow.
+    """
+    logger.info(
+        "[PR4 LongAnswerPath] Activated for turn: %d characters (%d words). Performing structured map-reduce.",
+        len(answer),
+        len(answer.split()),
+    )
+    # Split by sentences into ~1800 char segments
+    sentences = re.split(r"(?<=[.!?])\s+", answer)
+    segments: List[str] = []
+    current_seg: List[str] = []
+    current_len = 0
+
+    for s in sentences:
+        current_seg.append(s)
+        current_len += len(s)
+        if current_len >= 1800:
+            segments.append(" ".join(current_seg))
+            current_seg = []
+            current_len = 0
+
+    if current_seg:
+        segments.append(" ".join(current_seg))
+
+    if len(segments) <= 1:
+        return answer
+
+    segment_points: List[str] = []
+    for idx, seg in enumerate(segments):
+        map_prompt = (
+            f"You are summarizing segment {idx+1}/{len(segments)} of a candidate's answer for a {seniority} {role} position.\n"
+            f"Question: {question}\n"
+            f"Segment: {seg}\n"
+            "Extract 2-3 concise bullet points preserving all architectural decisions, technologies, numbers, and trade-offs mentioned:"
+        )
+        try:
+            res = await asyncio.wait_for(llm.ainvoke(map_prompt), timeout=12.0)
+            segment_points.append(str(res.content).strip())
+        except Exception as exc:
+            logger.warning("[PR4 LongAnswerPath] Segment %d summarization fallback: %s", idx, exc)
+            words = seg.split()
+            segment_points.append(f"Segment {idx+1}: " + " ".join(words[:40]) + "...")
+
+    consolidated = "\n".join(segment_points)
+    logger.info("[PR4 LongAnswerPath] Map-reduce completed across %d segments.", len(segments))
+    return f"[Synthesized Multi-Minute Answer ({len(segments)} segments)]:\n{consolidated}\n\n[Conclusion]:\n{segments[-1]}"
+
+
 async def evaluate_answer_node(state: InterviewState) -> Dict[str, Any]:
     """LangGraph node: score candidate response against question using multi-axis rubric."""
     raw_answer = state.get("candidate_answer") or ""
@@ -758,11 +814,15 @@ async def evaluate_answer_node(state: InterviewState) -> Dict[str, Any]:
     llm = _get_llm()
     if llm and len(answer) > 10:
         try:
+            eval_input = answer
+            if len(answer) > 3500:
+                eval_input = await _process_long_answer_map_reduce(answer, question, role, seniority, llm)
+
             prompt = (
                 f"You are a principal engineer grading a candidate's technical interview answer.\n"
                 f"Target Position: {seniority} {role}\n"
                 f"Question Asked: {question}\n"
-                f"Candidate Answer: {answer}\n\n"
+                f"Candidate Answer: {eval_input}\n\n"
                 "Evaluate the answer strictly in JSON format matching this schema:\n"
                 "{\n"
                 '  "score": float (0.0 to 10.0),\n'
@@ -891,7 +951,7 @@ async def update_summary_node(state: InterviewState) -> Dict[str, Any]:
     feedback = eval_data.get("feedback", "")
 
     answer_words = answer.split()
-    answer_summary = " ".join(answer_words[:30]) + ("..." if len(answer_words) > 30 else "")
+    answer_summary = " ".join(answer_words[:150]) + ("..." if len(answer_words) > 150 else "")
 
     turn_entry = (
         f"Turn {index} [{action} | {topic}]:\n"

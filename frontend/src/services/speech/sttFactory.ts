@@ -19,7 +19,8 @@ export type STTProviderType = 'faster-whisper' | 'vosk' | 'browser' | 'nemotron'
 const STORAGE_KEY = 'ai_interviewer_stt_provider';
 
 export function getSelectedSTTProvider(): STTProviderType {
-  if (typeof window !== 'undefined') {
+  // Candidate localStorage provider overrides are strictly forbidden and compiled out in production builds
+  if (!import.meta.env.PROD && typeof window !== 'undefined') {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === 'faster-whisper' || stored === 'vosk' || stored === 'browser' || stored === 'nemotron') {
       return stored as STTProviderType;
@@ -35,7 +36,7 @@ export function getSelectedSTTProvider(): STTProviderType {
 }
 
 export function setSelectedSTTProvider(provider: STTProviderType): void {
-  if (typeof window !== 'undefined') {
+  if (!import.meta.env.PROD && typeof window !== 'undefined') {
     localStorage.setItem(STORAGE_KEY, provider);
   }
 }

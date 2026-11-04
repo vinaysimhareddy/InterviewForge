@@ -54,6 +54,8 @@ class EvaluationRepository:
         )
         return doc
 
+    create_or_update = save_evaluation
+
     async def get_by_session_and_user(
         self, session_id: str, user_id: str
     ) -> Optional[Dict[str, Any]]:

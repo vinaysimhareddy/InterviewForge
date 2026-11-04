@@ -29,6 +29,7 @@ export interface CandidateAnswerTranscriptProps {
   activeSTTProvider?: STTProviderMode;
   sttError?: SpeechErrorInfo | null;
   isAnswerCaptured?: boolean;
+  isTimeWarning?: boolean;
   onSubmit: (answerText: string, metadata?: { source?: 'voice' | 'typed' }) => void | Promise<void>;
   onClearAndRetry: () => void;
   onManualTextChange?: (text: string) => void;
@@ -51,6 +52,7 @@ export function CandidateAnswerTranscript({
   activeSTTProvider = 'browser',
   sttError,
   isAnswerCaptured = false,
+  isTimeWarning = false,
   onSubmit,
   onClearAndRetry,
   onManualTextChange,
@@ -330,6 +332,20 @@ export function CandidateAnswerTranscript({
         </div>
       )}
 
+      {/* Soft Answer Approaching 5-Minute Cap Warning (§B4, PR3) */}
+      {isTimeWarning && !isCaptured && (
+        <div
+          role="status"
+          className="mx-4 mt-3 px-3 py-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 text-xs flex items-center gap-2 animate-pulse"
+          data-testid="answer-time-warning"
+        >
+          <AlertTriangle className="h-3.5 w-3.5 text-amber-300 shrink-0" />
+          <span className="font-medium">
+            Approaching 5-minute answer limit (4:00+ elapsed) &mdash; please conclude your thoughts soon.
+          </span>
+        </div>
+      )}
+
       {/* Captured Answer Confirmation Banner (§T8) */}
       {isCaptured && (
         <div
@@ -368,25 +384,15 @@ export function CandidateAnswerTranscript({
         </div>
       )}
 
-      {/* Actionable Error Alert Box if all retries and fallback providers fail */}
+      {/* Actionable Error Alert Box if all retries and fallback providers fail (§PR7) */}
       {!isReconnectingVoice && (sttError || !isSpeechSupported) && (
-        <div className="p-3 mx-4 mt-3 rounded-xl bg-peach/20 border border-accent/30 text-accent-soft text-xs space-y-1.5 animate-in fade-in">
-          <div className="flex items-center justify-between font-semibold">
-            <span className="flex items-center gap-1.5 text-accent-soft">
-              <AlertTriangle className="h-4 w-4 text-accent" />
-              {sttError ? sttError.title : 'Speech Recognition Not Available in This Browser'}
-            </span>
-            {onRetryMic && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onRetryMic}
-                className="h-7 text-xs px-3 font-semibold rounded-lg bg-[#B33925] text-white hover:bg-[#8F2B1B] focus:outline-none focus:ring-2 focus:ring-[#B33925] focus:ring-offset-2 focus:ring-offset-[#0A2E24] border-0 shadow-sm transition-colors"
-                data-testid="stt-try-again-button"
-              >
-                Try Again
-              </Button>
-            )}
+        <div
+          className="p-3 mx-4 mt-3 rounded-xl bg-peach/20 border border-accent/30 text-accent-soft text-xs space-y-2 animate-in fade-in"
+          data-testid="stt-actionable-error-banner"
+        >
+          <div className="flex items-center gap-1.5 font-semibold text-accent-soft">
+            <AlertTriangle className="h-4 w-4 text-accent shrink-0" />
+            <span>{sttError ? sttError.title : 'Speech Recognition Not Available in This Browser'}</span>
           </div>
           <p className="text-[11px] text-[#E3DED2]/90 leading-relaxed">
             {sttError
@@ -395,6 +401,37 @@ export function CandidateAnswerTranscript({
           </p>
           <div className="text-[11px] text-accent-soft font-medium">
             Recovery: {sttError ? sttError.recoveryStep : 'Type your answer below and click Submit Answer.'}
+          </div>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            {onRetryMic && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onRetryMic}
+                className="h-7 text-xs px-2.5 font-semibold rounded-lg bg-[#B33925] text-white hover:bg-[#8F2B1B] border-0 shadow-sm transition-colors"
+                data-testid="reconnect-microphone-button"
+              >
+                Reconnect microphone
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClear}
+              className="h-7 text-xs px-2.5 font-medium rounded-lg bg-white/10 text-white hover:bg-white/20 border border-white/15"
+              data-testid="retry-turn-button"
+            >
+              Retry turn
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleEnterManualMode}
+              className="h-7 text-xs px-2.5 font-medium rounded-lg bg-mint/20 text-mint hover:bg-mint/30 border border-mint/30"
+              data-testid="continue-with-typed-answers-button"
+            >
+              Continue with typed answers
+            </Button>
           </div>
         </div>
       )}

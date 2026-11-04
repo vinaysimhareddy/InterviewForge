@@ -42,6 +42,7 @@ import { ChallengeActionType, LivenessChallengeStep } from '@/lib/integrityTypes
 import { apiClient, ApiError } from '@/lib/api';
 import { SessionData } from './InterviewConfigurator';
 import { Logo } from '@/components/common/Logo';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 
 interface QuestionEvaluation {
   score: number;
@@ -92,12 +93,17 @@ export function InterviewRoom({
   );
   const [abortReason, setAbortReason] = useState<string>('user_ended');
   const [isGeneratingReport, setIsGeneratingReport] = useState<boolean>(false);
+  const [generationStep, setGenerationStep] = useState<string>('Collecting interview evidence');
+  const [generationProgress, setGenerationProgress] = useState<number>(0.15);
+  const [generationError, setGenerationError] = useState<string | null>(null);
+  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Query parameter developer flag (?debug=1) - strictly disabled in production builds
-  const isDebugMode = useMemo(() => {
-    if (!import.meta.env.DEV || typeof window === 'undefined') return false;
-    return new URLSearchParams(window.location.search).get('debug') === '1';
-  }, []);
+  const isDebugMode = Boolean(
+    import.meta.env.DEV &&
+    typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('debug') === '1'
+  );
 
   // Candidate Captions & Transcript flag (defaults to ON for accessible live speech feedback §Q6)
   const [showCandidateCaptions, setShowCandidateCaptions] = useState<boolean>(() => {
@@ -364,26 +370,118 @@ export function InterviewRoom({
     }
   };
 
+  // Polling for async report generation (§4.1)
+  const pollReportStatus = useCallback((sessionId: string) => {
+    if (pollTimerRef.current) {
+      clearInterval(pollTimerRef.current);
+      pollTimerRef.current = null;
+    }
+
+    const checkStatus = async () => {
+      try {
+        const statusRes = await apiClient.get<{
+          session_id: string;
+          status: 'not_started' | 'generating' | 'completed' | 'failed';
+          step: string;
+          progress: number;
+          error?: string | null;
+        }>(`/api/v1/sessions/${sessionId}/report/status`);
+
+        if (statusRes.step) setGenerationStep(statusRes.step);
+        if (typeof statusRes.progress === 'number') setGenerationProgress(statusRes.progress);
+
+        if (statusRes.status === 'completed') {
+          if (pollTimerRef.current) {
+            clearInterval(pollTimerRef.current);
+            pollTimerRef.current = null;
+          }
+          const rep = await apiClient.get<InterviewReport>(`/api/v1/sessions/${sessionId}/report`);
+          setFinalReport(rep);
+          setIsGeneratingReport(false);
+          setGenerationError(null);
+        } else if (statusRes.status === 'failed') {
+          if (pollTimerRef.current) {
+            clearInterval(pollTimerRef.current);
+            pollTimerRef.current = null;
+          }
+          setGenerationError(statusRes.error || 'Failed to generate review report.');
+          setIsGeneratingReport(false);
+        }
+      } catch (err) {
+        console.warn('Status poll check error:', err);
+      }
+    };
+
+    void checkStatus();
+    pollTimerRef.current = setInterval(checkStatus, 1500);
+  }, []);
+
+  const handleRetryGeneration = useCallback(() => {
+    setIsGeneratingReport(true);
+    setGenerationError(null);
+    setGenerationStep('Collecting interview evidence');
+    setGenerationProgress(0.15);
+    apiClient
+      .post<InterviewReport>(`/api/v1/sessions/${session.id}/report/generate`)
+      .then((rep) => {
+        setFinalReport(rep);
+        setIsGeneratingReport(false);
+      })
+      .catch((err) => {
+        console.warn('Retry generate error:', err);
+      });
+    pollReportStatus(session.id);
+  }, [session.id, pollReportStatus]);
+
+  useEffect(() => {
+    return () => {
+      if (pollTimerRef.current) {
+        clearInterval(pollTimerRef.current);
+        pollTimerRef.current = null;
+      }
+    };
+  }, []);
+
   // Wrap-up Flow (§3.7): Natural spoken closing line, stage fade, tracks stopped via stopAll()
   const handleWrapUp = useCallback(
     (report?: FinalReport | InterviewReport) => {
       setRoomPhase('wrapping_up');
       if (report) {
         setFinalReport(report);
+        setIsGeneratingReport(false);
       } else {
         setIsGeneratingReport(true);
+        setGenerationStep('Collecting interview evidence');
+        setGenerationProgress(0.15);
+        setGenerationError(null);
+
+        // Fetch immediately (in case deterministic report is already persisted)
         apiClient
           .get<InterviewReport>(`/api/v1/sessions/${session.id}/report`)
-          .then((rep) => setFinalReport(rep))
+          .then((rep) => {
+            setFinalReport(rep);
+          })
           .catch(() => {
             return apiClient
               .get<FinalReport>(`/api/v1/interview/sessions/${session.id}/report`)
               .then((rep) => setFinalReport(rep));
           })
           .catch((err) => {
-            console.error('Failed to retrieve interview report:', err);
+            console.warn('Initial report retrieval note:', err);
+          });
+
+        // Trigger AI pipeline generation and start polling
+        apiClient
+          .post<InterviewReport>(`/api/v1/sessions/${session.id}/report/generate`)
+          .then((rep) => {
+            setFinalReport(rep);
+            setIsGeneratingReport(false);
           })
-          .finally(() => setIsGeneratingReport(false));
+          .catch((err) => {
+            console.warn('Direct generate call returned, relying on status poller:', err);
+          });
+
+        pollReportStatus(session.id);
       }
 
       void ttsManager
@@ -399,7 +497,7 @@ export function InterviewRoom({
         setRoomPhase('complete');
       }, 3000);
     },
-    [session.id, stopAll]
+    [session.id, stopAll, pollReportStatus]
   );
 
   const handleGraceExpired = () => {
@@ -417,6 +515,7 @@ export function InterviewRoom({
       answerText: string,
       metadata?: {
         source?: 'voice' | 'typed';
+        reason?: string;
         answer_raw?: string;
         stt_confidence?: number;
         is_low_confidence?: boolean;
@@ -430,14 +529,19 @@ export function InterviewRoom({
 
       // Section 3.6: Latency hiding conversational acknowledgement (deterministic based on turn index)
       if (!isUserPaused && !isPausedByIntegrity) {
-        const acks = [
-          'Got it.',
-          'Understood, thank you.',
-          "Thanks, that's helpful.",
-          'Noted.',
-        ];
-        const deterministicAck = acks[questionIndex % acks.length];
-        void ttsManager.speak(deterministicAck, { rate: 1.1 });
+        let ackText: string;
+        if (metadata?.reason === 'cap') {
+          ackText = "Thank you, let's move on.";
+        } else {
+          const acks = [
+            'Got it.',
+            'Understood, thank you.',
+            "Thanks, that's helpful.",
+            'Noted.',
+          ];
+          ackText = acks[questionIndex % acks.length];
+        }
+        void ttsManager.speak(ackText, { rate: 1.1 });
       }
 
       try {
@@ -447,6 +551,7 @@ export function InterviewRoom({
             answer: trimmed,
             answer_raw: metadata?.answer_raw || trimmed,
             source: metadata?.source || 'voice',
+            reason: metadata?.reason,
             stt_confidence: metadata?.stt_confidence,
             is_low_confidence: metadata?.is_low_confidence,
           }
@@ -501,6 +606,7 @@ export function InterviewRoom({
     activeSTTProvider,
     retryVoice,
     sttError,
+    isAnswerTimeWarning,
     clearTranscript,
     setTranscript,
     speakQuestion: _speakCurrentQuestion,
@@ -680,7 +786,7 @@ export function InterviewRoom({
     return () => clearInterval(interval);
   }, [turnState, isCandidateSpeaking, transcript, isOverallPaused, currentQuestion, executeAnswerSubmission]);
 
-  // Initialize session workflow
+  // Initialize session workflow (with reload resumption support §PR7)
   useEffect(() => {
     async function initInterviewEngine() {
       setIsInitializing(true);
@@ -689,6 +795,15 @@ export function InterviewRoom({
         const res = await apiClient.post<InterviewStepResponse>(
           `/api/v1/interview/sessions/${session.id}/start`
         );
+        if (res.status === 'COMPLETED' || res.final_report) {
+          handleWrapUp(res.final_report);
+          return;
+        }
+        if (res.status === 'ABORTED') {
+          setAbortReason('aborted_previously');
+          setRoomPhase('aborted');
+          return;
+        }
         const q = res.next_question || 'Ready to begin.';
         setCurrentQuestion(q);
         setQuestionIndex(res.current_question_index);
@@ -704,7 +819,7 @@ export function InterviewRoom({
       }
     }
     initInterviewEngine();
-  }, [session.id]);
+  }, [session.id, handleWrapUp]);
 
   const handleDownloadPdf = async () => {
     if (!finalReport) return;
@@ -780,34 +895,42 @@ export function InterviewRoom({
   // Screen 2: Interview Complete (Preliminary Handoff Screen)
   if (roomPhase === 'complete') {
     return (
-      <div className="min-h-screen w-full flex flex-col bg-bg text-text">
-        <InterviewComplete
-          role={session.role}
-          seniority={session.seniority}
-          isGeneratingReport={isGeneratingReport || !finalReport}
-          hasReport={Boolean(finalReport)}
-          onViewReport={() => setRoomPhase('scorecard')}
-          onDownloadPdf={finalReport ? handleDownloadPdf : undefined}
-          isDownloadingPdf={isGeneratingPdf}
-          onReturnHome={onExit}
-        />
-      </div>
+      <ErrorBoundary fallbackTitle="Interview Review Screen Error">
+        <div className="min-h-screen w-full flex flex-col bg-bg text-text">
+          <InterviewComplete
+            role={session.role}
+            seniority={session.seniority}
+            isGeneratingReport={isGeneratingReport || !finalReport}
+            hasReport={Boolean(finalReport)}
+            generationStep={generationStep}
+            generationProgress={generationProgress}
+            generationError={generationError}
+            onRetryGeneration={handleRetryGeneration}
+            onViewReport={() => setRoomPhase('scorecard')}
+            onDownloadPdf={finalReport ? handleDownloadPdf : undefined}
+            isDownloadingPdf={isGeneratingPdf}
+            onReturnHome={onExit}
+          />
+        </div>
+      </ErrorBoundary>
     );
   }
 
   // Screen 3: Detailed Executive Scorecard Screen
   if (roomPhase === 'scorecard' && finalReport) {
     return (
-      <div className="min-h-screen w-full flex flex-col bg-bg text-text">
-        <ExecutiveScorecard
-          session={session}
-          report={finalReport}
-          onBack={() => setRoomPhase('complete')}
-          onDownloadPdf={handleDownloadPdf}
-          isDownloadingPdf={isGeneratingPdf}
-          onReturnHome={onExit}
-        />
-      </div>
+      <ErrorBoundary fallbackTitle="Scorecard Render Error">
+        <div className="min-h-screen w-full flex flex-col bg-bg text-text">
+          <ExecutiveScorecard
+            session={session}
+            report={finalReport}
+            onBack={() => setRoomPhase('complete')}
+            onDownloadPdf={handleDownloadPdf}
+            isDownloadingPdf={isGeneratingPdf}
+            onReturnHome={onExit}
+          />
+        </div>
+      </ErrorBoundary>
     );
   }
 
@@ -935,6 +1058,7 @@ export function InterviewRoom({
               activeSTTProvider={activeSTTProvider}
               sttError={sttError}
               isAnswerCaptured={turnState === 'submitting' || isSubmitting}
+              isTimeWarning={isAnswerTimeWarning}
               onSubmit={executeAnswerSubmission}
               onClearAndRetry={clearTranscript}
               onManualTextChange={setTranscript}
@@ -944,8 +1068,8 @@ export function InterviewRoom({
           )}
         </div>
 
-        {/* Developer HUD: ONLY rendered if ?debug=1 is present in URL */}
-        {isDebugMode && (
+        {/* Developer HUD: ONLY rendered in dev mode when ?debug=1 is present in URL */}
+        {import.meta.env.DEV && isDebugMode && (
           <div className="fixed top-16 right-4 z-50 w-80 p-3 rounded-2xl bg-[#0A2E24]/95 border border-[#E3DED2]/20 shadow-2xl backdrop-blur-md text-xs space-y-2 animate-in fade-in text-[#FBFAF6]">
             <div className="flex items-center justify-between pb-1.5 border-b border-[#E3DED2]/15 font-mono">
               <span className="font-bold text-[#FBFAF6]">DEBUG TELEMETRY HUD</span>

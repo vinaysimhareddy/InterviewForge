@@ -168,4 +168,103 @@ describe('T9: STT Incomplete Word-Dropping Bug Regression Suite (§T9)', () => {
     expect(cleanText).toContain('Kubernetes');
     expect(cleanText).toContain('Goroutines');
   });
+
+  it('proves 100% word capture across a 3-minute multi-session spoken technical answer (PR4)', () => {
+    // 3-minute spoken answer broken across 3 recognizer sessions
+    const session1Words = [
+      'In', 'our', 'core', 'distributed', 'banking', 'ledger,', 'we', 'separated', 'the', 'read',
+      'and', 'write', 'paths', 'using', 'Command', 'Query', 'Responsibility', 'Segregation.',
+      'All', 'state', 'changes', 'are', 'persisted', 'as', 'immutable', 'events', 'in', 'an',
+      'append-only', 'event', 'store', 'backed', 'by', 'Kafka', 'topics', 'with', 'triple',
+      'replication', 'across', 'three', 'availability', 'zones.', 'To', 'prevent', 'duplicate',
+      'transfers', 'during', 'retries,', 'every', 'command', 'carries', 'a', 'cryptographic',
+      'idempotency', 'key', 'validated', 'against', 'Redis', 'cluster', 'with', 'a', 'twenty-four',
+      'hour', 'time', 'to', 'live.', 'The', 'write', 'path', 'leverages', 'PostgreSQL',
+      'with', 'serializable', 'isolation', 'levels', 'and', 'strict', 'pessimistic', 'row',
+      'locks', 'only', 'during', 'balance', 'updates.', 'This', 'guarantees', 'zero', 'double-spending',
+      'anomalies', 'under', 'concurrent', 'transaction', 'spikes.', 'Furthermore,', 'we', 'stream',
+      'outbox', 'events', 'using', 'Debezium', 'CDC', 'to', 'maintain', 'sub-millisecond',
+      'latency', 'between', 'ledger', 'commits', 'and', 'Kafka', 'publication.'
+    ];
+
+    const session2Words = [
+      'For', 'the', 'query', 'projections,', 'we', 'consume', 'the', 'Kafka', 'events', 'into',
+      'read-optimized', 'materialized', 'views', 'hosted', 'on', 'Elasticsearch', 'and', 'Redis.',
+      'This', 'offloads', 'all', 'heavy', 'analytical', 'and', 'history', 'lookups', 'from', 'the',
+      'primary', 'relational', 'database.', 'When', 'network', 'partitions', 'occur,', 'we',
+      'prioritize', 'consistency', 'over', 'availability', 'for', 'financial', 'settlement',
+      'mutations', 'in', 'accordance', 'with', 'the', 'CAP', 'theorem.', 'Our', 'circuit',
+      'breakers', 'trip', 'if', 'the', 'p99', 'latency', 'exceeds', '250', 'milliseconds,',
+      'immediately', 'routing', 'incoming', 'traffic', 'to', 'degraded', 'graceful', 'read-only',
+      'fallbacks', 'while', 'queuing', 'asynchronous', 'settlement', 'reconciliation', 'jobs.',
+      'We', 'also', 'instituted', 'canary', 'deployments', 'with', 'automated', 'metric',
+      'verification', 'in', 'ArgoCD,', 'evaluating', 'error', 'budgets', 'before', 'gradually',
+      'shifting', 'traffic', 'from', 'ten', 'percent', 'to', 'one', 'hundred', 'percent.'
+    ];
+
+    const session3Words = [
+      'In', 'conclusion,', 'monitoring', 'is', 'managed', 'with', 'Prometheus', 'and', 'OpenTelemetry',
+      'distributed', 'tracing,', 'propagating', 'trace', 'and', 'span', 'identifiers', 'across',
+      'all', 'gRPC', 'and', 'HTTP', 'headers.', 'This', 'enables', 'our', 'on-call', 'engineers',
+      'to', 'pinpoint', 'the', 'exact', 'microservice', 'introducing', 'latency', 'jitter.',
+      'Disaster', 'recovery', 'is', 'rehearsed', 'quarterly', 'using', 'automated', 'chaos',
+      'experiments', 'in', 'Kubernetes,', 'validating', 'that', 'node', 'terminations', 'trigger',
+      'zero-downtime', 'pod', 'evictions', 'and', 'seamless', 'Kafka', 'partition', 'rebalances.',
+      'That', 'covers', 'our', 'complete', 'end-to-end', 'architecture,', 'thank', 'you.'
+    ];
+
+    const totalWords = session1Words.length + session2Words.length + session3Words.length;
+    const assembler = new TranscriptAssembler();
+
+    // Session 1
+    assembler.ingestResults(0, [{ isFinal: true, transcript: session1Words.join(' ') }]);
+    // Browser ends session 1 (e.g. 60s Chrome limit) -> auto-restart
+    assembler.handleSessionRestart();
+
+    // Session 2 with overlapping words (boundary deduplication)
+    const session2Overlap = ['and', 'Kafka', 'publication.', ...session2Words];
+    assembler.ingestResults(0, [{ isFinal: true, transcript: session2Overlap.join(' ') }]);
+    // Browser ends session 2 -> auto-restart
+    assembler.handleSessionRestart();
+
+    // Session 3
+    assembler.ingestResults(0, [{ isFinal: true, transcript: session3Words.join(' ') }]);
+
+    const sealed = assembler.seal();
+    const { cleanText } = normalizeTranscript(sealed);
+    const capturedWords = cleanText.split(/\s+/).length;
+
+    // Zero word dropping: 100% of spoken words captured
+    expect(capturedWords).toBeGreaterThanOrEqual(totalWords);
+    expect(cleanText).toContain('Command Query Responsibility Segregation');
+    expect(cleanText).toContain('Debezium');
+    expect(cleanText).toContain('Elasticsearch');
+    expect(cleanText).toContain('Prometheus');
+    expect(cleanText).toContain('OpenTelemetry');
+    expect(cleanText).toContain('Kubernetes');
+  });
+
+  it('proves 100% word capture across a 5-minute extended monologue across 5 sessions (PR4)', () => {
+    const assembler = new TranscriptAssembler();
+    const totalSessions = 5;
+    let expectedTotalWords = 0;
+
+    for (let s = 1; s <= totalSessions; s++) {
+      if (s > 1) {
+        assembler.handleSessionRestart();
+      }
+      const segment = `Detailed technical segment ${s} discussing scalable system architecture, database partitioning strategy, memory caching layers, idempotency validation keys, resilience patterns with circuit breaking, and continuous observability monitoring across distributed microservice nodes in our production cluster.`;
+      const wordsInSegment = segment.split(/\s+/).length;
+      expectedTotalWords += wordsInSegment;
+      assembler.appendChunk(segment, true);
+    }
+
+    const finalRaw = assembler.seal();
+    const finalWords = finalRaw.split(/\s+/).length;
+
+    expect(finalWords).toBe(expectedTotalWords);
+    expect(finalRaw.length).toBeGreaterThan(1000);
+    expect(finalRaw).toContain('segment 1');
+    expect(finalRaw).toContain('segment 5');
+  });
 });

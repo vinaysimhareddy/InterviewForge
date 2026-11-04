@@ -15,5 +15,13 @@ import '@fontsource/jetbrains-mono/600.css';
 import App from './App';
 import './index.css';
 
+// In production builds, silence console.log, console.debug, and console.info to protect internal state
+if (import.meta.env.PROD) {
+  const noop = (): void => {};
+  console.log = noop;
+  console.debug = noop;
+  console.info = noop;
+}
+
 createRoot(document.getElementById('root')!).render(<App />);
 

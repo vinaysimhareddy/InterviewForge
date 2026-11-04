@@ -168,8 +168,10 @@ class MongoManager:
             ("telemetry_samples", [("session_id", ASCENDING), ("bucket_start", ASCENDING)], {}),
             # integrity_events collection
             ("integrity_events", [("session_id", ASCENDING), ("t", ASCENDING)], {}),
-            # evaluations collection
+            # evaluations & report status collections
             ("evaluations", [("session_id", ASCENDING)], {"unique": True}),
+            ("report_status", [("session_id", ASCENDING)], {"unique": True}),
+            ("report_status", [("updated_at", DESCENDING)], {}),
             # RAG vector collections (§2.3, Q2, Q3)
             ("resume_chunks", [("user_id", ASCENDING), ("resume_id", ASCENDING)], {}),
             ("knowledge_base", [("role", ASCENDING), ("seniority", ASCENDING)], {}),
@@ -202,6 +204,7 @@ class MongoManager:
             "telemetry_samples",
             "integrity_events",
             "evaluations",
+            "report_status",
             "resume_chunks",
             "interview_memory",
         ]

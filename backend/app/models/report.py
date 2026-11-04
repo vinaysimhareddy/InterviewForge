@@ -237,6 +237,10 @@ class InterviewReport(BaseModel):
     integrity: IntegrityReportSummary
     readiness: ReadinessEstimate
     action_plan: ActionPlan
+    stage_timings: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Measured execution duration in seconds per pipeline stage (PR3)",
+    )
 
 
 class ReportStatusResponse(BaseModel):

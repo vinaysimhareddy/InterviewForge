@@ -775,18 +775,34 @@ def build_deterministic_report(
     skills = compute_skills_analysis(turn_reviews, actual_minutes)
 
     # 5. Non-verbal & Integrity summaries (§3.6)
+    eye_val = tel_summary.get("eye_contact_ratio") if isinstance(tel_summary, dict) else None
+    posture_val = tel_summary.get("posture_score") if isinstance(tel_summary, dict) else None
+    face_val = tel_summary.get("face_presence_percentage") if isinstance(tel_summary, dict) else None
+    pauses_val = tel_summary.get("pauses_count") if isinstance(tel_summary, dict) else None
+
     nonverbal = NonVerbalSummary(
-        eye_contact_ratio=float(tel_summary.get("eye_contact_ratio", 0.78)),
-        posture_score=float(tel_summary.get("posture_score", 0.85)),
-        face_presence_rate=float(tel_summary.get("face_presence_percentage", 96.5)),
-        pauses_count=int(tel_summary.get("pauses_count", 0)),
+        eye_contact_ratio=float(eye_val) if eye_val is not None else 0.78,
+        posture_score=float(posture_val) if posture_val is not None else 0.85,
+        face_presence_rate=float(face_val) if face_val is not None else 96.5,
+        pauses_count=int(pauses_val) if pauses_val is not None else 0,
     )
 
     integrity_dict = state.get("integrity_summary") or {}
+    if not isinstance(integrity_dict, dict):
+        integrity_dict = {}
     integ_verdict = integrity_dict.get("verdict", session_doc.get("integrity_verdict", "Verified"))
+    
+    integ_score_raw = integrity_dict.get("integrity_score")
+    if integ_score_raw is None:
+        integ_score_raw = session_doc.get("integrity_score", 95.0)
+    try:
+        integ_score = float(integ_score_raw) if integ_score_raw is not None else 95.0
+    except (ValueError, TypeError):
+        integ_score = 95.0
+
     integrity = IntegrityReportSummary(
         verdict=integ_verdict,
-        integrity_score=float(integrity_dict.get("integrity_score", session_doc.get("integrity_score", 95.0))),
+        integrity_score=integ_score,
         events_summary=integrity_dict.get("events_summary", ["Camera feed validated without synthetic injection flags."]),
     )
 

@@ -68,7 +68,17 @@ FastAPI ASGI Backend (Python 3.11+)
 
 ---
 
-## 3. Directory Layout
+## 3. Production Documentation & Runbooks
+
+For hosting, operational runbooks, and integration guides:
+- **[Production Deployment Guide](DEPLOYMENT.md)**: VPS provisioning, Docker Compose, Nginx/Caddy SSL setup, MongoDB Atlas indexes, and zero-downtime rolling reloads.
+- **[Operations & On-Call Playbook](OPERATIONS.md)**: Incident resolution (5xx spikes, upstream LLM 429 quota exhaustion, STT failovers, worker backlog), log inspection, secret rotation, and cost monitoring.
+- **[API Reference & WebSocket Protocol](API.md)**: Complete REST endpoint documentation, sequence diagrams, and OpenAPI 3.1.0 reference.
+- **[Environment Checklist](ENVIRONMENT_CHECKLIST.md)**: Master configuration matrix, default values, production constraints, and `.env.production` templates.
+
+---
+
+## 4. Directory Layout
 
 ```text
 .

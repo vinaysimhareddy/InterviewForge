@@ -206,17 +206,29 @@ def normalize_transcript(
 
     # Phase 4: Token-by-token conservative fuzzy matching
     def replace_token(match: re.Match) -> str:
-        token = match.group(0)
+        full_token = match.group(0)
+        token = full_token
+        trailing_punct = ""
+        # Strip trailing sentence punctuation if the full token is not directly recognized
+        while token and token[-1] in ".,!?:;":
+            if token.lower() in term_dict:
+                break
+            trailing_punct = token[-1] + trailing_punct
+            token = token[:-1]
+
+        if not token:
+            return full_token
+
         lower = token.lower()
 
         if lower in PROTECTED_COMMON_WORDS:
-            return token
+            return token + trailing_punct
 
         if lower in term_dict:
             canonical = term_dict[lower]
             if token != canonical:
                 replacements.append({"original": token, "replacement": canonical, "reason": "casing_fix"})
-            return canonical
+            return canonical + trailing_punct
 
         # Conservative fuzzy matching guards (length >= 6)
         if len(token) >= 6:
@@ -241,9 +253,9 @@ def normalize_transcript(
 
             if best_match and best_match != token:
                 replacements.append({"original": token, "replacement": best_match, "reason": "fuzzy_match"})
-                return best_match
+                return best_match + trailing_punct
 
-        return token
+        return token + trailing_punct
 
     text = re.sub(r"([a-zA-Z0-9_\-\.]+)", replace_token, text)
 

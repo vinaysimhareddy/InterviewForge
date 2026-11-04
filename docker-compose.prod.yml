@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # Production FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: interviewforge_prod_backend
+    restart: always
+    expose:
+      - "8000"
+    env_file:
+      - .env.production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - prod_net
+
+  # Production Frontend & Nginx Reverse Proxy
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.prod
+    container_name: interviewforge_prod_frontend
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - prod_net
+
+networks:
+  prod_net:
+    driver: bridge
+

@@ -4,8 +4,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class AnswerSubmission(BaseModel):
     """Schema for candidate submitting an answer to current question."""
-    answer: Optional[str] = Field(default="", description="Candidate response text or transcribed speech")
-    answer_raw: Optional[str] = Field(default=None, description="Raw unnormalized speech-to-text transcript (§T7)")
+    answer: Optional[str] = Field(default="", max_length=50000, description="Candidate response text or transcribed speech")
+    answer_raw: Optional[str] = Field(default=None, max_length=50000, description="Raw unnormalized speech-to-text transcript (§T7)")
     status: Optional[str] = Field(default="answered", description="answered | skipped")
     turn_id: Optional[str] = None
     response_latency_ms: Optional[float] = None

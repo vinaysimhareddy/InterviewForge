@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Camera,
   CameraOff,
@@ -26,6 +26,11 @@ import { Badge } from '@/components/ui/badge';
 import { ttsManager, TTSManager } from '@/services/speech/ttsManager';
 import { SpeechToText } from '@/services/speech/types';
 import { createSpeechToTextProvider } from '@/services/speech/sttFactory';
+import {
+  SUPPORTED_SPEECH_LANGS,
+  getSpeechRecognitionLang,
+  setSpeechRecognitionLang,
+} from '@/services/speech/browserSTT';
 import { runSpeechPreflightDiagnostic, SpeechPreflightResult } from '@/services/speech/sttPreflight';
 import { estimateQuestionRange } from '@/services/speech/timeEstimator';
 import {
@@ -179,7 +184,34 @@ export function PreInterviewSetup({
   const [lastMicErrorName, setLastMicErrorName] = useState<string | null>(null);
   const [lastSttErrorCode, setLastSttErrorCode] = useState<string | null>(null);
   const [preflightResult, setPreflightResult] = useState<SpeechPreflightResult | null>(null);
-  const [activeProviderName, setActiveProviderName] = useState<string>('Voice Recognition');
+  // Speech Recognition Language / Accent State (§T8)
+  const [selectedSpeechLang, setSelectedSpeechLang] = useState<string>(() => getSpeechRecognitionLang());
+
+  const handleSpeechLangChange = useCallback((lang: string) => {
+    setSelectedSpeechLang(lang);
+    setSpeechRecognitionLang(lang);
+    if (sttRef.current && typeof (sttRef.current as any).init === 'function') {
+      (sttRef.current as any).init({ lang });
+    }
+  }, []);
+
+  // Actionable Microphone Input Advice (§T8)
+  const micAdvice = useMemo(() => {
+    if (state.mic.status === 'verified') return null;
+    const clippingCrit = micReport?.criteria.find((c) => c.id === 'clipping');
+    if (clippingCrit && !clippingCrit.passed) {
+      return 'use a headset or reduce input volume';
+    }
+    const currentSnr = state.mic.status === 'collecting_speech' ? state.mic.snrDb : undefined;
+    if (noiseDetected || (currentSnr !== undefined && currentSnr < 12)) {
+      return 'reduce background noise';
+    }
+    const voicedSec = state.mic.status === 'collecting_speech' ? state.mic.voicedSeconds : 0;
+    if (audioLevel < 10 && voicedSec < 0.8) {
+      return 'move closer to your microphone or speak louder';
+    }
+    return null;
+  }, [state.mic, micReport, noiseDetected, audioLevel]);
 
   const durationPresets = [10, 15, 20, 30, 45, 60];
   const questionEstimate = estimateQuestionRange(durationMinutes);
@@ -211,13 +243,6 @@ export function PreInterviewSetup({
     });
 
     const unsubscribeChain = stt.onChainStatusChange((status) => {
-      setActiveProviderName(
-        status.activeProvider === 'browser'
-          ? 'Voice Recognition'
-          : status.activeProvider === 'nemotron'
-          ? 'Voice Recognition (Enhanced)'
-          : 'Typed Fallback'
-      );
       if (status.statusNotice) {
         setSttNotice(status.statusNotice);
       }
@@ -1972,9 +1997,27 @@ export function PreInterviewSetup({
                         </div>
 
                         {/* Speech Sentence Prompt & Live Status */}
-                        <div className="space-y-1.5 flex-1 min-w-0">
+                        <div className="space-y-2 flex-1 min-w-0">
+                          {/* Accent / Language Selector (§T8) */}
+                          <div className="flex items-center justify-between text-xs py-1 px-2 bg-bg-subtle/50 rounded-lg border border-card-border">
+                            <span className="text-text-muted text-[11px] font-medium">Accent / Language:</span>
+                            <select
+                              value={selectedSpeechLang}
+                              onChange={(e) => handleSpeechLangChange(e.target.value)}
+                              className="bg-card border border-card-border text-text rounded px-1.5 py-0.5 text-[11px] font-medium focus:ring-1 focus:ring-primary focus:outline-none cursor-pointer"
+                              aria-label="Select speech recognition accent"
+                              data-testid="speech-lang-selector"
+                            >
+                              {SUPPORTED_SPEECH_LANGS.map((lang) => (
+                                <option key={lang.code} value={lang.code}>
+                                  {lang.label} {lang.code === 'en-IN' ? '(Default)' : ''}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
                           <p className="text-xs font-semibold text-text">
-                            Say: &apos;My name is ___ and I&apos;m ready for the interview&apos; (or &apos;testing one two three&apos;)
+                            Say: &apos;I&apos;m ready for the interview and excited to begin&apos; (or &apos;My name is ___ and I&apos;m ready for the interview&apos;)
                           </p>
                           {liveSpeechTranscript ? (
                             <div className="p-1.5 rounded-lg bg-card border border-card-border font-mono text-[11px] text-text">
@@ -1986,6 +2029,17 @@ export function PreInterviewSetup({
                               {micReport?.primaryHint || state.mic.hint || `Listening… speak test phrase (${state.mic.voicedSeconds.toFixed(1)} / 1.5 s)`}
                             </p>
                           )}
+
+                          {micAdvice && (
+                            <div
+                              className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px] flex items-center gap-1.5 font-medium"
+                              data-testid="mic-input-advice"
+                            >
+                              <AlertTriangle className="h-3 w-3 shrink-0" />
+                              <span>Audio advice: {micAdvice}</span>
+                            </div>
+                          )}
+
                           {sttNotice && (
                             <div className="p-2 rounded-lg bg-warning/15 border border-warning/30 text-warning text-[11px] space-y-1">
                               <div className="font-semibold flex items-center gap-1">
@@ -1996,9 +2050,9 @@ export function PreInterviewSetup({
                             </div>
                           )}
                           <div className="text-[10px] text-text-muted flex items-center justify-between pt-0.5">
-                            <span className="flex items-center gap-1.5">
-                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary" />
-                              <span>STT Provider: <strong>{activeProviderName}</strong></span>
+                            <span className="flex items-center gap-1.5" data-testid="stt-readiness-indicator">
+                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-mint" />
+                              <span>Voice recognition ready</span>
                             </span>
                             {preflightResult?.isBrave && (
                               <span className="text-[10px] text-warning font-semibold">Brave Browser (Action Required)</span>
@@ -2017,7 +2071,7 @@ export function PreInterviewSetup({
                         <div className="flex items-center justify-between">
                           <span className="flex items-center gap-1.5 font-medium">
                             <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
-                            Clear voice detected ✓ (SNR: {state.mic.snrDb ? `${state.mic.snrDb.toFixed(1)} dB` : '15+ dB'}). Input latched.
+                            Voice recognition ready ✓ &mdash; Clear voice detected ✓ (SNR: {state.mic.snrDb ? `${state.mic.snrDb.toFixed(1)} dB` : '15+ dB'}). Input latched.
                           </span>
                           <Button
                             size="sm"

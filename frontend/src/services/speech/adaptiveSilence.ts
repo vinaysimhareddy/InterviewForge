@@ -99,3 +99,60 @@ export function computeAdaptiveSilenceTimeoutMs(
   return Math.min(MAX_SILENCE_TIMEOUT_MS, Math.max(MIN_SILENCE_TIMEOUT_MS, baseTimeoutMs));
 }
 
+/**
+ * T2 Tuned Turn Silence Timeout (§T2):
+ * - Shorter (1.5–2.0 s) if answer is already long/complete.
+ * - Longer (2.5–3.5 s) if answer is short (< 10 words) or candidate just paused mid-thought.
+ */
+export function computeTurnSilenceTimeoutMs(
+  transcript: string,
+  wordCount?: number,
+  baseTimeoutMs?: number
+): number {
+  const trimmed = transcript.trim();
+  const lower = trimmed.toLowerCase();
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  const count = wordCount ?? words.length;
+
+  // 1. Candidate paused mid-thought: trailing punctuation (comma, dash, ellipsis) -> 3000ms (2.5–3.5s)
+  if (MID_SENTENCE_TRAILING_REGEX.test(trimmed)) {
+    return 3000;
+  }
+
+  // 2. Candidate paused mid-thought: trailing conjunction (e.g. "and", "because", "so") -> 3000ms (2.5–3.5s)
+  const lastWord = words[words.length - 1]?.toLowerCase().replace(/[^a-z]/g, '');
+  if (lastWord && TRAILING_CONJUNCTIONS.has(lastWord)) {
+    return 3000;
+  }
+
+  // 3. Answer is complete: concluding interview phrases -> 1500ms (1.5–2.0s)
+  const hasClosingPhrase = CLOSING_PHRASES.some(
+    (phrase) => lower.endsWith(phrase) || lower.endsWith(`${phrase}.`) || lower.endsWith(`${phrase}!`)
+  );
+  if (hasClosingPhrase && count >= 3) {
+    return 1500;
+  }
+
+  // 4. Answer is complete: terminal sentence punctuation (. ? !) -> 1600ms (1.5–2.0s)
+  if (TERMINAL_PUNCTUATION_REGEX.test(trimmed) && count >= 4) {
+    return 1600;
+  }
+
+  // 5. Short incomplete answer (< 10 words): candidate is still formulating or speaking -> 2800ms-3200ms (2.5–3.5s)
+  if (count < 10) {
+    if (count <= 2) {
+      return 3200; // 3.2s
+    }
+    return 2800; // 2.8s
+  }
+
+  // 6. Answer is already long (>= 15 words) -> 1800ms (1.5–2.0s)
+  if (count >= 15) {
+    return 1800;
+  }
+
+  // Default fallback clamped between 1.5s and 3.5s
+  const base = baseTimeoutMs ?? 2000;
+  return Math.min(3500, Math.max(1500, base));
+}
+

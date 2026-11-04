@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Minimal Speech Recognition Test</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; line-height: 1.5; }
+    #log { border: 1px solid #ccc; padding: 12px; min-height: 120px; white-space: pre-wrap; background: #f9f9f9; }
+    button { padding: 8px 16px; font-size: 14px; margin-right: 8px; cursor: pointer; }
+    .final { font-weight: bold; color: #111; }
+    .interim { color: #666; font-style: italic; }
+  </style>
+</head>
+<body>
+  <h2>Minimal Speech Recognition (Standard Web Speech)</h2>
+  <p>Tests native browser recognition with continuous=true, interimResults=true.</p>
+  <button id="toggleBtn" onclick="toggle()">Start Listening</button>
+  <button onclick="clearText()">Clear</button>
+  <div style="margin-top: 15px;">
+    <label>Language: 
+      <select id="langSelect" onchange="updateLang()">
+        <option value="en-IN" selected>en-IN (Indian English)</option>
+        <option value="en-US">en-US (US English)</option>
+        <option value="en-GB">en-GB (UK English)</option>
+      </select>
+    </label>
+  </div>
+  <h3>Transcript:</h3>
+  <div id="log"><span class="final" id="finalSpan"></span> <span class="interim" id="interimSpan"></span></div>
+  <p id="stats" style="font-size: 12px; color: #777;"></p>
+
+  <script>
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let rec = null, isListening = false, finalTranscript = '';
+    const finalSpan = document.getElementById('finalSpan'), interimSpan = document.getElementById('interimSpan');
+    const toggleBtn = document.getElementById('toggleBtn'), stats = document.getElementById('stats');
+
+    function init() {
+      if (!SpeechRec) { stats.innerText = 'SpeechRecognition not supported in this browser.'; return; }
+      rec = new SpeechRec();
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.lang = document.getElementById('langSelect').value;
+      rec.onresult = (e) => {
+        let interim = '';
+        for (let i = e.resultIndex; i < e.results.length; ++i) {
+          if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript + ' ';
+          else interim += e.results[i][0].transcript;
+        }
+        finalSpan.innerText = finalTranscript;
+        interimSpan.innerText = interim;
+        const words = (finalTranscript + ' ' + interim).trim().split(/\s+/).filter(Boolean).length;
+        stats.innerText = `Words captured: ${words} | ResultIndex: ${e.resultIndex} | Results: ${e.results.length}`;
+      };
+      rec.onerror = (e) => { stats.innerText = `Error: ${e.error}`; };
+      rec.onend = () => { if (isListening) rec.start(); else toggleBtn.innerText = 'Start Listening'; };
+    }
+    function toggle() {
+      if (!rec) init();
+      if (!isListening) { rec.start(); isListening = true; toggleBtn.innerText = 'Stop Listening'; }
+      else { isListening = false; rec.stop(); toggleBtn.innerText = 'Start Listening'; }
+    }
+    function clearText() { finalTranscript = ''; finalSpan.innerText = ''; interimSpan.innerText = ''; stats.innerText = ''; }
+    function updateLang() { if (rec) rec.lang = document.getElementById('langSelect').value; }
+  </script>
+</body>
+</html>
+

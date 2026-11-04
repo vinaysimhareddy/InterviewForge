@@ -30,6 +30,7 @@ import { InterviewComplete } from '@/components/interview/InterviewComplete';
 import { InterviewAborted } from '@/components/interview/InterviewAborted';
 import { ExecutiveScorecard } from '@/components/interview/ExecutiveScorecard';
 import { LatencyLabPage } from '@/pages/LatencyLabPage';
+import { STTLabPage } from '@/pages/STTLabPage';
 import { FinalReport } from '@/lib/types';
 import { formatPageTitle } from '@/copy/glossary';
 
@@ -567,6 +568,8 @@ function PlatformContent(): React.ReactElement {
             <Route path="/design-system" element={<DesignSystemPage />} />
             <Route path="/dev/latency-lab" element={<LatencyLabPage />} />
             <Route path="/latency-lab" element={<LatencyLabPage />} />
+            <Route path="/dev/stt-lab" element={<STTLabPage />} />
+            <Route path="/stt-lab" element={<STTLabPage />} />
           </>
         )}
 

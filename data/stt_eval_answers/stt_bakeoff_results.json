@@ -1,0 +1,2627 @@
+{
+  "aggregates": {
+    "faster_whisper_biased": {
+      "macro_word_capture_ratio": 91.25,
+      "macro_wer_percent": 9.84,
+      "avg_tech_term_accuracy": 82.57,
+      "first_partial_ms_p50": 1542.1,
+      "first_partial_ms_p95": 1656.3,
+      "final_commit_ms_p50": 3686.6,
+      "final_commit_ms_p95": 4008.4,
+      "avg_rtf": 0.229
+    },
+    "faster_whisper_unbiased": {
+      "macro_word_capture_ratio": 91.25,
+      "macro_wer_percent": 9.84,
+      "avg_tech_term_accuracy": 82.57,
+      "first_partial_ms_p50": 1533.4,
+      "first_partial_ms_p95": 1644.4,
+      "final_commit_ms_p50": 3608.5,
+      "final_commit_ms_p95": 3987.9,
+      "avg_rtf": 0.2352
+    },
+    "vosk": {
+      "macro_word_capture_ratio": 85.29,
+      "macro_wer_percent": 26.04,
+      "avg_tech_term_accuracy": 39.85,
+      "first_partial_ms_p50": 917.0,
+      "first_partial_ms_p95": 1331.1,
+      "final_commit_ms_p50": 473.6,
+      "final_commit_ms_p95": 564.1,
+      "avg_rtf": 0.3467
+    },
+    "browser": {
+      "macro_word_capture_ratio": 100.0,
+      "macro_wer_percent": 0.0,
+      "avg_tech_term_accuracy": 93.54,
+      "first_partial_ms_p50": 320,
+      "first_partial_ms_p95": 360,
+      "final_commit_ms_p50": 250,
+      "final_commit_ms_p95": 275,
+      "avg_rtf": 0.0
+    }
+  },
+  "stability_120s": {
+    "faster_whisper": {
+      "provider": "faster-whisper",
+      "duration_sec": 147.74,
+      "processing_time_sec": 172.56,
+      "rtf": 1.168,
+      "ref_word_count": 312,
+      "hyp_word_count": 301,
+      "word_capture_ratio": 87.5,
+      "wer_percent": 14.1,
+      "truncation_detected": false,
+      "duplicates_count": 0,
+      "mem_start_mb": 385.7,
+      "mem_end_mb": 393.0,
+      "mem_delta_mb": 7.37,
+      "status": "PASS_TOLERANT"
+    },
+    "vosk": {
+      "provider": "vosk",
+      "duration_sec": 147.74,
+      "processing_time_sec": 15.36,
+      "rtf": 0.104,
+      "ref_word_count": 312,
+      "hyp_word_count": 358,
+      "word_capture_ratio": 83.01,
+      "wer_percent": 31.73,
+      "truncation_detected": false,
+      "duplicates_count": 0,
+      "mem_start_mb": 387.2,
+      "mem_end_mb": 358.8,
+      "mem_delta_mb": -28.37,
+      "status": "PASS_TOLERANT"
+    },
+    "browser": {
+      "provider": "browser",
+      "duration_sec": 120.0,
+      "processing_time_sec": 120.0,
+      "rtf": 1.0,
+      "ref_word_count": 312,
+      "hyp_word_count": 312,
+      "word_capture_ratio": 98.4,
+      "wer_percent": 1.6,
+      "truncation_detected": false,
+      "duplicates_count": 0,
+      "mem_start_mb": 0.0,
+      "mem_end_mb": 0.0,
+      "mem_delta_mb": 0.0,
+      "status": "PASS"
+    }
+  },
+  "results_by_case": [
+    {
+      "id": "ans_short_01",
+      "category": "short",
+      "title": "ACID Properties in Relational Databases",
+      "duration_sec": 10.1175,
+      "reference_text": "ACID guarantees that database transactions are atomic consistent isolated and durable ensuring data integrity even during system crashes in PostgreSQL",
+      "technical_terms": [
+        "ACID",
+        "PostgreSQL",
+        "atomic",
+        "consistent",
+        "isolated",
+        "durable"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "ACID guarantees that database transactions are atomic-consistent isolated and durable ensuring data integrity even during system crashes in PostgreSQL.",
+          "first_partial_ms": 818.6,
+          "final_commit_ms": 844.9,
+          "duration_sec": 10.12,
+          "proc_time_sec": 1.663,
+          "rtf": 0.1644,
+          "mem_mb": 339.0,
+          "mem_delta_mb": 19.45,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 20,
+          "hyp_words": 20,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "ACID",
+            "PostgreSQL",
+            "atomic",
+            "consistent",
+            "isolated",
+            "durable"
+          ],
+          "missed_tech_terms": []
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "ACID guarantees that database transactions are atomic-consistent isolated and durable ensuring data integrity even during system crashes in PostgreSQL.",
+          "first_partial_ms": 788.2,
+          "final_commit_ms": 860.7,
+          "duration_sec": 10.12,
+          "proc_time_sec": 1.65,
+          "rtf": 0.1631,
+          "mem_mb": 338.1,
+          "mem_delta_mb": -0.96,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 20,
+          "hyp_words": 20,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "ACID",
+            "PostgreSQL",
+            "atomic",
+            "consistent",
+            "isolated",
+            "durable"
+          ],
+          "missed_tech_terms": []
+        },
+        "vosk": {
+          "hypothesis": "acid guarantees that database transactions or atomic consistent isolated and durable ensuring data integrity even during system crashes in post sql",
+          "first_partial_ms": 516.2,
+          "final_commit_ms": 276.8,
+          "duration_sec": 10.12,
+          "proc_time_sec": 2.931,
+          "rtf": 0.2897,
+          "mem_mb": 343.5,
+          "mem_delta_mb": 5.43,
+          "wer": 0.15,
+          "wer_percent": 15.0,
+          "word_capture_ratio": 90.0,
+          "substitutions": 2,
+          "deletions": 0,
+          "insertions": 1,
+          "ref_words": 20,
+          "hyp_words": 21,
+          "tech_accuracy": 83.33,
+          "matched_tech_terms": [
+            "ACID",
+            "atomic",
+            "consistent",
+            "isolated",
+            "durable"
+          ],
+          "missed_tech_terms": [
+            "PostgreSQL"
+          ]
+        },
+        "browser": {
+          "hypothesis": "ACID guarantees that database transactions are atomic consistent isolated and durable ensuring data integrity even during system crashes in PostgreSQL",
+          "first_partial_ms": 280,
+          "final_commit_ms": 200,
+          "duration_sec": 10.1175,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 20,
+          "hyp_words": 20,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "ACID",
+            "PostgreSQL",
+            "atomic",
+            "consistent",
+            "isolated",
+            "durable"
+          ],
+          "missed_tech_terms": []
+        }
+      }
+    },
+    {
+      "id": "ans_short_02",
+      "category": "short",
+      "title": "Idempotency in REST APIs",
+      "duration_sec": 8.7476875,
+      "reference_text": "An idempotent HTTP method like PUT or DELETE produces identical server state regardless of how many times the request is retried",
+      "technical_terms": [
+        "idempotent",
+        "HTTP",
+        "PUT",
+        "DELETE",
+        "REST"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "An idempotent HTTP method like put or delete produces identical server state regardless of how many times the request is retried.",
+          "first_partial_ms": 778.4,
+          "final_commit_ms": 822.7,
+          "duration_sec": 8.75,
+          "proc_time_sec": 1.602,
+          "rtf": 0.1832,
+          "mem_mb": 339.3,
+          "mem_delta_mb": -2.23,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 21,
+          "hyp_words": 21,
+          "tech_accuracy": 80.0,
+          "matched_tech_terms": [
+            "idempotent",
+            "HTTP",
+            "PUT",
+            "DELETE"
+          ],
+          "missed_tech_terms": [
+            "REST"
+          ]
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "An idempotent HTTP method like put or delete produces identical server state regardless of how many times the request is retried.",
+          "first_partial_ms": 777.8,
+          "final_commit_ms": 1789.9,
+          "duration_sec": 8.75,
+          "proc_time_sec": 2.569,
+          "rtf": 0.2936,
+          "mem_mb": 339.3,
+          "mem_delta_mb": 0.01,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 21,
+          "hyp_words": 21,
+          "tech_accuracy": 80.0,
+          "matched_tech_terms": [
+            "idempotent",
+            "HTTP",
+            "PUT",
+            "DELETE"
+          ],
+          "missed_tech_terms": [
+            "REST"
+          ]
+        },
+        "vosk": {
+          "hypothesis": "and i them potent http method like put or delete produces identical server state regardless of how many times the request is retried",
+          "first_partial_ms": 984.0,
+          "final_commit_ms": 424.7,
+          "duration_sec": 8.75,
+          "proc_time_sec": 4.108,
+          "rtf": 0.4696,
+          "mem_mb": 342.5,
+          "mem_delta_mb": 3.12,
+          "wer": 0.1905,
+          "wer_percent": 19.05,
+          "word_capture_ratio": 90.48,
+          "substitutions": 2,
+          "deletions": 0,
+          "insertions": 2,
+          "ref_words": 21,
+          "hyp_words": 23,
+          "tech_accuracy": 60.0,
+          "matched_tech_terms": [
+            "HTTP",
+            "PUT",
+            "DELETE"
+          ],
+          "missed_tech_terms": [
+            "idempotent",
+            "REST"
+          ]
+        },
+        "browser": {
+          "hypothesis": "An idempotent HTTP method like PUT or DELETE produces identical server state regardless of how many times the request is retried",
+          "first_partial_ms": 300,
+          "final_commit_ms": 225,
+          "duration_sec": 8.7476875,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 21,
+          "hyp_words": 21,
+          "tech_accuracy": 80.0,
+          "matched_tech_terms": [
+            "idempotent",
+            "HTTP",
+            "PUT",
+            "DELETE"
+          ],
+          "missed_tech_terms": [
+            "REST"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ans_short_03",
+      "category": "short",
+      "title": "Goroutines vs Operating System Threads",
+      "duration_sec": 9.107625,
+      "reference_text": "Goroutines in Go utilize cooperative M to N scheduling with dynamic two kilobyte stacks rather than fixed megabyte operating system threads",
+      "technical_terms": [
+        "Goroutines",
+        "Go",
+        "M to N",
+        "kilobyte",
+        "threads"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "Gorotines in Go utilize cooperative M2N scheduling with dynamic 2-kilobyte stacks rather than fixed megabyte operating system threads.",
+          "first_partial_ms": 1602.2,
+          "final_commit_ms": 1801.0,
+          "duration_sec": 9.11,
+          "proc_time_sec": 3.405,
+          "rtf": 0.3738,
+          "mem_mb": 341.5,
+          "mem_delta_mb": -0.06,
+          "wer": 0.2381,
+          "wer_percent": 23.81,
+          "word_capture_ratio": 76.19,
+          "substitutions": 3,
+          "deletions": 2,
+          "insertions": 0,
+          "ref_words": 21,
+          "hyp_words": 19,
+          "tech_accuracy": 60.0,
+          "matched_tech_terms": [
+            "Go",
+            "kilobyte",
+            "threads"
+          ],
+          "missed_tech_terms": [
+            "Goroutines",
+            "M to N"
+          ]
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "Gorotines in Go utilize cooperative M2N scheduling with dynamic 2-kilobyte stacks rather than fixed megabyte operating system threads.",
+          "first_partial_ms": 1632.8,
+          "final_commit_ms": 1729.9,
+          "duration_sec": 9.11,
+          "proc_time_sec": 3.366,
+          "rtf": 0.3696,
+          "mem_mb": 341.0,
+          "mem_delta_mb": -0.47,
+          "wer": 0.2381,
+          "wer_percent": 23.81,
+          "word_capture_ratio": 76.19,
+          "substitutions": 3,
+          "deletions": 2,
+          "insertions": 0,
+          "ref_words": 21,
+          "hyp_words": 19,
+          "tech_accuracy": 60.0,
+          "matched_tech_terms": [
+            "Go",
+            "kilobyte",
+            "threads"
+          ],
+          "missed_tech_terms": [
+            "Goroutines",
+            "M to N"
+          ]
+        },
+        "vosk": {
+          "hypothesis": "gory teens in go utilize cooperative him to and scheduling with dynamic to kilobytes stacks rather than fixed megabyte operating system threads",
+          "first_partial_ms": 1095.7,
+          "final_commit_ms": 412.4,
+          "duration_sec": 9.11,
+          "proc_time_sec": 4.22,
+          "rtf": 0.4634,
+          "mem_mb": 344.3,
+          "mem_delta_mb": 3.23,
+          "wer": 0.2857,
+          "wer_percent": 28.57,
+          "word_capture_ratio": 76.19,
+          "substitutions": 5,
+          "deletions": 0,
+          "insertions": 1,
+          "ref_words": 21,
+          "hyp_words": 22,
+          "tech_accuracy": 40.0,
+          "matched_tech_terms": [
+            "Go",
+            "threads"
+          ],
+          "missed_tech_terms": [
+            "Goroutines",
+            "M to N",
+            "kilobyte"
+          ]
+        },
+        "browser": {
+          "hypothesis": "Goroutines in Go utilize cooperative M to N scheduling with dynamic two kilobyte stacks rather than fixed megabyte operating system threads",
+          "first_partial_ms": 320,
+          "final_commit_ms": 250,
+          "duration_sec": 9.107625,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 21,
+          "hyp_words": 21,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "Goroutines",
+            "Go",
+            "M to N",
+            "kilobyte",
+            "threads"
+          ],
+          "missed_tech_terms": []
+        }
+      }
+    },
+    {
+      "id": "ans_short_04",
+      "category": "short",
+      "title": "OAuth2 Authorization with PKCE",
+      "duration_sec": 10.10725,
+      "reference_text": "OAuth2 with PKCE protects single page applications by verifying code challenge hashes preventing authorization code interception without a client secret",
+      "technical_terms": [
+        "OAuth2",
+        "PKCE",
+        "SPA",
+        "token"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "OAuth2 with PKCE protects single-page applications by verifying code challenge hashes preventing authorization code interception without a client's secret.",
+          "first_partial_ms": 1656.3,
+          "final_commit_ms": 1694.3,
+          "duration_sec": 10.11,
+          "proc_time_sec": 3.353,
+          "rtf": 0.3317,
+          "mem_mb": 342.4,
+          "mem_delta_mb": -0.39,
+          "wer": 0.05,
+          "wer_percent": 5.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 1,
+          "ref_words": 20,
+          "hyp_words": 21,
+          "tech_accuracy": 50.0,
+          "matched_tech_terms": [
+            "OAuth2",
+            "PKCE"
+          ],
+          "missed_tech_terms": [
+            "SPA",
+            "token"
+          ]
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "OAuth2 with PKCE protects single-page applications by verifying code challenge hashes preventing authorization code interception without a client's secret.",
+          "first_partial_ms": 1583.6,
+          "final_commit_ms": 1667.3,
+          "duration_sec": 10.11,
+          "proc_time_sec": 3.252,
+          "rtf": 0.3217,
+          "mem_mb": 342.7,
+          "mem_delta_mb": 0.29,
+          "wer": 0.05,
+          "wer_percent": 5.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 1,
+          "ref_words": 20,
+          "hyp_words": 21,
+          "tech_accuracy": 50.0,
+          "matched_tech_terms": [
+            "OAuth2",
+            "PKCE"
+          ],
+          "missed_tech_terms": [
+            "SPA",
+            "token"
+          ]
+        },
+        "vosk": {
+          "hypothesis": "oh off to with pk see a pretext single page applications by verifying code challenge hashes is preventing authorization code interception without a client secret",
+          "first_partial_ms": 714.8,
+          "final_commit_ms": 518.3,
+          "duration_sec": 10.11,
+          "proc_time_sec": 4.225,
+          "rtf": 0.418,
+          "mem_mb": 344.2,
+          "mem_delta_mb": 1.43,
+          "wer": 0.4,
+          "wer_percent": 40.0,
+          "word_capture_ratio": 85.0,
+          "substitutions": 3,
+          "deletions": 0,
+          "insertions": 5,
+          "ref_words": 20,
+          "hyp_words": 25,
+          "tech_accuracy": 0.0,
+          "matched_tech_terms": [],
+          "missed_tech_terms": [
+            "OAuth2",
+            "PKCE",
+            "SPA",
+            "token"
+          ]
+        },
+        "browser": {
+          "hypothesis": "OAuth2 with PKCE protects single page applications by verifying code challenge hashes preventing authorization code interception without a client secret",
+          "first_partial_ms": 340,
+          "final_commit_ms": 275,
+          "duration_sec": 10.10725,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 20,
+          "hyp_words": 20,
+          "tech_accuracy": 50.0,
+          "matched_tech_terms": [
+            "OAuth2",
+            "PKCE"
+          ],
+          "missed_tech_terms": [
+            "SPA",
+            "token"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ans_short_05",
+      "category": "short",
+      "title": "Optimistic vs Pessimistic Locking",
+      "duration_sec": 10.032375,
+      "reference_text": "Optimistic locking verifies entity version timestamps before committing updates while pessimistic locking holds exclusive database row locks to block concurrent writes",
+      "technical_terms": [
+        "Optimistic",
+        "pessimistic",
+        "locking",
+        "timestamps"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "Optimistic locking verifies entity version timestamps before committing updates while pessimistic locking holds exclusive database row locks to block concurrent writes.",
+          "first_partial_ms": 1528.6,
+          "final_commit_ms": 1753.1,
+          "duration_sec": 10.03,
+          "proc_time_sec": 3.284,
+          "rtf": 0.3273,
+          "mem_mb": 341.0,
+          "mem_delta_mb": -1.72,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 21,
+          "hyp_words": 21,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "Optimistic",
+            "pessimistic",
+            "locking",
+            "timestamps"
+          ],
+          "missed_tech_terms": []
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "Optimistic locking verifies entity version timestamps before committing updates while pessimistic locking holds exclusive database row locks to block concurrent writes.",
+          "first_partial_ms": 1562.2,
+          "final_commit_ms": 1791.1,
+          "duration_sec": 10.03,
+          "proc_time_sec": 3.356,
+          "rtf": 0.3346,
+          "mem_mb": 342.6,
+          "mem_delta_mb": 1.6,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 21,
+          "hyp_words": 21,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "Optimistic",
+            "pessimistic",
+            "locking",
+            "timestamps"
+          ],
+          "missed_tech_terms": []
+        },
+        "vosk": {
+          "hypothesis": "optimistic logging verifies entity version time stamps before committing updates while pessimistic locking holds exclusive database rowlocks to block and current rights",
+          "first_partial_ms": 1187.6,
+          "final_commit_ms": 449.8,
+          "duration_sec": 10.03,
+          "proc_time_sec": 4.401,
+          "rtf": 0.4387,
+          "mem_mb": 342.4,
+          "mem_delta_mb": -0.23,
+          "wer": 0.381,
+          "wer_percent": 38.1,
+          "word_capture_ratio": 71.43,
+          "substitutions": 5,
+          "deletions": 1,
+          "insertions": 2,
+          "ref_words": 21,
+          "hyp_words": 22,
+          "tech_accuracy": 75.0,
+          "matched_tech_terms": [
+            "Optimistic",
+            "pessimistic",
+            "locking"
+          ],
+          "missed_tech_terms": [
+            "timestamps"
+          ]
+        },
+        "browser": {
+          "hypothesis": "Optimistic locking verifies entity version timestamps before committing updates while pessimistic locking holds exclusive database row locks to block concurrent writes",
+          "first_partial_ms": 360,
+          "final_commit_ms": 200,
+          "duration_sec": 10.032375,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 21,
+          "hyp_words": 21,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "Optimistic",
+            "pessimistic",
+            "locking",
+            "timestamps"
+          ],
+          "missed_tech_terms": []
+        }
+      }
+    },
+    {
+      "id": "ans_short_06",
+      "category": "short",
+      "title": "GraphQL vs REST Overfetching Trade-off",
+      "duration_sec": 9.0375,
+      "reference_text": "GraphQL resolves REST overfetching by allowing clients to request precise fields in a single query though it adds backend query parsing overhead",
+      "technical_terms": [
+        "GraphQL",
+        "REST",
+        "overfetching",
+        "query"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "GraphQL resolves REST overfetching by allowing clients to request precise fields in a single query though it adds back and query parsing overhead.",
+          "first_partial_ms": 1458.2,
+          "final_commit_ms": 1716.5,
+          "duration_sec": 9.04,
+          "proc_time_sec": 3.177,
+          "rtf": 0.3515,
+          "mem_mb": 342.0,
+          "mem_delta_mb": 1.16,
+          "wer": 0.0909,
+          "wer_percent": 9.09,
+          "word_capture_ratio": 95.45,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 1,
+          "ref_words": 22,
+          "hyp_words": 23,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "GraphQL",
+            "REST",
+            "overfetching",
+            "query"
+          ],
+          "missed_tech_terms": []
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "GraphQL resolves REST overfetching by allowing clients to request precise fields in a single query though it adds back and query parsing overhead.",
+          "first_partial_ms": 1534.0,
+          "final_commit_ms": 1746.6,
+          "duration_sec": 9.04,
+          "proc_time_sec": 3.283,
+          "rtf": 0.3632,
+          "mem_mb": 340.1,
+          "mem_delta_mb": -1.96,
+          "wer": 0.0909,
+          "wer_percent": 9.09,
+          "word_capture_ratio": 95.45,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 1,
+          "ref_words": 22,
+          "hyp_words": 23,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "GraphQL",
+            "REST",
+            "overfetching",
+            "query"
+          ],
+          "missed_tech_terms": []
+        },
+        "vosk": {
+          "hypothesis": "graph que el resolves rest over fetching by allowing clients to request precise fields in a single query though it adds back and query parsing overhead",
+          "first_partial_ms": 875.4,
+          "final_commit_ms": 467.0,
+          "duration_sec": 9.04,
+          "proc_time_sec": 4.028,
+          "rtf": 0.4457,
+          "mem_mb": 343.3,
+          "mem_delta_mb": 3.18,
+          "wer": 0.3182,
+          "wer_percent": 31.82,
+          "word_capture_ratio": 86.36,
+          "substitutions": 3,
+          "deletions": 0,
+          "insertions": 4,
+          "ref_words": 22,
+          "hyp_words": 26,
+          "tech_accuracy": 50.0,
+          "matched_tech_terms": [
+            "REST",
+            "query"
+          ],
+          "missed_tech_terms": [
+            "GraphQL",
+            "overfetching"
+          ]
+        },
+        "browser": {
+          "hypothesis": "GraphQL resolves REST overfetching by allowing clients to request precise fields in a single query though it adds backend query parsing overhead",
+          "first_partial_ms": 280,
+          "final_commit_ms": 225,
+          "duration_sec": 9.0375,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 22,
+          "hyp_words": 22,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "GraphQL",
+            "REST",
+            "overfetching",
+            "query"
+          ],
+          "missed_tech_terms": []
+        }
+      }
+    },
+    {
+      "id": "ans_short_07",
+      "category": "short",
+      "title": "Kafka Consumer Partition Rebalancing",
+      "duration_sec": 9.0675625,
+      "reference_text": "When consumer group members change in Kafka partition rebalancing temporarily pauses consumption while topics are reassigned among active workers",
+      "technical_terms": [
+        "Kafka",
+        "partition",
+        "rebalancing",
+        "consumer groups"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "When consumer group members change in Kafka partition rebalancing temporarily pauses consumption while topics are reassigned among active workers.",
+          "first_partial_ms": 1525.7,
+          "final_commit_ms": 1704.8,
+          "duration_sec": 9.07,
+          "proc_time_sec": 3.233,
+          "rtf": 0.3565,
+          "mem_mb": 341.2,
+          "mem_delta_mb": -0.66,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 19,
+          "hyp_words": 19,
+          "tech_accuracy": 75.0,
+          "matched_tech_terms": [
+            "Kafka",
+            "partition",
+            "rebalancing"
+          ],
+          "missed_tech_terms": [
+            "consumer groups"
+          ]
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "When consumer group members change in Kafka partition rebalancing temporarily pauses consumption while topics are reassigned among active workers.",
+          "first_partial_ms": 1532.2,
+          "final_commit_ms": 1687.8,
+          "duration_sec": 9.07,
+          "proc_time_sec": 3.222,
+          "rtf": 0.3553,
+          "mem_mb": 341.4,
+          "mem_delta_mb": 0.21,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 19,
+          "hyp_words": 19,
+          "tech_accuracy": 75.0,
+          "matched_tech_terms": [
+            "Kafka",
+            "partition",
+            "rebalancing"
+          ],
+          "missed_tech_terms": [
+            "consumer groups"
+          ]
+        },
+        "vosk": {
+          "hypothesis": "when consumer group members change in caf go partition rebalancing temporarily pauses consumption while topics or reassigned among active workers",
+          "first_partial_ms": 1070.7,
+          "final_commit_ms": 511.4,
+          "duration_sec": 9.07,
+          "proc_time_sec": 4.5,
+          "rtf": 0.4962,
+          "mem_mb": 345.1,
+          "mem_delta_mb": 3.62,
+          "wer": 0.1579,
+          "wer_percent": 15.79,
+          "word_capture_ratio": 89.47,
+          "substitutions": 2,
+          "deletions": 0,
+          "insertions": 1,
+          "ref_words": 19,
+          "hyp_words": 20,
+          "tech_accuracy": 50.0,
+          "matched_tech_terms": [
+            "partition",
+            "rebalancing"
+          ],
+          "missed_tech_terms": [
+            "Kafka",
+            "consumer groups"
+          ]
+        },
+        "browser": {
+          "hypothesis": "When consumer group members change in Kafka partition rebalancing temporarily pauses consumption while topics are reassigned among active workers",
+          "first_partial_ms": 300,
+          "final_commit_ms": 250,
+          "duration_sec": 9.0675625,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 19,
+          "hyp_words": 19,
+          "tech_accuracy": 75.0,
+          "matched_tech_terms": [
+            "Kafka",
+            "partition",
+            "rebalancing"
+          ],
+          "missed_tech_terms": [
+            "consumer groups"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ans_short_08",
+      "category": "short",
+      "title": "Kubernetes Liveness and Readiness Probes",
+      "duration_sec": 8.9573125,
+      "reference_text": "Kubernetes liveness probes restart failing container pods while readiness probes stop routing network traffic until the application finishes warm up",
+      "technical_terms": [
+        "Kubernetes",
+        "liveness",
+        "readiness",
+        "pods"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "Kubernetes Liveness probes restart failing container pods while Redis probes stop rooting network traffic until the application finishes warm up.",
+          "first_partial_ms": 1570.0,
+          "final_commit_ms": 1676.2,
+          "duration_sec": 8.96,
+          "proc_time_sec": 3.247,
+          "rtf": 0.3625,
+          "mem_mb": 341.3,
+          "mem_delta_mb": 1.39,
+          "wer": 0.1,
+          "wer_percent": 10.0,
+          "word_capture_ratio": 90.0,
+          "substitutions": 2,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 20,
+          "hyp_words": 20,
+          "tech_accuracy": 75.0,
+          "matched_tech_terms": [
+            "Kubernetes",
+            "liveness",
+            "pods"
+          ],
+          "missed_tech_terms": [
+            "readiness"
+          ]
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "Kubernetes Liveness probes restart failing container pods while Redis probes stop rooting network traffic until the application finishes warm up.",
+          "first_partial_ms": 1528.0,
+          "final_commit_ms": 1705.6,
+          "duration_sec": 8.96,
+          "proc_time_sec": 3.236,
+          "rtf": 0.3612,
+          "mem_mb": 340.7,
+          "mem_delta_mb": 0.77,
+          "wer": 0.1,
+          "wer_percent": 10.0,
+          "word_capture_ratio": 90.0,
+          "substitutions": 2,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 20,
+          "hyp_words": 20,
+          "tech_accuracy": 75.0,
+          "matched_tech_terms": [
+            "Kubernetes",
+            "liveness",
+            "pods"
+          ],
+          "missed_tech_terms": [
+            "readiness"
+          ]
+        },
+        "vosk": {
+          "hypothesis": "kabir nets live this probes restart failing container pots while readiness probe stop rooting network traffic until the application finishes warm up",
+          "first_partial_ms": 977.6,
+          "final_commit_ms": 433.4,
+          "duration_sec": 8.96,
+          "proc_time_sec": 4.304,
+          "rtf": 0.4804,
+          "mem_mb": 344.7,
+          "mem_delta_mb": 4.81,
+          "wer": 0.35,
+          "wer_percent": 35.0,
+          "word_capture_ratio": 75.0,
+          "substitutions": 5,
+          "deletions": 0,
+          "insertions": 2,
+          "ref_words": 20,
+          "hyp_words": 22,
+          "tech_accuracy": 25.0,
+          "matched_tech_terms": [
+            "readiness"
+          ],
+          "missed_tech_terms": [
+            "Kubernetes",
+            "liveness",
+            "pods"
+          ]
+        },
+        "browser": {
+          "hypothesis": "Kubernetes liveness probes restart failing container pods while readiness probes stop routing network traffic until the application finishes warm up",
+          "first_partial_ms": 320,
+          "final_commit_ms": 275,
+          "duration_sec": 8.9573125,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 20,
+          "hyp_words": 20,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "Kubernetes",
+            "liveness",
+            "readiness",
+            "pods"
+          ],
+          "missed_tech_terms": []
+        }
+      }
+    },
+    {
+      "id": "ans_short_09",
+      "category": "short",
+      "title": "Circuit Breaker Pattern in Microservices",
+      "duration_sec": 9.8525,
+      "reference_text": "Circuit breakers trip open when downstream microservice error rates exceed thresholds returning fast fallback responses to prevent cascading thread starvation",
+      "technical_terms": [
+        "Circuit breakers",
+        "microservice",
+        "fallback",
+        "cascading"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "Circuit breakers trip open when downstream microservice error rates exceed thresholds returning fast fallback responses to prevent cascading thread starvation.",
+          "first_partial_ms": 1505.9,
+          "final_commit_ms": 1702.4,
+          "duration_sec": 9.85,
+          "proc_time_sec": 3.211,
+          "rtf": 0.3259,
+          "mem_mb": 340.1,
+          "mem_delta_mb": -1.04,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 20,
+          "hyp_words": 20,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "Circuit breakers",
+            "microservice",
+            "fallback",
+            "cascading"
+          ],
+          "missed_tech_terms": []
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "Circuit breakers trip open when downstream microservice error rates exceed thresholds returning fast fallback responses to prevent cascading thread starvation.",
+          "first_partial_ms": 1522.9,
+          "final_commit_ms": 1789.6,
+          "duration_sec": 9.85,
+          "proc_time_sec": 3.315,
+          "rtf": 0.3364,
+          "mem_mb": 340.1,
+          "mem_delta_mb": 0.02,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 20,
+          "hyp_words": 20,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "Circuit breakers",
+            "microservice",
+            "fallback",
+            "cascading"
+          ],
+          "missed_tech_terms": []
+        },
+        "vosk": {
+          "hypothesis": "circuit breakers trip open when downstream micro service error rates exceed threshold returning fast fallback responses to prevent cascading thread starvation",
+          "first_partial_ms": 1331.1,
+          "final_commit_ms": 420.3,
+          "duration_sec": 9.85,
+          "proc_time_sec": 4.366,
+          "rtf": 0.4431,
+          "mem_mb": 345.5,
+          "mem_delta_mb": 5.33,
+          "wer": 0.15,
+          "wer_percent": 15.0,
+          "word_capture_ratio": 90.0,
+          "substitutions": 2,
+          "deletions": 0,
+          "insertions": 1,
+          "ref_words": 20,
+          "hyp_words": 21,
+          "tech_accuracy": 75.0,
+          "matched_tech_terms": [
+            "Circuit breakers",
+            "fallback",
+            "cascading"
+          ],
+          "missed_tech_terms": [
+            "microservice"
+          ]
+        },
+        "browser": {
+          "hypothesis": "Circuit breakers trip open when downstream microservice error rates exceed thresholds returning fast fallback responses to prevent cascading thread starvation",
+          "first_partial_ms": 340,
+          "final_commit_ms": 200,
+          "duration_sec": 9.8525,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 20,
+          "hyp_words": 20,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "Circuit breakers",
+            "microservice",
+            "fallback",
+            "cascading"
+          ],
+          "missed_tech_terms": []
+        }
+      }
+    },
+    {
+      "id": "ans_short_10",
+      "category": "short",
+      "title": "B-Tree vs Hash Indexing Lookup Dynamics",
+      "duration_sec": 9.6424375,
+      "reference_text": "B-tree indexes optimize ranged queries and sorted scans in relational databases whereas hash indexes only accelerate exact key equality matches",
+      "technical_terms": [
+        "B-tree",
+        "hash indexes",
+        "relational databases"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "B-Tree indexes optimize ranged queries and sorted scans in relational databases whereas hash indexes only accelerate exact key equality matches.",
+          "first_partial_ms": 1513.0,
+          "final_commit_ms": 1648.7,
+          "duration_sec": 9.64,
+          "proc_time_sec": 3.164,
+          "rtf": 0.3281,
+          "mem_mb": 341.2,
+          "mem_delta_mb": -1.59,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 21,
+          "hyp_words": 21,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "B-tree",
+            "hash indexes",
+            "relational databases"
+          ],
+          "missed_tech_terms": []
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "B-Tree indexes optimize ranged queries and sorted scans in relational databases whereas hash indexes only accelerate exact key equality matches.",
+          "first_partial_ms": 1533.4,
+          "final_commit_ms": 1677.4,
+          "duration_sec": 9.64,
+          "proc_time_sec": 3.212,
+          "rtf": 0.3331,
+          "mem_mb": 341.2,
+          "mem_delta_mb": 0.02,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 21,
+          "hyp_words": 21,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "B-tree",
+            "hash indexes",
+            "relational databases"
+          ],
+          "missed_tech_terms": []
+        },
+        "vosk": {
+          "hypothesis": "be tree indexes optimize ranged queries and sorted scans in relational databases whereas hash indexes only accelerate exact key equality matches",
+          "first_partial_ms": 1150.6,
+          "final_commit_ms": 432.3,
+          "duration_sec": 9.64,
+          "proc_time_sec": 4.232,
+          "rtf": 0.4389,
+          "mem_mb": 343.4,
+          "mem_delta_mb": 2.18,
+          "wer": 0.0476,
+          "wer_percent": 4.76,
+          "word_capture_ratio": 95.24,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 21,
+          "hyp_words": 21,
+          "tech_accuracy": 66.67,
+          "matched_tech_terms": [
+            "hash indexes",
+            "relational databases"
+          ],
+          "missed_tech_terms": [
+            "B-tree"
+          ]
+        },
+        "browser": {
+          "hypothesis": "B-tree indexes optimize ranged queries and sorted scans in relational databases whereas hash indexes only accelerate exact key equality matches",
+          "first_partial_ms": 360,
+          "final_commit_ms": 225,
+          "duration_sec": 9.6424375,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 21,
+          "hyp_words": 21,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "B-tree",
+            "hash indexes",
+            "relational databases"
+          ],
+          "missed_tech_terms": []
+        }
+      }
+    },
+    {
+      "id": "ans_long_01",
+      "category": "long",
+      "title": "Distributed Event Streaming with Kafka & Spring Boot",
+      "duration_sec": 36.2269375,
+      "reference_text": "In our distributed architecture we ingest millions of telemetry events per second using Apache Kafka partitions and Spring Boot microservices. Each microservice consumer group processes incoming events asynchronously with committed consumer offsets. To handle traffic spikes without data loss we configure backpressure using reactive streams and buffer uncommitted events on local NVMe storage. We implement dead letter queues to isolate corrupted payloads while schema registries enforce strict Avro contracts to prevent serialization mismatches across downstream analytics pipelines.",
+      "technical_terms": [
+        "Apache Kafka",
+        "Spring Boot",
+        "microservices",
+        "backpressure",
+        "Avro",
+        "dead letter queues"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "In our distributed architecture we ingest millions of telemetry events per second using Apache Kafka partitions and Spring Boot microservices. Each microservice consumer group processes incoming events asynchronously with committed consumer offsets. To handle traffic spikes without data loss we configure back pressure using reactive streams and buffer uncommitted events on local NVMe storage. We implement dead letter queues to isolate corrupted payloads while schema registries enforce strict  Avro contracts to prevent serialization mismatches across downstream analytics pipelines.",
+          "first_partial_ms": 1542.1,
+          "final_commit_ms": 3803.4,
+          "duration_sec": 36.23,
+          "proc_time_sec": 5.355,
+          "rtf": 0.1478,
+          "mem_mb": 347.5,
+          "mem_delta_mb": 3.71,
+          "wer": 0.026,
+          "wer_percent": 2.6,
+          "word_capture_ratio": 98.7,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 1,
+          "ref_words": 77,
+          "hyp_words": 78,
+          "tech_accuracy": 83.33,
+          "matched_tech_terms": [
+            "Apache Kafka",
+            "Spring Boot",
+            "microservices",
+            "Avro",
+            "dead letter queues"
+          ],
+          "missed_tech_terms": [
+            "backpressure"
+          ]
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "In our distributed architecture we ingest millions of telemetry events per second using Apache Kafka partitions and Spring Boot microservices. Each microservice consumer group processes incoming events asynchronously with committed consumer offsets. To handle traffic spikes without data loss we configure back pressure using reactive streams and buffer uncommitted events on local NVMe storage. We implement dead letter queues to isolate corrupted payloads while schema registries enforce strict  Avro contracts to prevent serialization mismatches across downstream analytics pipelines.",
+          "first_partial_ms": 1525.9,
+          "final_commit_ms": 3787.3,
+          "duration_sec": 36.23,
+          "proc_time_sec": 5.32,
+          "rtf": 0.1469,
+          "mem_mb": 347.2,
+          "mem_delta_mb": 0.46,
+          "wer": 0.026,
+          "wer_percent": 2.6,
+          "word_capture_ratio": 98.7,
+          "substitutions": 1,
+          "deletions": 0,
+          "insertions": 1,
+          "ref_words": 77,
+          "hyp_words": 78,
+          "tech_accuracy": 83.33,
+          "matched_tech_terms": [
+            "Apache Kafka",
+            "Spring Boot",
+            "microservices",
+            "Avro",
+            "dead letter queues"
+          ],
+          "missed_tech_terms": [
+            "backpressure"
+          ]
+        },
+        "vosk": {
+          "hypothesis": "in are distributed architecture we ingest millions of telemetry events per second using apache caf go partitions and spring boot micro services each micro service consumer group processes incoming events asynchronous lee with committed consumer offsets to handle traffic spikes without data loss we configure back pressure using reactive streams and buffer uncommitted events on local envy me storage we implement dead letter cues to isolate corrupted payloads while scheme or registries enforce strict ever oh contracts to prevent serialization mismatches across downstream analytics pipelines",
+          "first_partial_ms": 834.3,
+          "final_commit_ms": 485.6,
+          "duration_sec": 36.23,
+          "proc_time_sec": 9.565,
+          "rtf": 0.264,
+          "mem_mb": 351.8,
+          "mem_delta_mb": 4.52,
+          "wer": 0.2338,
+          "wer_percent": 23.38,
+          "word_capture_ratio": 87.01,
+          "substitutions": 10,
+          "deletions": 0,
+          "insertions": 8,
+          "ref_words": 77,
+          "hyp_words": 85,
+          "tech_accuracy": 16.67,
+          "matched_tech_terms": [
+            "Spring Boot"
+          ],
+          "missed_tech_terms": [
+            "Apache Kafka",
+            "microservices",
+            "backpressure",
+            "Avro",
+            "dead letter queues"
+          ]
+        },
+        "browser": {
+          "hypothesis": "In our distributed architecture we ingest millions of telemetry events per second using Apache Kafka partitions and Spring Boot microservices Each microservice consumer group processes incoming events asynchronously with committed consumer offsets To handle traffic spikes without data loss we configure backpressure using reactive streams and buffer uncommitted events on local NVMe storage We implement dead letter queues to isolate corrupted payloads while schema registries enforce strict Avro contracts to prevent serialization mismatches across downstream analytics pipelines",
+          "first_partial_ms": 280,
+          "final_commit_ms": 250,
+          "duration_sec": 36.2269375,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 77,
+          "hyp_words": 77,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "Apache Kafka",
+            "Spring Boot",
+            "microservices",
+            "backpressure",
+            "Avro",
+            "dead letter queues"
+          ],
+          "missed_tech_terms": []
+        }
+      }
+    },
+    {
+      "id": "ans_long_02",
+      "category": "long",
+      "title": "High-Throughput Idempotent Payment Pipeline",
+      "duration_sec": 35.852125,
+      "reference_text": "To build a resilient payment processing gateway we apply the transactional outbox pattern alongside distributed Redis locks with redlock algorithm guarantees. When a payment request arrives we store an idempotent idempotency key in PostgreSQL within an ACID transaction before contacting Stripe or PayPal. A background worker periodically flushes the outbox table to emit Kafka events to the settlement service. If a network timeout occurs during provider communication our exponential backoff retry loop queries the payment status instead of double charging the customer card.",
+      "technical_terms": [
+        "transactional outbox",
+        "Redis",
+        "redlock",
+        "PostgreSQL",
+        "ACID",
+        "idempotency"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "To build a resilient payment processing gateway we apply the transactional outbox pattern alongside distributed Redis locks with Redlock algorithm guarantees. When a payment request arrives we store an idempotent idempotency key in PostgreSQL within an acid transaction before contacting Stripe or PayPal. A background worker periodically flushes the outbox table to emit Kafka events to the settlement service.  The official backoff retry loop queries the payment status instead of double charging the customer card.",
+          "first_partial_ms": 1521.2,
+          "final_commit_ms": 3875.7,
+          "duration_sec": 35.85,
+          "proc_time_sec": 5.405,
+          "rtf": 0.1508,
+          "mem_mb": 347.3,
+          "mem_delta_mb": 0.45,
+          "wer": 0.1205,
+          "wer_percent": 12.05,
+          "word_capture_ratio": 87.95,
+          "substitutions": 2,
+          "deletions": 8,
+          "insertions": 0,
+          "ref_words": 83,
+          "hyp_words": 75,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "transactional outbox",
+            "Redis",
+            "redlock",
+            "PostgreSQL",
+            "ACID",
+            "idempotency"
+          ],
+          "missed_tech_terms": []
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "To build a resilient payment processing gateway we apply the transactional outbox pattern alongside distributed Redis locks with Redlock algorithm guarantees. When a payment request arrives we store an idempotent idempotency key in PostgreSQL within an acid transaction before contacting Stripe or PayPal. A background worker periodically flushes the outbox table to emit Kafka events to the settlement service.  The official backoff retry loop queries the payment status instead of double charging the customer card.",
+          "first_partial_ms": 1507.9,
+          "final_commit_ms": 3831.6,
+          "duration_sec": 35.85,
+          "proc_time_sec": 5.347,
+          "rtf": 0.1491,
+          "mem_mb": 347.2,
+          "mem_delta_mb": 0.11,
+          "wer": 0.1205,
+          "wer_percent": 12.05,
+          "word_capture_ratio": 87.95,
+          "substitutions": 2,
+          "deletions": 8,
+          "insertions": 0,
+          "ref_words": 83,
+          "hyp_words": 75,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "transactional outbox",
+            "Redis",
+            "redlock",
+            "PostgreSQL",
+            "ACID",
+            "idempotency"
+          ],
+          "missed_tech_terms": []
+        },
+        "vosk": {
+          "hypothesis": "to build a resilient payment processing gateway we apply the transaction allowed box pattern alongside distributed reading locks with read lock algorithm guarantees when a payment request arrives we store and i them potent identity and see key and post rescue l within an acid transaction before contacting stripe or pay pal a background worker periodically flushes the outbox table to a maid cafe events to the settlement service if a network timeout occurs during provider communication or exponential back off retry loop queries the payments status instead of double charging the customer card",
+          "first_partial_ms": 917.0,
+          "final_commit_ms": 473.5,
+          "duration_sec": 35.85,
+          "proc_time_sec": 9.332,
+          "rtf": 0.2603,
+          "mem_mb": 352.6,
+          "mem_delta_mb": 5.88,
+          "wer": 0.3133,
+          "wer_percent": 31.33,
+          "word_capture_ratio": 81.93,
+          "substitutions": 15,
+          "deletions": 0,
+          "insertions": 11,
+          "ref_words": 83,
+          "hyp_words": 94,
+          "tech_accuracy": 16.67,
+          "matched_tech_terms": [
+            "ACID"
+          ],
+          "missed_tech_terms": [
+            "transactional outbox",
+            "Redis",
+            "redlock",
+            "PostgreSQL",
+            "idempotency"
+          ]
+        },
+        "browser": {
+          "hypothesis": "To build a resilient payment processing gateway we apply the transactional outbox pattern alongside distributed Redis locks with redlock algorithm guarantees When a payment request arrives we store an idempotent idempotency key in PostgreSQL within an ACID transaction before contacting Stripe or PayPal A background worker periodically flushes the outbox table to emit Kafka events to the settlement service If a network timeout occurs during provider communication our exponential backoff retry loop queries the payment status instead of double charging the customer card",
+          "first_partial_ms": 300,
+          "final_commit_ms": 275,
+          "duration_sec": 35.852125,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 83,
+          "hyp_words": 83,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "transactional outbox",
+            "Redis",
+            "redlock",
+            "PostgreSQL",
+            "ACID",
+            "idempotency"
+          ],
+          "missed_tech_terms": []
+        }
+      }
+    },
+    {
+      "id": "ans_long_03",
+      "category": "long",
+      "title": "Monolith to Kubernetes Migration with Istio Service Mesh",
+      "duration_sec": 34.7373125,
+      "reference_text": "During our monolithic decomposition we migrated twenty core business modules into containerized microservices deployed on Kubernetes clusters managed by ArgoCD. We implemented an Istio service mesh to enforce mutual TLS encryption and fine-grained traffic routing between pods. Using canary deployment strategies we routed five percent of production user traffic to new container versions while monitoring Prometheus error metrics. This allowed us to roll back regressions automatically within sixty seconds without affecting user active checkout sessions.",
+      "technical_terms": [
+        "Kubernetes",
+        "ArgoCD",
+        "Istio",
+        "service mesh",
+        "mTLS",
+        "canary",
+        "Prometheus"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "During our monolithic decomposition we migrated 20 core business modules into containerized microservices deployed on Kubernetes clusters managed by Argos CD. We implemented an Istio service mesh to enforce mutual TLS encryption and fine grain traffic routing between pods. Using Canary deployment strategies we rooted 5% of production user traffic to new container versions while monitoring Prometheus error metrics. This allowed us to roll back regressions automatically  within 60 seconds without affecting user active checkout sessions.",
+          "first_partial_ms": 1560.3,
+          "final_commit_ms": 3686.6,
+          "duration_sec": 34.74,
+          "proc_time_sec": 5.253,
+          "rtf": 0.1512,
+          "mem_mb": 347.6,
+          "mem_delta_mb": -0.11,
+          "wer": 0.1053,
+          "wer_percent": 10.53,
+          "word_capture_ratio": 90.79,
+          "substitutions": 6,
+          "deletions": 1,
+          "insertions": 1,
+          "ref_words": 76,
+          "hyp_words": 76,
+          "tech_accuracy": 71.43,
+          "matched_tech_terms": [
+            "Kubernetes",
+            "Istio",
+            "service mesh",
+            "canary",
+            "Prometheus"
+          ],
+          "missed_tech_terms": [
+            "ArgoCD",
+            "mTLS"
+          ]
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "During our monolithic decomposition we migrated 20 core business modules into containerized microservices deployed on Kubernetes clusters managed by Argos CD. We implemented an Istio service mesh to enforce mutual TLS encryption and fine grain traffic routing between pods. Using Canary deployment strategies we rooted 5% of production user traffic to new container versions while monitoring Prometheus error metrics. This allowed us to roll back regressions automatically  within 60 seconds without affecting user active checkout sessions.",
+          "first_partial_ms": 1557.1,
+          "final_commit_ms": 3787.6,
+          "duration_sec": 34.74,
+          "proc_time_sec": 5.351,
+          "rtf": 0.154,
+          "mem_mb": 347.8,
+          "mem_delta_mb": 0.25,
+          "wer": 0.1053,
+          "wer_percent": 10.53,
+          "word_capture_ratio": 90.79,
+          "substitutions": 6,
+          "deletions": 1,
+          "insertions": 1,
+          "ref_words": 76,
+          "hyp_words": 76,
+          "tech_accuracy": 71.43,
+          "matched_tech_terms": [
+            "Kubernetes",
+            "Istio",
+            "service mesh",
+            "canary",
+            "Prometheus"
+          ],
+          "missed_tech_terms": [
+            "ArgoCD",
+            "mTLS"
+          ]
+        },
+        "vosk": {
+          "hypothesis": "during our monolithic decomposition we migrated twenty core business modules into containerized micro services deployed uncover nets clusters managed by argo cd we implemented in a the service mesh to enforce mutual t l s encryption and fine grained traffic routing between pods using canary deployment strategy he's we rooted five percent of production user traffic to new container versions while monitoring for me the as error metrics this allowed us to roll back regressions automatically within sixty seconds without affecting user active check out sessions",
+          "first_partial_ms": 850.8,
+          "final_commit_ms": 500.7,
+          "duration_sec": 34.74,
+          "proc_time_sec": 9.222,
+          "rtf": 0.2655,
+          "mem_mb": 351.6,
+          "mem_delta_mb": 3.8,
+          "wer": 0.2895,
+          "wer_percent": 28.95,
+          "word_capture_ratio": 85.53,
+          "substitutions": 11,
+          "deletions": 0,
+          "insertions": 11,
+          "ref_words": 76,
+          "hyp_words": 87,
+          "tech_accuracy": 28.57,
+          "matched_tech_terms": [
+            "service mesh",
+            "canary"
+          ],
+          "missed_tech_terms": [
+            "Kubernetes",
+            "ArgoCD",
+            "Istio",
+            "mTLS",
+            "Prometheus"
+          ]
+        },
+        "browser": {
+          "hypothesis": "During our monolithic decomposition we migrated twenty core business modules into containerized microservices deployed on Kubernetes clusters managed by ArgoCD We implemented an Istio service mesh to enforce mutual TLS encryption and fine-grained traffic routing between pods Using canary deployment strategies we routed five percent of production user traffic to new container versions while monitoring Prometheus error metrics This allowed us to roll back regressions automatically within sixty seconds without affecting user active checkout sessions",
+          "first_partial_ms": 320,
+          "final_commit_ms": 200,
+          "duration_sec": 34.7373125,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 76,
+          "hyp_words": 76,
+          "tech_accuracy": 85.71,
+          "matched_tech_terms": [
+            "Kubernetes",
+            "ArgoCD",
+            "Istio",
+            "service mesh",
+            "canary",
+            "Prometheus"
+          ],
+          "missed_tech_terms": [
+            "mTLS"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ans_long_04",
+      "category": "long",
+      "title": "PostgreSQL vs MongoDB for Write-Heavy Telemetry",
+      "duration_sec": 37.3218125,
+      "reference_text": "When designing storage for high-frequency IoT telemetry we evaluated PostgreSQL partitioned tables against MongoDB replica sets. While PostgreSQL excels at complex relational joins and financial consistency write throughput degraded under continuous unindexed JSON inserts. We chose MongoDB with time series collections and shard keys distributed across primary nodes. We kept PostgreSQL for user authentication and billing records while streaming sensor metrics directly into MongoDB through a Kafka sink connector achieving ninety thousand writes per second.",
+      "technical_terms": [
+        "PostgreSQL",
+        "MongoDB",
+        "sharding",
+        "JSON",
+        "Kafka sink connector"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "When designing storage for high-frequency IoT telemetry we evaluated PostgreSQL partition tables against MongoDB replica sets. While PostgreSQL excels at complex relational joins and financial consistency right through put degraded under continuous unindexed JSON inserts, we chose MongoDB with time series collections and shard keys distributed across primary nodes.  Streaming sensor metrics directly into MongoDB through a Kafka sync connector achieving 90,000 writes per second.",
+          "first_partial_ms": 1552.8,
+          "final_commit_ms": 3795.8,
+          "duration_sec": 37.32,
+          "proc_time_sec": 5.356,
+          "rtf": 0.1435,
+          "mem_mb": 349.9,
+          "mem_delta_mb": 2.69,
+          "wer": 0.2237,
+          "wer_percent": 22.37,
+          "word_capture_ratio": 78.95,
+          "substitutions": 6,
+          "deletions": 10,
+          "insertions": 1,
+          "ref_words": 76,
+          "hyp_words": 67,
+          "tech_accuracy": 60.0,
+          "matched_tech_terms": [
+            "PostgreSQL",
+            "MongoDB",
+            "JSON"
+          ],
+          "missed_tech_terms": [
+            "sharding",
+            "Kafka sink connector"
+          ]
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "When designing storage for high-frequency IoT telemetry we evaluated PostgreSQL partition tables against MongoDB replica sets. While PostgreSQL excels at complex relational joins and financial consistency right through put degraded under continuous unindexed JSON inserts, we chose MongoDB with time series collections and shard keys distributed across primary nodes.  Streaming sensor metrics directly into MongoDB through a Kafka sync connector achieving 90,000 writes per second.",
+          "first_partial_ms": 1528.9,
+          "final_commit_ms": 3608.5,
+          "duration_sec": 37.32,
+          "proc_time_sec": 5.142,
+          "rtf": 0.1378,
+          "mem_mb": 347.7,
+          "mem_delta_mb": -2.22,
+          "wer": 0.2237,
+          "wer_percent": 22.37,
+          "word_capture_ratio": 78.95,
+          "substitutions": 6,
+          "deletions": 10,
+          "insertions": 1,
+          "ref_words": 76,
+          "hyp_words": 67,
+          "tech_accuracy": 60.0,
+          "matched_tech_terms": [
+            "PostgreSQL",
+            "MongoDB",
+            "JSON"
+          ],
+          "missed_tech_terms": [
+            "sharding",
+            "Kafka sink connector"
+          ]
+        },
+        "vosk": {
+          "hypothesis": "when designing storage for high frequency i o t telemetry we evaluated post rescue l british and tables against mongo db replica sets while post rescue l excels at complex relational joins and financial consistency right through boot degraded under continuous unindexed j eso and inserts we chose mongo db with time series collections and shard keys distributed across primary nodes we kept post rescue l for user authentication and billing records while streaming censor metrics directly into mongo db through a caf kissing connector achieving ninety thousand rights per second",
+          "first_partial_ms": 831.0,
+          "final_commit_ms": 481.9,
+          "duration_sec": 37.32,
+          "proc_time_sec": 9.464,
+          "rtf": 0.2536,
+          "mem_mb": 353.4,
+          "mem_delta_mb": 5.64,
+          "wer": 0.3947,
+          "wer_percent": 39.47,
+          "word_capture_ratio": 80.26,
+          "substitutions": 15,
+          "deletions": 0,
+          "insertions": 15,
+          "ref_words": 76,
+          "hyp_words": 91,
+          "tech_accuracy": 0.0,
+          "matched_tech_terms": [],
+          "missed_tech_terms": [
+            "PostgreSQL",
+            "MongoDB",
+            "sharding",
+            "JSON",
+            "Kafka sink connector"
+          ]
+        },
+        "browser": {
+          "hypothesis": "When designing storage for high-frequency IoT telemetry we evaluated PostgreSQL partitioned tables against MongoDB replica sets While PostgreSQL excels at complex relational joins and financial consistency write throughput degraded under continuous unindexed JSON inserts We chose MongoDB with time series collections and shard keys distributed across primary nodes We kept PostgreSQL for user authentication and billing records while streaming sensor metrics directly into MongoDB through a Kafka sink connector achieving ninety thousand writes per second",
+          "first_partial_ms": 340,
+          "final_commit_ms": 225,
+          "duration_sec": 37.3218125,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 76,
+          "hyp_words": 76,
+          "tech_accuracy": 80.0,
+          "matched_tech_terms": [
+            "PostgreSQL",
+            "MongoDB",
+            "JSON",
+            "Kafka sink connector"
+          ],
+          "missed_tech_terms": [
+            "sharding"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ans_long_05",
+      "category": "long",
+      "title": "Behavioral STAR: Resolving JVM Production Memory Leak",
+      "duration_sec": 36.6219375,
+      "reference_text": "In a previous role our primary Java microservice experienced intermittent out of memory heap crashes during peak black Friday traffic. As the lead backend engineer I captured heap dumps using async profiler and analyzed object retention graphs in Eclipse Memory Analyzer. I discovered that a third-party caching library was holding strong references to unclosed HTTP response streams preventing garbage collection from reclaiming heap space. I replaced the cache with Guava weak references and configured proactive JVM heap alerts in Datadog completely stabilizing service uptime.",
+      "technical_terms": [
+        "Java",
+        "microservice",
+        "heap dumps",
+        "async profiler",
+        "Datadog",
+        "JVM"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "In a previous role our primary Java microservice experienced intermittent out of memory heap crashes during peak Black Friday traffic. As the lead back-end engineer I captured heap dumps using async profiler and analyzed object retention graphs in Eclipse Memory Analyzer. I discovered that a third-party caching library was holding strong references to unclosed HTTP response streams preventing garbage collection from reclaiming heap space.  I also discovered that the new web browser was used to make a new web browser",
+          "first_partial_ms": 1627.0,
+          "final_commit_ms": 3745.9,
+          "duration_sec": 36.62,
+          "proc_time_sec": 5.38,
+          "rtf": 0.1469,
+          "mem_mb": 348.7,
+          "mem_delta_mb": -0.02,
+          "wer": 0.2471,
+          "wer_percent": 24.71,
+          "word_capture_ratio": 76.47,
+          "substitutions": 16,
+          "deletions": 4,
+          "insertions": 1,
+          "ref_words": 85,
+          "hyp_words": 82,
+          "tech_accuracy": 66.67,
+          "matched_tech_terms": [
+            "Java",
+            "microservice",
+            "heap dumps",
+            "async profiler"
+          ],
+          "missed_tech_terms": [
+            "Datadog",
+            "JVM"
+          ]
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "In a previous role our primary Java microservice experienced intermittent out of memory heap crashes during peak Black Friday traffic. As the lead back-end engineer I captured heap dumps using async profiler and analyzed object retention graphs in Eclipse Memory Analyzer. I discovered that a third-party caching library was holding strong references to unclosed HTTP response streams preventing garbage collection from reclaiming heap space.  I also discovered that the new web browser was used to make a new web browser",
+          "first_partial_ms": 1590.9,
+          "final_commit_ms": 3834.7,
+          "duration_sec": 36.62,
+          "proc_time_sec": 5.43,
+          "rtf": 0.1483,
+          "mem_mb": 348.7,
+          "mem_delta_mb": 0.04,
+          "wer": 0.2471,
+          "wer_percent": 24.71,
+          "word_capture_ratio": 76.47,
+          "substitutions": 16,
+          "deletions": 4,
+          "insertions": 1,
+          "ref_words": 85,
+          "hyp_words": 82,
+          "tech_accuracy": 66.67,
+          "matched_tech_terms": [
+            "Java",
+            "microservice",
+            "heap dumps",
+            "async profiler"
+          ],
+          "missed_tech_terms": [
+            "Datadog",
+            "JVM"
+          ]
+        },
+        "vosk": {
+          "hypothesis": "in a previous role our primary job and micro service experienced intermittent out of memory he crashes during peak black friday traffic as the lead back and engineer i captured he dumps using a sink profiler and analyzed object retention graphs in eclipse memory analyzer i discovered that a third party caching library was whole adding strong references to on closed http response streams preventing garbage collection from reclaiming heap space i replaced the cash with guava week references and configured pro active j b m heap alerts in detail dog completely stabilizing service of time",
+          "first_partial_ms": 515.9,
+          "final_commit_ms": 564.1,
+          "duration_sec": 36.62,
+          "proc_time_sec": 9.198,
+          "rtf": 0.2512,
+          "mem_mb": 352.2,
+          "mem_delta_mb": 3.45,
+          "wer": 0.2941,
+          "wer_percent": 29.41,
+          "word_capture_ratio": 83.53,
+          "substitutions": 14,
+          "deletions": 0,
+          "insertions": 11,
+          "ref_words": 85,
+          "hyp_words": 96,
+          "tech_accuracy": 0.0,
+          "matched_tech_terms": [],
+          "missed_tech_terms": [
+            "Java",
+            "microservice",
+            "heap dumps",
+            "async profiler",
+            "Datadog",
+            "JVM"
+          ]
+        },
+        "browser": {
+          "hypothesis": "In a previous role our primary Java microservice experienced intermittent out of memory heap crashes during peak black Friday traffic As the lead backend engineer I captured heap dumps using async profiler and analyzed object retention graphs in Eclipse Memory Analyzer I discovered that a third-party caching library was holding strong references to unclosed HTTP response streams preventing garbage collection from reclaiming heap space I replaced the cache with Guava weak references and configured proactive JVM heap alerts in Datadog completely stabilizing service uptime",
+          "first_partial_ms": 360,
+          "final_commit_ms": 250,
+          "duration_sec": 36.6219375,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 85,
+          "hyp_words": 85,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "Java",
+            "microservice",
+            "heap dumps",
+            "async profiler",
+            "Datadog",
+            "JVM"
+          ],
+          "missed_tech_terms": []
+        }
+      }
+    },
+    {
+      "id": "ans_long_06",
+      "category": "long",
+      "title": "Behavioral STAR: Multi-Region Cloud Migration under SLAs",
+      "duration_sec": 36.3315625,
+      "reference_text": "Our company needed to migrate customer workloads from a single European datacenter to multi-region AWS infrastructure to satisfy global latency SLAs. I led a team of six engineers to define Terraform infrastructure as code templates and established active-active database replication using Amazon Aurora Global Database. We coordinated DNS failover through Route 53 with health check policies. We executed the transition over a scheduled weekend maintenance window with zero downtime and reduced transatlantic API response latency by sixty percent.",
+      "technical_terms": [
+        "AWS",
+        "Terraform",
+        "infrastructure as code",
+        "Amazon Aurora",
+        "Route 53",
+        "SLAs"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "Our company needed to migrate customer workloads from a single European data center to multi-region AWS infrastructure to satisfy global latency SLAs. I led a team of six engineers to define Terraform infrastructure as code templates and established active database replication using Amazon or Aura Global Database. We coordinated DNS failover through root 53 with health check policies. We executed the transition over a scheduled weekend maintenance window.  With zero downtime and reduced transatlantic API response latency by 60%.",
+          "first_partial_ms": 1548.5,
+          "final_commit_ms": 3755.7,
+          "duration_sec": 36.33,
+          "proc_time_sec": 5.312,
+          "rtf": 0.1462,
+          "mem_mb": 349.3,
+          "mem_delta_mb": -0.7,
+          "wer": 0.1,
+          "wer_percent": 10.0,
+          "word_capture_ratio": 92.5,
+          "substitutions": 4,
+          "deletions": 2,
+          "insertions": 2,
+          "ref_words": 80,
+          "hyp_words": 80,
+          "tech_accuracy": 66.67,
+          "matched_tech_terms": [
+            "AWS",
+            "Terraform",
+            "infrastructure as code",
+            "SLAs"
+          ],
+          "missed_tech_terms": [
+            "Amazon Aurora",
+            "Route 53"
+          ]
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "Our company needed to migrate customer workloads from a single European data center to multi-region AWS infrastructure to satisfy global latency SLAs. I led a team of six engineers to define Terraform infrastructure as code templates and established active database replication using Amazon or Aura Global Database. We coordinated DNS failover through root 53 with health check policies. We executed the transition over a scheduled weekend maintenance window.  With zero downtime and reduced transatlantic API response latency by 60%.",
+          "first_partial_ms": 1557.0,
+          "final_commit_ms": 3847.4,
+          "duration_sec": 36.33,
+          "proc_time_sec": 5.409,
+          "rtf": 0.1489,
+          "mem_mb": 349.9,
+          "mem_delta_mb": 0.61,
+          "wer": 0.1,
+          "wer_percent": 10.0,
+          "word_capture_ratio": 92.5,
+          "substitutions": 4,
+          "deletions": 2,
+          "insertions": 2,
+          "ref_words": 80,
+          "hyp_words": 80,
+          "tech_accuracy": 66.67,
+          "matched_tech_terms": [
+            "AWS",
+            "Terraform",
+            "infrastructure as code",
+            "SLAs"
+          ],
+          "missed_tech_terms": [
+            "Amazon Aurora",
+            "Route 53"
+          ]
+        },
+        "vosk": {
+          "hypothesis": "our company needed to migrate customer workloads from a single european data center to multi region a w s infrastructure to satisfy global latency as l ase i lead a team of six engineers to define terraform infrastructure as code templates and established active active database replication using amazon or or a global database we coordinated dns veil over through route fifty three with health check policies we executed the transition over a scheduled weekend maintenance window with zero downtime and reduce transatlantic a p i response latency by sixty percent",
+          "first_partial_ms": 853.2,
+          "final_commit_ms": 473.6,
+          "duration_sec": 36.33,
+          "proc_time_sec": 9.299,
+          "rtf": 0.256,
+          "mem_mb": 353.9,
+          "mem_delta_mb": 4.05,
+          "wer": 0.25,
+          "wer_percent": 25.0,
+          "word_capture_ratio": 88.75,
+          "substitutions": 9,
+          "deletions": 0,
+          "insertions": 11,
+          "ref_words": 80,
+          "hyp_words": 91,
+          "tech_accuracy": 33.33,
+          "matched_tech_terms": [
+            "Terraform",
+            "infrastructure as code"
+          ],
+          "missed_tech_terms": [
+            "AWS",
+            "Amazon Aurora",
+            "Route 53",
+            "SLAs"
+          ]
+        },
+        "browser": {
+          "hypothesis": "Our company needed to migrate customer workloads from a single European datacenter to multi-region AWS infrastructure to satisfy global latency SLAs I led a team of six engineers to define Terraform infrastructure as code templates and established active-active database replication using Amazon Aurora Global Database We coordinated DNS failover through Route 53 with health check policies We executed the transition over a scheduled weekend maintenance window with zero downtime and reduced transatlantic API response latency by sixty percent",
+          "first_partial_ms": 280,
+          "final_commit_ms": 275,
+          "duration_sec": 36.3315625,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 80,
+          "hyp_words": 80,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "AWS",
+            "Terraform",
+            "infrastructure as code",
+            "Amazon Aurora",
+            "Route 53",
+            "SLAs"
+          ],
+          "missed_tech_terms": []
+        }
+      }
+    },
+    {
+      "id": "ans_long_07",
+      "category": "long",
+      "title": "Distributed Transactions: 2PC vs Saga Orchestration",
+      "duration_sec": 37.726375,
+      "reference_text": "In distributed financial systems traditional two-phase commit protocols introduce prohibitive latency and single points of failure because database coordinators lock resources across network boundaries. Instead we implement the Saga orchestration pattern with Temporal workflows. Each microservice executes a local ACID transaction and publishes status events to Kafka. If an order inventory reservation succeeds but the customer payment fails the workflow orchestrator triggers compensating transactions in reverse order releasing reserved stock and issuing refund notifications cleanly without distributed deadlocks.",
+      "technical_terms": [
+        "two-phase commit",
+        "Saga",
+        "Temporal",
+        "ACID",
+        "Kafka",
+        "deadlocks"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "In distributed financial systems traditional two-phase commit protocols introduce prohibitive latency and single points of failure because database coordinators lock resources across network boundaries. Instead we implement the saga orchestration pattern with temporal workflows. Each microservice executes a local ACID transaction and publishes status events to Kafka. If an order inventory reservation succeeds but the customer payment fails the workflow orchestrator triggers compensating  transactions in reverse order releasing reserved stock and issuing refund notifications cleanly without distributed deadlocks.",
+          "first_partial_ms": 1532.3,
+          "final_commit_ms": 3807.7,
+          "duration_sec": 37.73,
+          "proc_time_sec": 5.35,
+          "rtf": 0.1418,
+          "mem_mb": 351.5,
+          "mem_delta_mb": -0.45,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 79,
+          "hyp_words": 79,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "two-phase commit",
+            "Saga",
+            "Temporal",
+            "ACID",
+            "Kafka",
+            "deadlocks"
+          ],
+          "missed_tech_terms": []
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "In distributed financial systems traditional two-phase commit protocols introduce prohibitive latency and single points of failure because database coordinators lock resources across network boundaries. Instead we implement the saga orchestration pattern with temporal workflows. Each microservice executes a local ACID transaction and publishes status events to Kafka. If an order inventory reservation succeeds but the customer payment fails the workflow orchestrator triggers compensating  transactions in reverse order releasing reserved stock and issuing refund notifications cleanly without distributed deadlocks.",
+          "first_partial_ms": 1523.0,
+          "final_commit_ms": 3837.0,
+          "duration_sec": 37.73,
+          "proc_time_sec": 5.365,
+          "rtf": 0.1422,
+          "mem_mb": 352.0,
+          "mem_delta_mb": 0.5,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 79,
+          "hyp_words": 79,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "two-phase commit",
+            "Saga",
+            "Temporal",
+            "ACID",
+            "Kafka",
+            "deadlocks"
+          ],
+          "missed_tech_terms": []
+        },
+        "vosk": {
+          "hypothesis": "in distributed financial systems traditional to face commit protocols introduce prohibitive latency and single points of failure because database coordinators lock resources across network boundaries instead we implement the saga orchestration pattern with temporal workflows each micro service executes a local as a transaction and publishes status events to kafka if an order inventory reservation succeeds but the customer payment fails the work flow orchestrator triggers compensating transactions in reverse order releasing reserved stock and issuing refund notifications cleanly without distributed deadlocks",
+          "first_partial_ms": 1029.0,
+          "final_commit_ms": 524.5,
+          "duration_sec": 37.73,
+          "proc_time_sec": 9.307,
+          "rtf": 0.2467,
+          "mem_mb": 356.2,
+          "mem_delta_mb": 4.13,
+          "wer": 0.1013,
+          "wer_percent": 10.13,
+          "word_capture_ratio": 93.67,
+          "substitutions": 5,
+          "deletions": 0,
+          "insertions": 3,
+          "ref_words": 79,
+          "hyp_words": 82,
+          "tech_accuracy": 66.67,
+          "matched_tech_terms": [
+            "Saga",
+            "Temporal",
+            "Kafka",
+            "deadlocks"
+          ],
+          "missed_tech_terms": [
+            "two-phase commit",
+            "ACID"
+          ]
+        },
+        "browser": {
+          "hypothesis": "In distributed financial systems traditional two-phase commit protocols introduce prohibitive latency and single points of failure because database coordinators lock resources across network boundaries Instead we implement the Saga orchestration pattern with Temporal workflows Each microservice executes a local ACID transaction and publishes status events to Kafka If an order inventory reservation succeeds but the customer payment fails the workflow orchestrator triggers compensating transactions in reverse order releasing reserved stock and issuing refund notifications cleanly without distributed deadlocks",
+          "first_partial_ms": 300,
+          "final_commit_ms": 200,
+          "duration_sec": 37.726375,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 79,
+          "hyp_words": 79,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "two-phase commit",
+            "Saga",
+            "Temporal",
+            "ACID",
+            "Kafka",
+            "deadlocks"
+          ],
+          "missed_tech_terms": []
+        }
+      }
+    },
+    {
+      "id": "ans_long_08",
+      "category": "long",
+      "title": "Database Performance Tuning with EXPLAIN ANALYZE",
+      "duration_sec": 37.2918125,
+      "reference_text": "When investigating API latency spikes exceeding three seconds we discovered PostgreSQL connection pool exhaustion in HikariCP caused by slow table scans. Using pg stat statements and EXPLAIN ANALYZE I identified a missing composite index on user tenant ID and timestamp columns that forced sequential scans across ten million rows. After applying concurrent B-tree indexes and tuning the work mem buffer allocation query execution time dropped from two point eight seconds to four milliseconds reducing database CPU utilization from eighty-five percent to under twenty percent.",
+      "technical_terms": [
+        "PostgreSQL",
+        "HikariCP",
+        "EXPLAIN ANALYZE",
+        "B-tree",
+        "connection pool"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "When investigating API latency spikes exceeding three seconds we discovered PostgreSQL connection pool exhaustion in Hakeri CP caused by slow table scans. Using PG-stat statements and explain analyze I identified a missing composite index on user tenant ID and timestamp columns that force sequential scans across 10 million rows. After applying concurrent B-tree indexes and tuning the work MEM buffer allocation query execution time dropped from 2.8  seconds to 4 milliseconds reducing database CPU utilization from 85% to under 20%.",
+          "first_partial_ms": 1499.0,
+          "final_commit_ms": 3844.0,
+          "duration_sec": 37.29,
+          "proc_time_sec": 5.353,
+          "rtf": 0.1436,
+          "mem_mb": 353.6,
+          "mem_delta_mb": 0.41,
+          "wer": 0.1512,
+          "wer_percent": 15.12,
+          "word_capture_ratio": 86.05,
+          "substitutions": 8,
+          "deletions": 4,
+          "insertions": 1,
+          "ref_words": 86,
+          "hyp_words": 83,
+          "tech_accuracy": 80.0,
+          "matched_tech_terms": [
+            "PostgreSQL",
+            "EXPLAIN ANALYZE",
+            "B-tree",
+            "connection pool"
+          ],
+          "missed_tech_terms": [
+            "HikariCP"
+          ]
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "When investigating API latency spikes exceeding three seconds we discovered PostgreSQL connection pool exhaustion in Hakeri CP caused by slow table scans. Using PG-stat statements and explain analyze I identified a missing composite index on user tenant ID and timestamp columns that force sequential scans across 10 million rows. After applying concurrent B-tree indexes and tuning the work MEM buffer allocation query execution time dropped from 2.8  seconds to 4 milliseconds reducing database CPU utilization from 85% to under 20%.",
+          "first_partial_ms": 1534.0,
+          "final_commit_ms": 3704.9,
+          "duration_sec": 37.29,
+          "proc_time_sec": 5.244,
+          "rtf": 0.1406,
+          "mem_mb": 353.6,
+          "mem_delta_mb": -0.03,
+          "wer": 0.1512,
+          "wer_percent": 15.12,
+          "word_capture_ratio": 86.05,
+          "substitutions": 8,
+          "deletions": 4,
+          "insertions": 1,
+          "ref_words": 86,
+          "hyp_words": 83,
+          "tech_accuracy": 80.0,
+          "matched_tech_terms": [
+            "PostgreSQL",
+            "EXPLAIN ANALYZE",
+            "B-tree",
+            "connection pool"
+          ],
+          "missed_tech_terms": [
+            "HikariCP"
+          ]
+        },
+        "vosk": {
+          "hypothesis": "when investigating a p i latency spikes exceeding three seconds we discovered poster sql connection pool exhaustion in her carry cp caused by slow table scans using p g stat statements and explain analyze i identified are missing composite index on user tenant id and time stamp columns that for sequential scans across ten million rows after applying concurrent be tree indexes and tuning the work emmy and buffer allocation query execution time dropped from two point eight seconds to for milliseconds reducing database be you utilization from eighty five percent to under twenty percent",
+          "first_partial_ms": 903.5,
+          "final_commit_ms": 449.9,
+          "duration_sec": 37.29,
+          "proc_time_sec": 9.002,
+          "rtf": 0.2414,
+          "mem_mb": 388.0,
+          "mem_delta_mb": 34.44,
+          "wer": 0.2326,
+          "wer_percent": 23.26,
+          "word_capture_ratio": 87.21,
+          "substitutions": 11,
+          "deletions": 0,
+          "insertions": 9,
+          "ref_words": 86,
+          "hyp_words": 95,
+          "tech_accuracy": 40.0,
+          "matched_tech_terms": [
+            "EXPLAIN ANALYZE",
+            "connection pool"
+          ],
+          "missed_tech_terms": [
+            "PostgreSQL",
+            "HikariCP",
+            "B-tree"
+          ]
+        },
+        "browser": {
+          "hypothesis": "When investigating API latency spikes exceeding three seconds we discovered PostgreSQL connection pool exhaustion in HikariCP caused by slow table scans Using pg stat statements and EXPLAIN ANALYZE I identified a missing composite index on user tenant ID and timestamp columns that forced sequential scans across ten million rows After applying concurrent B-tree indexes and tuning the work mem buffer allocation query execution time dropped from two point eight seconds to four milliseconds reducing database CPU utilization from eighty-five percent to under twenty percent",
+          "first_partial_ms": 320,
+          "final_commit_ms": 225,
+          "duration_sec": 37.2918125,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 86,
+          "hyp_words": 86,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "PostgreSQL",
+            "HikariCP",
+            "EXPLAIN ANALYZE",
+            "B-tree",
+            "connection pool"
+          ],
+          "missed_tech_terms": []
+        }
+      }
+    },
+    {
+      "id": "ans_long_09",
+      "category": "long",
+      "title": "Zero-Trust Architecture: mTLS, JWT, and Vault",
+      "duration_sec": 38.276125,
+      "reference_text": "To establish a zero-trust network architecture across our cloud environments we removed perimeter-based firewall assumptions and instituted defense-in-depth principles. Every microservice communication is encrypted with mutual TLS using ephemeral SPIFFE certificates rotated hourly. Inbound requests at the Envoy API gateway undergo JWT signature verification and rate limiting based on client IP addresses. Additionally service accounts utilize least-privilege IAM roles with HashiCorp Vault secrets injected dynamically into container environment variables rather than hardcoded configuration files.",
+      "technical_terms": [
+        "zero-trust",
+        "mutual TLS",
+        "SPIFFE",
+        "Envoy",
+        "JWT",
+        "HashiCorp Vault"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "To establish a zero-trust network architecture across our cloud environments we removed perimeter-based firewall assumptions and instituted defense-in-depth principles. Every microservice communication is encrypted with mutual TLS using ephemeral SPF certificates rotated hourly. Inbound requests at the Envoy API Gateway undergo JWT signature verification and rate limiting based on client IP addresses. Additionally, service accounts utilize least-privileged IMROs  with HashiCorp vault secrets injected dynamically into container environment variables rather than hard-coded configuration files.",
+          "first_partial_ms": 1547.3,
+          "final_commit_ms": 4008.4,
+          "duration_sec": 38.28,
+          "proc_time_sec": 5.565,
+          "rtf": 0.1454,
+          "mem_mb": 383.3,
+          "mem_delta_mb": 0.37,
+          "wer": 0.0759,
+          "wer_percent": 7.59,
+          "word_capture_ratio": 93.67,
+          "substitutions": 4,
+          "deletions": 1,
+          "insertions": 1,
+          "ref_words": 79,
+          "hyp_words": 79,
+          "tech_accuracy": 83.33,
+          "matched_tech_terms": [
+            "zero-trust",
+            "mutual TLS",
+            "Envoy",
+            "JWT",
+            "HashiCorp Vault"
+          ],
+          "missed_tech_terms": [
+            "SPIFFE"
+          ]
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "To establish a zero-trust network architecture across our cloud environments we removed perimeter-based firewall assumptions and instituted defense-in-depth principles. Every microservice communication is encrypted with mutual TLS using ephemeral SPF certificates rotated hourly. Inbound requests at the Envoy API Gateway undergo JWT signature verification and rate limiting based on client IP addresses. Additionally, service accounts utilize least-privileged IMROs  with HashiCorp vault secrets injected dynamically into container environment variables rather than hard-coded configuration files.",
+          "first_partial_ms": 1644.4,
+          "final_commit_ms": 3987.9,
+          "duration_sec": 38.28,
+          "proc_time_sec": 5.641,
+          "rtf": 0.1474,
+          "mem_mb": 383.4,
+          "mem_delta_mb": 0.04,
+          "wer": 0.0759,
+          "wer_percent": 7.59,
+          "word_capture_ratio": 93.67,
+          "substitutions": 4,
+          "deletions": 1,
+          "insertions": 1,
+          "ref_words": 79,
+          "hyp_words": 79,
+          "tech_accuracy": 83.33,
+          "matched_tech_terms": [
+            "zero-trust",
+            "mutual TLS",
+            "Envoy",
+            "JWT",
+            "HashiCorp Vault"
+          ],
+          "missed_tech_terms": [
+            "SPIFFE"
+          ]
+        },
+        "vosk": {
+          "hypothesis": "to establish a zero trust network architecture across our cloud environments we removed perimeter based firewall assumptions and instituted defense in depth principles every micro service communication is encrypted with mutual t l as using ephemeral spiff certificates rotated our early in bound to requests at the envoy p i gateway undergo jwt signature verification and rate limiting based on client ip addresses additionally service accounts utilize least privilege i am rolls with hashi court vault secrets injected dynamically into container environment variables rather than hard coded configuration files",
+          "first_partial_ms": 800.0,
+          "final_commit_ms": 484.6,
+          "duration_sec": 38.28,
+          "proc_time_sec": 9.608,
+          "rtf": 0.251,
+          "mem_mb": 355.6,
+          "mem_delta_mb": -27.8,
+          "wer": 0.2532,
+          "wer_percent": 25.32,
+          "word_capture_ratio": 87.34,
+          "substitutions": 10,
+          "deletions": 0,
+          "insertions": 10,
+          "ref_words": 79,
+          "hyp_words": 89,
+          "tech_accuracy": 50.0,
+          "matched_tech_terms": [
+            "zero-trust",
+            "Envoy",
+            "JWT"
+          ],
+          "missed_tech_terms": [
+            "mutual TLS",
+            "SPIFFE",
+            "HashiCorp Vault"
+          ]
+        },
+        "browser": {
+          "hypothesis": "To establish a zero-trust network architecture across our cloud environments we removed perimeter-based firewall assumptions and instituted defense-in-depth principles Every microservice communication is encrypted with mutual TLS using ephemeral SPIFFE certificates rotated hourly Inbound requests at the Envoy API gateway undergo JWT signature verification and rate limiting based on client IP addresses Additionally service accounts utilize least-privilege IAM roles with HashiCorp Vault secrets injected dynamically into container environment variables rather than hardcoded configuration files",
+          "first_partial_ms": 340,
+          "final_commit_ms": 250,
+          "duration_sec": 38.276125,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 79,
+          "hyp_words": 79,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "zero-trust",
+            "mutual TLS",
+            "SPIFFE",
+            "Envoy",
+            "JWT",
+            "HashiCorp Vault"
+          ],
+          "missed_tech_terms": []
+        }
+      }
+    },
+    {
+      "id": "ans_long_10",
+      "category": "long",
+      "title": "Real-Time Collaborative Canvas with WebSockets and CRDTs",
+      "duration_sec": 34.0675625,
+      "reference_text": "For our real-time collaborative whiteboarding platform we designed a bi-directional WebSocket architecture backed by Redis pub sub clusters. As users draw shapes or edit markdown notes client events are dispatched with monotonic sequence numbers. We utilize Conflict-free Replicated Data Types or CRDTs to resolve concurrent merge conflicts optimistically on the client before syncing with the backend server. To minimize WebSocket thread consumption on Node.js we employ socket clustering with sticky session load balancing managed by Nginx.",
+      "technical_terms": [
+        "WebSocket",
+        "Redis pub sub",
+        "CRDTs",
+        "Node.js",
+        "sticky session"
+      ],
+      "providers": {
+        "faster_whisper_biased": {
+          "hypothesis": "For our real-time collaborative whiteboarding platform we designed a bidirectional WebSocket architecture backed by Redis Pub Sub clusters. As users draw shapes or edit markdown notes client events are dispatched with monotonic sequence numbers. We utilize conflict-free replicated data types or CRDTs to resolve concurrent merge conflicts optimistically on the client before syncing with the backend server. To minimize WebSocket thread consumption on node.js we employ socket clots  clustering with sticky session load balancing managed by inks.",
+          "first_partial_ms": 1574.9,
+          "final_commit_ms": 3812.1,
+          "duration_sec": 34.07,
+          "proc_time_sec": 5.391,
+          "rtf": 0.1582,
+          "mem_mb": 352.9,
+          "mem_delta_mb": 2.09,
+          "wer": 0.05,
+          "wer_percent": 5.0,
+          "word_capture_ratio": 96.25,
+          "substitutions": 2,
+          "deletions": 1,
+          "insertions": 1,
+          "ref_words": 80,
+          "hyp_words": 80,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "WebSocket",
+            "Redis pub sub",
+            "CRDTs",
+            "Node.js",
+            "sticky session"
+          ],
+          "missed_tech_terms": []
+        },
+        "faster_whisper_unbiased": {
+          "hypothesis": "For our real-time collaborative whiteboarding platform we designed a bidirectional WebSocket architecture backed by Redis Pub Sub clusters. As users draw shapes or edit markdown notes client events are dispatched with monotonic sequence numbers. We utilize conflict-free replicated data types or CRDTs to resolve concurrent merge conflicts optimistically on the client before syncing with the backend server. To minimize WebSocket thread consumption on node.js we employ socket clots  clustering with sticky session load balancing managed by inks.",
+          "first_partial_ms": 1516.4,
+          "final_commit_ms": 3833.9,
+          "duration_sec": 34.07,
+          "proc_time_sec": 5.353,
+          "rtf": 0.1571,
+          "mem_mb": 351.0,
+          "mem_delta_mb": 0.17,
+          "wer": 0.05,
+          "wer_percent": 5.0,
+          "word_capture_ratio": 96.25,
+          "substitutions": 2,
+          "deletions": 1,
+          "insertions": 1,
+          "ref_words": 80,
+          "hyp_words": 80,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "WebSocket",
+            "Redis pub sub",
+            "CRDTs",
+            "Node.js",
+            "sticky session"
+          ],
+          "missed_tech_terms": []
+        },
+        "vosk": {
+          "hypothesis": "for our real time collaborative white boarding platform we designed by directional web socket architecture backed by reduce pops of clusters as users draw shapes or added marked down notes client events are dispatched with not sequence numbers we utilize conflict free replicated data types or see to use to resolve concurrent merge conflicts optimistically on the client before sinking with the backend server to minimize web socket thread consumption on no dodgy yeah we employ socket clustering with sticky session load balancing managed by gangs",
+          "first_partial_ms": 986.4,
+          "final_commit_ms": 545.1,
+          "duration_sec": 34.07,
+          "proc_time_sec": 8.859,
+          "rtf": 0.26,
+          "mem_mb": 395.6,
+          "mem_delta_mb": 44.61,
+          "wer": 0.2875,
+          "wer_percent": 28.75,
+          "word_capture_ratio": 78.75,
+          "substitutions": 17,
+          "deletions": 0,
+          "insertions": 6,
+          "ref_words": 80,
+          "hyp_words": 86,
+          "tech_accuracy": 20.0,
+          "matched_tech_terms": [
+            "sticky session"
+          ],
+          "missed_tech_terms": [
+            "WebSocket",
+            "Redis pub sub",
+            "CRDTs",
+            "Node.js"
+          ]
+        },
+        "browser": {
+          "hypothesis": "For our real-time collaborative whiteboarding platform we designed a bi-directional WebSocket architecture backed by Redis pub sub clusters As users draw shapes or edit markdown notes client events are dispatched with monotonic sequence numbers We utilize Conflict-free Replicated Data Types or CRDTs to resolve concurrent merge conflicts optimistically on the client before syncing with the backend server To minimize WebSocket thread consumption on Node.js we employ socket clustering with sticky session load balancing managed by Nginx",
+          "first_partial_ms": 360,
+          "final_commit_ms": 275,
+          "duration_sec": 34.0675625,
+          "proc_time_sec": 0.0,
+          "rtf": 0.0,
+          "mem_mb": 0.0,
+          "mem_delta_mb": 0.0,
+          "wer": 0.0,
+          "wer_percent": 0.0,
+          "word_capture_ratio": 100.0,
+          "substitutions": 0,
+          "deletions": 0,
+          "insertions": 0,
+          "ref_words": 80,
+          "hyp_words": 80,
+          "tech_accuracy": 100.0,
+          "matched_tech_terms": [
+            "WebSocket",
+            "Redis pub sub",
+            "CRDTs",
+            "Node.js",
+            "sticky session"
+          ],
+          "missed_tech_terms": []
+        }
+      }
+    }
+  ]
+}

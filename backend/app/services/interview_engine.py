@@ -907,11 +907,15 @@ async def update_summary_node(state: InterviewState) -> Dict[str, Any]:
     if topic and topic not in covered:
         covered.append(topic)
 
-    # Record structured turn for persistence and final report (§Q7)
+    # Record structured turn for persistence and final report (§Q7, §T7)
     turn_record: Dict[str, Any] = {
         "question_index": index,
         "question": question,
         "candidate_answer": answer,
+        "answer_clean": state.get("answer_clean") or answer,
+        "answer_raw": state.get("answer_raw") or answer,
+        "stt_confidence": state.get("stt_confidence", 0.95),
+        "is_low_confidence": bool(state.get("is_low_confidence", False)),
         "planner_action": action,
         "target_topic": topic,
         "sources_used": state.get("question_sources", []),
@@ -1307,9 +1311,24 @@ async def submit_candidate_answer(
     state: InterviewState,
     answer: str,
     telemetry_summary: Optional[Dict[str, Any]] = None,
+    answer_raw: Optional[str] = None,
+    stt_confidence: Optional[float] = None,
+    is_low_confidence: Optional[bool] = None,
 ) -> InterviewState:
-    """Process candidate answer: evaluate, update rolling summary, adapt difficulty, and generate next question."""
-    state["candidate_answer"] = answer
+    """Process candidate answer: normalize terms, evaluate, update rolling summary, adapt difficulty, and generate next question."""
+    from app.services.term_normalizer import normalize_transcript, compute_turn_confidence
+
+    raw = answer_raw if answer_raw is not None else answer
+    norm_res = normalize_transcript(raw, custom_terms=state.get("target_skills"))
+    clean = answer if (answer and answer != raw) else norm_res["clean_text"]
+    conf_data = compute_turn_confidence(raw, stt_confidence=stt_confidence)
+
+    state["candidate_answer"] = clean
+    state["answer_clean"] = clean
+    state["answer_raw"] = raw
+    state["stt_confidence"] = stt_confidence if stt_confidence is not None else conf_data["confidence"]
+    state["is_low_confidence"] = is_low_confidence if is_low_confidence is not None else conf_data["is_low_confidence"]
+
     if telemetry_summary:
         state["telemetry_summary"] = telemetry_summary
 

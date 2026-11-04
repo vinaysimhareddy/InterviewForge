@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SpeechToText, TTSState } from '../services/speech/types';
 import { createSpeechToTextProvider } from '../services/speech/sttFactory';
+import { STTProviderMode } from '../services/speech/sttChainManager';
 import { ttsManager, TTSManager } from '../services/speech/ttsManager';
 import { isSignificantSpeech, VoiceActivityDetector } from '../services/speech/vad';
 import { mapSpeechRecognitionError, SpeechErrorInfo } from '../services/speech/speechErrors';
 import { sttTimingLogger } from '../services/speech/sttTimingLogger';
-import { computeAdaptiveSilenceTimeoutMs, MAX_ANSWER_DURATION_SEC } from '../services/speech/adaptiveSilence';
+import { computeTurnSilenceTimeoutMs, MAX_ANSWER_DURATION_SEC } from '../services/speech/adaptiveSilence';
+import { normalizeTranscript, computeTurnConfidence } from '../services/speech/termNormalizer';
 import { ClientWSMessage } from '../lib/types';
 
 export type VoiceTurnState =
@@ -15,17 +17,26 @@ export type VoiceTurnState =
   | 'submitting'
   | 'paused';
 
+export interface AnswerSubmissionMetadata {
+  source?: 'voice' | 'typed';
+  answer_raw?: string;
+  stt_confidence?: number;
+  is_low_confidence?: boolean;
+  skipCatchCheck?: boolean;
+}
+
 export interface UseVoiceTurnEngineOptions {
   audioStream: MediaStream | null;
   currentQuestion: string;
   questionIndex: number;
   isPaused?: boolean;
   sendWSMessage?: (message: ClientWSMessage) => boolean;
-  onSubmitAnswer: (answer: string, metadata?: { source?: 'voice' | 'typed' }) => Promise<void>;
+  onSubmitAnswer: (answer: string, metadata?: AnswerSubmissionMetadata) => Promise<void>;
   autoPlayTTS?: boolean;
   silenceTimeoutMs?: number;      // Silence window after speech to trigger auto-complete (default: 2000ms)
   minSpeechDurationMs?: number;   // Minimum speech duration to qualify as spoken answer (default: 400ms)
   energyThreshold?: number;       // RMS energy threshold for VAD (default: 0.045)
+  customTerms?: string[];         // Technical glossary terms from role & resume (§T7)
 }
 
 export interface UseVoiceTurnEngineReturn {
@@ -34,20 +45,23 @@ export interface UseVoiceTurnEngineReturn {
   isAiSpeaking: boolean;
   isCandidateSpeaking: boolean;
   isListening: boolean;
-  transcript: string;
+  transcript: string;             // Clean normalized transcript shown live (§T7)
+  rawTranscript: string;          // Unaltered raw transcript for audit review (§T7)
+  turnConfidence: number;         // 0..1 confidence score (§T7)
+  isLowConfidence: boolean;       // Flagged if confidence < 0.65 (§T7)
   interimTranscript: string;
   audioLevel: number;             // 0..1 normalized RMS for UI visualizer
   silenceProgress: number;        // 0..1 countdown progress toward auto-submission
   isSpeechSupported: boolean;
   isReconnectingVoice: boolean;
   sttStatusNotice: string | null;
-  activeSTTProvider: 'browser' | 'nemotron' | 'typed';
+  activeSTTProvider: STTProviderMode;
   retryVoice: () => void;
   speakQuestion: () => Promise<void>;
   replayQuestion: () => Promise<void>;
   stopAudio: () => void;
   interruptAI: () => void;
-  submitAnswer: (metadata?: { source?: 'voice' | 'typed' }) => Promise<void>;
+  submitAnswer: (metadata?: AnswerSubmissionMetadata) => Promise<void>;
   clearTranscript: () => void;
   setTranscript: (text: string) => void;
   toggleDictation: () => void;
@@ -66,12 +80,16 @@ export function useVoiceTurnEngine({
   silenceTimeoutMs = 2000,
   minSpeechDurationMs = 400,
   energyThreshold = 0.045,
+  customTerms = [],
 }: UseVoiceTurnEngineOptions): UseVoiceTurnEngineReturn {
   const [turnState, setTurnState] = useState<VoiceTurnState>('idle');
   const [isAiSpeaking, setIsAiSpeaking] = useState<boolean>(false);
   const [isCandidateSpeaking, setIsCandidateSpeaking] = useState<boolean>(false);
   const [isListening, setIsListening] = useState<boolean>(false);
   const [transcript, setTranscriptState] = useState<string>('');
+  const [rawTranscript, setRawTranscriptState] = useState<string>('');
+  const [turnConfidence, setTurnConfidence] = useState<number>(0.90);
+  const [isLowConfidence, setIsLowConfidence] = useState<boolean>(false);
   const [interimTranscript, setInterimTranscript] = useState<string>('');
   const [audioLevel, setAudioLevel] = useState<number>(0);
   const [silenceProgress, setSilenceProgress] = useState<number>(0);
@@ -79,7 +97,7 @@ export function useVoiceTurnEngine({
   const [ttsState, setTtsState] = useState<TTSState>(ttsManager.getAudioState());
   const [isReconnectingVoice, setIsReconnectingVoice] = useState<boolean>(false);
   const [sttStatusNotice, setSttStatusNotice] = useState<string | null>(null);
-  const [activeSTTProvider, setActiveSTTProvider] = useState<'browser' | 'nemotron' | 'typed'>('browser');
+  const [activeSTTProvider, setActiveSTTProvider] = useState<STTProviderMode>('browser');
   const isReconnectingVoiceRef = useRef<boolean>(false);
   isReconnectingVoiceRef.current = isReconnectingVoice;
 
@@ -101,11 +119,22 @@ export function useVoiceTurnEngine({
   const transcriptRef = useRef<string>('');
   transcriptRef.current = transcript;
 
+  const rawTranscriptRef = useRef<string>('');
+  rawTranscriptRef.current = rawTranscript;
+
+  const accumulatedSpeechDurationSecRef = useRef<number>(0);
+  const hasAskedToRepeatRef = useRef<boolean>(false);
+  const customTermsRef = useRef<string[]>(customTerms);
+  customTermsRef.current = customTerms;
+
   const hasSpokenMeaningfullyRef = useRef<boolean>(false);
   const silenceStartTimeRef = useRef<number | null>(null);
   const isSubmittingRef = useRef<boolean>(false);
   const currentQuestionRef = useRef<string>('');
   const questionStartTimeRef = useRef<number>(Date.now());
+  const lastRecognizerResultTimeRef = useRef<number>(0);
+  const restartWaitStartTimeRef = useRef<number | null>(null);
+  const graceFinalStartTimeRef = useRef<number | null>(null);
 
   // Check browser speech capabilities
   const isSpeechSupported =
@@ -139,29 +168,43 @@ export function useVoiceTurnEngine({
     let latestInterimChunk = '';
 
     const unsubscribeSTT = stt.onTranscript((event) => {
+      lastRecognizerResultTimeRef.current = performance.now();
+      restartWaitStartTimeRef.current = null;
+
       // If AI is speaking and candidate starts speaking, trigger barge-in interruption!
       if (turnStateRef.current === 'ai_speaking' && event.text.trim().length > 0) {
         handleBargeIn();
       }
 
+      const rawFull = event.fullTranscript;
+      rawTranscriptRef.current = rawFull;
+      setRawTranscriptState(rawFull);
+
+      const normResult = normalizeTranscript(rawFull, customTermsRef.current);
+      const cleanFull = normResult.cleanText;
+
       if (event.isFinal) {
+        graceFinalStartTimeRef.current = null;
         if (rafInterimId !== null) {
           cancelAnimationFrame(rafInterimId);
           rafInterimId = null;
         }
         latestInterimChunk = '';
         sttTimingLogger.recordEvent('final_text', questionIndex);
-        setTranscriptState(event.fullTranscript);
+        setTranscriptState(cleanFull);
         setInterimTranscript('');
-        transcriptRef.current = event.fullTranscript;
+        transcriptRef.current = cleanFull;
       } else {
         sttTimingLogger.recordEvent('first_interim', questionIndex);
         sttTimingLogger.recordEvent('last_interim', questionIndex);
         latestInterimChunk = event.text;
+        // Keep transcriptRef current with the full clean assembled text (§T2, §T7)
+        transcriptRef.current = cleanFull;
         // Throttle interim re-renders via requestAnimationFrame to avoid UI thread thrashing (§B4)
         if (rafInterimId === null) {
           rafInterimId = requestAnimationFrame(() => {
-            setInterimTranscript(latestInterimChunk);
+            const cleanInterim = normalizeTranscript(latestInterimChunk, customTermsRef.current).cleanText;
+            setInterimTranscript(cleanInterim);
             rafInterimId = null;
           });
         }
@@ -249,6 +292,14 @@ export function useVoiceTurnEngine({
           setAudioLevel(normalizedRms);
           setIsCandidateSpeaking(vadState.isSpeaking);
 
+          if (vadState.isSpeaking && turnStateRef.current === 'candidate_turn') {
+            accumulatedSpeechDurationSecRef.current += 0.016;
+          }
+
+          if (sttRef.current && typeof (sttRef.current as any).notifySpeechActivity === 'function') {
+            (sttRef.current as any).notifySpeechActivity(vadState.isSpeaking);
+          }
+
           // 2a. Interruption Check: Candidate speaking while AI is speaking
           if (turnStateRef.current === 'ai_speaking') {
             if (vadState.speechDurationMs >= 200 && vadState.currentRMS >= energyThreshold) {
@@ -282,8 +333,10 @@ export function useVoiceTurnEngine({
 
             if (hasSpokenMeaningfullyRef.current) {
               if (!vadState.isSpeaking) {
-                // Adaptive silence window (1.2s for complete sentences / terminal punctuation [.?!], 2.0s for mid-sentence pauses, cap 2.5s)
-                const adaptiveTimeoutMs = computeAdaptiveSilenceTimeoutMs(
+                // Adaptive silence window (§T2):
+                // - shorter (1.5–2.0 s) if answer is already long/complete
+                // - longer (2.5–3.5 s) if answer is short (< 10 words) or candidate just paused mid-thought
+                const adaptiveTimeoutMs = computeTurnSilenceTimeoutMs(
                   transcriptRef.current,
                   currentWords,
                   silenceTimeoutMs
@@ -298,12 +351,56 @@ export function useVoiceTurnEngine({
                 setSilenceProgress(progress);
 
                 if (elapsedSilence >= adaptiveTimeoutMs && !isSubmittingRef.current) {
+                  // Guard 1: Do NOT declare answer complete if recognizer returned a result within the last 400 ms (§T2)
+                  const timeSinceLastResult = now - lastRecognizerResultTimeRef.current;
+                  if (timeSinceLastResult < 400) {
+                    animFrameIdRef.current = requestAnimationFrame(processAudio);
+                    return;
+                  }
+
+                  // Guard 2: If recognizer is currently in restart, wait for it to restart (up to 1.5 s) (§T2)
+                  const isSTTRestarting = Boolean((sttRef.current as any)?.isRestarting);
+                  if (isSTTRestarting) {
+                    if (restartWaitStartTimeRef.current === null) {
+                      restartWaitStartTimeRef.current = now;
+                    }
+                    const restartWaitElapsed = now - restartWaitStartTimeRef.current;
+                    if (restartWaitElapsed < 1500) {
+                      animFrameIdRef.current = requestAnimationFrame(processAudio);
+                      return;
+                    }
+                  } else {
+                    restartWaitStartTimeRef.current = null;
+                  }
+
+                  // Guard 3: Wait for pending finalization: on silence detection, give recognizer up to 700 ms
+                  // to deliver isFinal: true before sealing interim (§T2)
+                  const hasPendingInterim = Boolean(
+                    interimTranscript.trim() ||
+                    ((sttRef.current as any)?.hasPendingInterim && (sttRef.current as any).hasPendingInterim())
+                  );
+                  if (hasPendingInterim) {
+                    if (graceFinalStartTimeRef.current === null) {
+                      graceFinalStartTimeRef.current = now;
+                    }
+                    const graceElapsed = now - graceFinalStartTimeRef.current;
+                    if (graceElapsed < 700) {
+                      animFrameIdRef.current = requestAnimationFrame(processAudio);
+                      return;
+                    }
+                  }
+
+                  if (import.meta.env.DEV) {
+                    console.log(`[useVoiceTurnEngine][SilenceTrigger] Silence timeout reached: elapsedSilence=${elapsedSilence.toFixed(0)}ms >= adaptiveTimeoutMs=${adaptiveTimeoutMs}ms (currentWords=${currentWords}, hasSpokenMeaningfully=true)`);
+                  }
                   // Adaptive silence timeout reached -> automatically complete answer
                   void triggerAnswerCompletion();
                 }
               } else {
-                // Candidate resumed speaking -> reset silence timer
+                // Candidate resumed speaking -> reset silence timer and grace tracking
                 silenceStartTimeRef.current = null;
+                restartWaitStartTimeRef.current = null;
+                graceFinalStartTimeRef.current = null;
                 setSilenceProgress(0);
               }
             }
@@ -351,11 +448,89 @@ export function useVoiceTurnEngine({
   }, []);
 
   // 4. Trigger Answer Completion & Submission
-  const triggerAnswerCompletion = useCallback(async (metadata?: { source?: 'voice' | 'typed' }) => {
+  const triggerAnswerCompletion = useCallback(async (metadata?: AnswerSubmissionMetadata) => {
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
 
     sttTimingLogger.recordEvent('answer_end_decision', questionIndex);
+
+    // Seal any trailing interim words into the committed transcript before stopping STT (§T2)
+    let finalRaw = rawTranscriptRef.current.trim();
+    if (sttRef.current && 'seal' in sttRef.current && typeof (sttRef.current as any).seal === 'function') {
+      const sealed = (sttRef.current as any).seal();
+      if (sealed && sealed.trim().length > 0) {
+        finalRaw = sealed.trim();
+        rawTranscriptRef.current = finalRaw;
+        setRawTranscriptState(finalRaw);
+      }
+    }
+
+    const norm = normalizeTranscript(finalRaw, customTermsRef.current);
+    const finalClean = norm.cleanText.trim();
+    transcriptRef.current = finalClean;
+    setTranscriptState(finalClean);
+    setInterimTranscript('');
+
+    const wordCount = finalRaw.split(/\s+/).filter(Boolean).length;
+    const voicedDuration = accumulatedSpeechDurationSecRef.current;
+    const confResult = computeTurnConfidence(finalRaw, undefined, voicedDuration);
+    setTurnConfidence(confResult.confidence);
+    setIsLowConfidence(confResult.isLowConfidence);
+
+    // "I didn't catch that" flow (§T7):
+    // If speech was detected for > 2 s but < 3 recognized words, or confidence is very low (< 0.40),
+    // the AI asks the candidate to repeat once (not counted as a skip).
+    const isUnintelligibleSpeech =
+      (voicedDuration >= 2.0 && wordCount < 3) ||
+      (wordCount > 0 && confResult.confidence < 0.40);
+
+    if (isUnintelligibleSpeech && !hasAskedToRepeatRef.current && !metadata?.skipCatchCheck) {
+      hasAskedToRepeatRef.current = true;
+      isSubmittingRef.current = false;
+
+      setTurnState('ai_speaking');
+      setIsAiSpeaking(true);
+      setTranscriptState('');
+      setInterimTranscript('');
+      setRawTranscriptState('');
+      transcriptRef.current = '';
+      rawTranscriptRef.current = '';
+      accumulatedSpeechDurationSecRef.current = 0;
+      silenceStartTimeRef.current = null;
+      restartWaitStartTimeRef.current = null;
+      graceFinalStartTimeRef.current = null;
+      setSilenceProgress(0);
+
+      if (sttRef.current) {
+        sttRef.current.resetTranscript();
+        try { sttRef.current.stop(); } catch {}
+      }
+
+      const repeatPrompt = "I didn't catch that. Could you please repeat your answer?";
+      if (ttsRef.current) {
+        ttsRef.current
+          .speak(repeatPrompt)
+          .catch(() => {})
+          .finally(() => {
+            setIsAiSpeaking(false);
+            setTurnState('candidate_turn');
+            if (sttRef.current && !sttRef.current.isListening) {
+              try {
+                sttRef.current.start();
+              } catch {}
+            }
+          });
+      } else {
+        setIsAiSpeaking(false);
+        setTurnState('candidate_turn');
+        if (sttRef.current && !sttRef.current.isListening) {
+          try {
+            sttRef.current.start();
+          } catch {}
+        }
+      }
+      return;
+    }
 
     // Stop STT and VAD tracking
     if (sttRef.current) {
@@ -374,10 +549,23 @@ export function useVoiceTurnEngine({
 
     sttTimingLogger.recordEvent('answer_sent', questionIndex);
 
-    const finalAnswer = transcriptRef.current.trim();
+    if (import.meta.env.DEV) {
+      console.log(`[useVoiceTurnEngine][triggerAnswerCompletion] Sealed answer:
+        - rawTranscriptRef.current: "${finalRaw}"
+        - cleanTranscript: "${finalClean}"
+        - words committed: ${finalClean.split(/\s+/).filter(Boolean).length}
+        - questionIndex: ${questionIndex}
+        - confidence: ${confResult.confidence} (low=${confResult.isLowConfidence})
+      `);
+    }
     const source = metadata?.source || (activeSTTProvider === 'typed' ? 'typed' : 'voice');
     try {
-      await onSubmitAnswer(finalAnswer, { source });
+      await onSubmitAnswer(finalClean, {
+        source,
+        answer_raw: finalRaw || finalClean,
+        stt_confidence: confResult.confidence,
+        is_low_confidence: confResult.isLowConfidence,
+      });
     } finally {
       isSubmittingRef.current = false;
     }
@@ -407,9 +595,18 @@ export function useVoiceTurnEngine({
     }
     setTranscriptState('');
     setInterimTranscript('');
+    setRawTranscriptState('');
     transcriptRef.current = '';
+    rawTranscriptRef.current = '';
+    hasAskedToRepeatRef.current = false;
+    accumulatedSpeechDurationSecRef.current = 0;
+    setTurnConfidence(0.90);
+    setIsLowConfidence(false);
     hasSpokenMeaningfullyRef.current = false;
     silenceStartTimeRef.current = null;
+    restartWaitStartTimeRef.current = null;
+    graceFinalStartTimeRef.current = null;
+    lastRecognizerResultTimeRef.current = 0;
     setSilenceProgress(0);
     questionStartTimeRef.current = Date.now();
 
@@ -509,6 +706,9 @@ export function useVoiceTurnEngine({
     isCandidateSpeaking,
     isListening,
     transcript,
+    rawTranscript,
+    turnConfidence,
+    isLowConfidence,
     interimTranscript,
     audioLevel,
     silenceProgress,
@@ -525,12 +725,16 @@ export function useVoiceTurnEngine({
     clearTranscript: () => {
       setTranscriptState('');
       setInterimTranscript('');
+      setRawTranscriptState('');
       transcriptRef.current = '';
+      rawTranscriptRef.current = '';
       if (sttRef.current) sttRef.current.resetTranscript();
     },
     setTranscript: (text: string) => {
       setTranscriptState(text);
+      setRawTranscriptState(text);
       transcriptRef.current = text;
+      rawTranscriptRef.current = text;
     },
     toggleDictation,
     sttError,

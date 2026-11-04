@@ -1,25 +1,32 @@
 /**
- * Resilient STT Provider Chain Manager (§B3)
+ * Resilient STT Provider Chain Manager (§B3 & T5).
  *
  * Implements a multi-stage speech-to-text fallback chain:
- *   1. 'browser': Browser-native Web Speech API (low latency, zero compute cost).
- *   2. 'nemotron': Cache-Aware Streaming Neural ASR on port 8001 (if healthy and running).
- *   3. 'typed': Candidate typed textarea fallback (last resort when network/speech APIs fail).
+ *   1. Primary: 'faster-whisper' (Streaming Neural ASR on port 8001 with technical term biasing)
+ *   2. Fallback 1: 'vosk' (Ultra-low latency streaming ASR on port 8001)
+ *   3. Fallback 2: 'browser' (Browser Web Speech API with T2 TranscriptAssembler fixes)
+ *   4. Fallback 3: 'typed' (Candidate typed textarea fallback)
  *
- * Resilience policies:
- *   - Auto-retry network errors with exponential backoff (300ms, 800ms, 1500ms, 3000ms).
- *   - Non-blocking "Reconnecting voice…" status notice during retry window.
- *   - Automatic provider switch after 3 failed network retries.
- *   - Silent restart on 'no-speech' and 'aborted' without user disruption.
- *   - Fatal mic permission errors ('not-allowed', 'audio-capture') bypass retry loop to show permission prompt.
+ * Automatic Failover Triggers (§T5):
+ *   - Connection refused / WS drop > 1.5 s without reconnect.
+ *   - No partial text received after 2.5 s of detected speech.
+ *   - Unrecoverable provider error.
+ *   - Zero Word Loss Hand-off: Next provider shares the same TranscriptAssembler.
+ *   - Calm in-app notice: "Switched to backup voice recognition" (no vendor/model names).
  */
 
 import { SpeechToText, TranscriptEvent, SpeechError, STTState } from './types';
 import { BrowserSpeechToText } from './browserSTT';
-import { NemotronStreamingSTT, NemotronSTTOptions } from './nemotronSTT';
-import { checkNemotronHealth } from './sttFactory';
+import { StreamingServerSTT } from './streamingServerSTT';
+import { NemotronSTTOptions } from './nemotronSTT';
+import { TranscriptAssembler } from './transcriptAssembler';
 
-export type STTProviderMode = 'browser' | 'nemotron' | 'typed';
+export type STTProviderMode =
+  | 'faster-whisper'
+  | 'vosk'
+  | 'browser'
+  | 'typed'
+  | 'nemotron'; // Alias for faster-whisper backward compatibility
 
 export interface STTChainStatus {
   activeProvider: STTProviderMode;
@@ -34,11 +41,15 @@ export interface STTChainManagerOptions extends NemotronSTTOptions {
   chain?: STTProviderMode[];
   maxRetryAttempts?: number;
   retryBackoffsMs?: number[];
+  wsFailoverTimeoutMs?: number;
+  speechStallTimeoutMs?: number;
   onChainStatusChange?: (status: STTChainStatus) => void;
 }
 
-const DEFAULT_RETRY_BACKOFFS = [300, 800, 1500, 3000];
-const DEFAULT_MAX_ATTEMPTS = 3;
+const DEFAULT_RETRY_BACKOFFS = [300, 800, 1500];
+const DEFAULT_MAX_ATTEMPTS = 2;
+const DEFAULT_WS_FAILOVER_TIMEOUT_MS = 1500; // Trigger failover if WS down > 1.5s
+const DEFAULT_SPEECH_STALL_TIMEOUT_MS = 2500; // Trigger failover if 2.5s speech with 0 partials
 
 export function parseConfiguredProviderChain(): STTProviderMode[] {
   if (typeof window !== 'undefined' && typeof window.localStorage !== 'undefined') {
@@ -55,6 +66,7 @@ export function parseConfiguredProviderChain(): STTProviderMode[] {
     if (parts.length > 0) return parts;
   }
 
+  // Default selection-and-fallback chain (§T5, §B3)
   return ['browser', 'nemotron', 'typed'];
 }
 
@@ -64,24 +76,31 @@ export class STTChainManager implements SpeechToText {
   private currentSTT: SpeechToText | null = null;
   private options: STTChainManagerOptions;
 
+  // Master transcript assembler retained across mid-answer failovers (§T5)
+  private masterAssembler: TranscriptAssembler = new TranscriptAssembler();
+
   private isReconnecting: boolean = false;
   private reconnectAttempt: number = 0;
   private maxAttempts: number;
   private retryBackoffsMs: number[];
+  private wsFailoverTimeoutMs: number;
+  private speechStallTimeoutMs: number;
   private statusNotice: string | null = null;
   private isExhausted: boolean = false;
+
   private retryTimer: any = null;
   private clearNoticeTimer: any = null;
+  private wsDropTimer: any = null;
+  private speechStallTimer: any = null;
 
   private desiredListening: boolean = false;
-  private currentFullTranscript: string = '';
+  private isSpeechActive: boolean = false;
 
   private transcriptListeners: Array<(event: TranscriptEvent) => void> = [];
   private errorListeners: Array<(err: SpeechError) => void> = [];
   private stateListeners: Array<(state: STTState) => void> = [];
   private chainStatusListeners: Array<(status: STTChainStatus) => void> = [];
 
-  // Subscription cleanups for the active STT instance
   private currentSTTUnsubs: Array<() => void> = [];
 
   constructor(options: STTChainManagerOptions = {}) {
@@ -89,6 +108,8 @@ export class STTChainManager implements SpeechToText {
     this.chain = options.chain && options.chain.length > 0 ? options.chain : parseConfiguredProviderChain();
     this.maxAttempts = options.maxRetryAttempts ?? DEFAULT_MAX_ATTEMPTS;
     this.retryBackoffsMs = options.retryBackoffsMs ?? DEFAULT_RETRY_BACKOFFS;
+    this.wsFailoverTimeoutMs = options.wsFailoverTimeoutMs ?? DEFAULT_WS_FAILOVER_TIMEOUT_MS;
+    this.speechStallTimeoutMs = options.speechStallTimeoutMs ?? DEFAULT_SPEECH_STALL_TIMEOUT_MS;
 
     if (options.onChainStatusChange) {
       this.chainStatusListeners.push(options.onChainStatusChange);
@@ -109,6 +130,15 @@ export class STTChainManager implements SpeechToText {
   public get isListening(): boolean {
     if (this.isReconnecting) return false;
     return this.currentSTT ? this.currentSTT.isListening : false;
+  }
+
+  public get isRestarting(): boolean {
+    if (this.isReconnecting) return true;
+    return Boolean((this.currentSTT as any)?.isRestarting);
+  }
+
+  public hasPendingInterim(): boolean {
+    return this.masterAssembler.hasPendingInterim();
   }
 
   public getChainStatus(): STTChainStatus {
@@ -171,23 +201,29 @@ export class STTChainManager implements SpeechToText {
       return;
     }
 
-    if (providerType === 'nemotron') {
-      this.currentSTT = new NemotronStreamingSTT({
+    if (providerType === 'faster-whisper' || providerType === 'nemotron') {
+      this.currentSTT = new StreamingServerSTT({
         ...this.options,
-        autoFallback: false,
+        provider: 'faster-whisper',
+        assembler: this.masterAssembler,
+      });
+    } else if (providerType === 'vosk') {
+      this.currentSTT = new StreamingServerSTT({
+        ...this.options,
+        provider: 'vosk',
+        assembler: this.masterAssembler,
       });
     } else {
       // Default: 'browser'
-      this.currentSTT = new BrowserSpeechToText();
+      this.currentSTT = new BrowserSpeechToText(this.masterAssembler);
     }
 
     // Attach listeners
     const unsubTranscript = this.currentSTT.onTranscript((event) => {
       if (this.isReconnecting) {
-        // Recovery confirmed! We are successfully receiving transcripts again.
         this.clearRetry();
       }
-      this.currentFullTranscript = event.fullTranscript;
+      this.clearSpeechStallTimer();
       this.transcriptListeners.forEach((cb) => cb(event));
     });
 
@@ -218,30 +254,81 @@ export class STTChainManager implements SpeechToText {
     }
   }
 
+  /**
+   * Called by VAD or engine when speech energy is detected.
+   * Starts a 2.5s stall timer (§T5); if no transcript arrives, triggers failover.
+   */
+  public notifySpeechActivity(isSpeech: boolean): void {
+    this.isSpeechActive = isSpeech;
+    if (isSpeech && this.desiredListening && !this.speechStallTimer) {
+      this.speechStallTimer = setTimeout(() => {
+        if (this.isSpeechActive && this.desiredListening) {
+          console.warn('[STTChainManager] Speech detected for 2.5s with zero partial text. Triggering failover.');
+          void this.advanceProviderChain('No speech recognition response');
+        }
+      }, this.speechStallTimeoutMs);
+    } else if (!isSpeech) {
+      this.clearSpeechStallTimer();
+    }
+  }
+
+  private clearSpeechStallTimer(): void {
+    if (this.speechStallTimer) {
+      clearTimeout(this.speechStallTimer);
+      this.speechStallTimer = null;
+    }
+  }
+
+  private clearWsDropTimer(): void {
+    if (this.wsDropTimer) {
+      clearTimeout(this.wsDropTimer);
+      this.wsDropTimer = null;
+    }
+  }
+
   private handleProviderError(err: SpeechError): void {
     const errName = err.error;
 
-    // 1. Silent errors: no-speech / aborted should never trigger user alerts or retry counters
+    // 1. Silent errors: no-speech / aborted should never trigger alerts
     if (errName === 'no-speech' || errName === 'aborted') {
       return;
     }
 
-    // 2. Hardware / mic permission fatal errors: do NOT retry network, notify immediately
+    // 2. Hardware / mic permission fatal errors: notify immediately without retrying
     if (errName === 'not-allowed' || errName === 'audio-capture' || errName === 'service-not-allowed') {
       this.clearRetry();
+      this.clearWsDropTimer();
       this.emitError(err);
       return;
     }
 
-    // 3. Network or transient service error: trigger auto-retry with backoff
-    if (errName === 'network' || !navigator.onLine) {
+    // 3. Fatal unrecoverable provider errors: advance provider chain immediately (§T5)
+    if (err.isFatal) {
+      this.advanceProviderChain('Unrecoverable provider error');
+      return;
+    }
+
+    // 4. Network / WebSocket drop error
+    const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+    if (errName === 'network' || isOffline) {
+      // If server STT fails on WS connection, enforce 1.5s drop threshold (§T5)
+      if (this.activeProvider === 'faster-whisper' || this.activeProvider === 'vosk' || this.activeProvider === 'nemotron') {
+        if (!this.wsDropTimer) {
+          this.wsDropTimer = setTimeout(() => {
+            console.warn(`[STTChainManager] ${this.activeProvider} WS dropped > 1.5s. Advancing provider chain.`);
+            void this.advanceProviderChain('Connection dropped');
+          }, this.wsFailoverTimeoutMs);
+        }
+      }
+
+      // Retry mechanism with backoff
       if (this.reconnectAttempt < this.maxAttempts) {
         this.reconnectAttempt += 1;
         this.isReconnecting = true;
         this.statusNotice = `Reconnecting voice recognition… (attempt ${this.reconnectAttempt}/${this.maxAttempts})`;
         this.notifyChainStatus();
 
-        const delay = this.retryBackoffsMs[this.reconnectAttempt - 1] ?? 1500;
+        const delay = this.retryBackoffsMs[this.reconnectAttempt - 1] ?? 1000;
 
         if (this.retryTimer) clearTimeout(this.retryTimer);
         this.retryTimer = setTimeout(() => {
@@ -256,71 +343,72 @@ export class STTChainManager implements SpeechToText {
         return;
       }
 
-      // Max retry attempts reached for this provider -> advance to next provider in chain
-      console.warn(`[STTChainManager] ${this.activeProvider} exceeded ${this.maxAttempts} network retries. Advancing chain.`);
-      void this.advanceProviderChain();
+      // Max retries exceeded -> advance chain immediately
+      console.warn(`[STTChainManager] ${this.activeProvider} exceeded retries. Advancing chain.`);
+      void this.advanceProviderChain('Connection failed');
       return;
     }
 
-    // Other unexpected errors: emit to listeners
+    // Other non-fatal errors: emit to error listeners
     this.emitError(err);
   }
 
-  private async advanceProviderChain(): Promise<void> {
+  /**
+   * Advances to next provider in fallback chain mid-answer (§T5).
+   * Guarantees zero word loss: previous committed words are frozen and retained.
+   */
+  public advanceProviderChain(reason?: string): void {
+    if (import.meta.env.DEV && reason) {
+      console.debug('[STTChainManager] Advancing chain due to:', reason);
+    }
     this.clearRetry();
+    this.clearWsDropTimer();
+    this.clearSpeechStallTimer();
 
-    let nextIndex = this.activeProviderIndex + 1;
+    // Preserve words committed so far by handling session restart on master assembler
+    this.masterAssembler.handleSessionRestart();
 
-    while (nextIndex < this.chain.length) {
+    const nextIndex = this.activeProviderIndex + 1;
+
+    if (nextIndex < this.chain.length) {
+      this.activeProviderIndex = nextIndex;
       const candidate = this.chain[nextIndex];
 
-      if (candidate === 'nemotron') {
-        const isNemotronHealthy = await checkNemotronHealth(1200);
-        if (isNemotronHealthy) {
-          this.activeProviderIndex = nextIndex;
-          this.statusNotice = 'Switched to Nemotron Streaming ASR';
-          this.initActiveProvider();
-          if (this.desiredListening && this.currentSTT) {
-            this.currentSTT.start();
-          }
-          this.scheduleClearNotice(3000);
-          return;
-        } else {
-          // Nemotron is offline or unhealthy, continue down chain
-          nextIndex += 1;
-          continue;
-        }
-      }
-
       if (candidate === 'typed') {
-        this.activeProviderIndex = nextIndex;
         this.isExhausted = true;
         this.statusNotice = null;
         this.initActiveProvider();
         this.emitError({
           error: 'network',
-          message: 'All voice providers exhausted after connection retries. Switched to typed answer fallback.',
+          message: 'Voice recognition unavailable. Switched to typed answer fallback.',
           isFatal: true,
         });
         return;
       }
 
-      // Any other candidate
-      this.activeProviderIndex = nextIndex;
+      // Calm in-app notice with strictly zero vendor or model names (§3.3 & §T5)
+      this.statusNotice = 'Switched to backup voice recognition';
       this.initActiveProvider();
+
       if (this.desiredListening && this.currentSTT) {
-        this.currentSTT.start();
+        try {
+          this.currentSTT.start();
+        } catch (err) {
+          console.warn('[STTChainManager] Failed to start fallback provider:', err);
+        }
       }
+
+      this.scheduleClearNotice(3000);
       return;
     }
 
-    // End of chain reached with no voice providers left
+    // End of chain reached
     this.isExhausted = true;
     this.statusNotice = null;
     this.notifyChainStatus();
     this.emitError({
       error: 'network',
-      message: 'All speech recognition providers failed. Please use the typed answer fallback.',
+      message: 'All voice recognition providers failed. Please use the typed answer fallback.',
       isFatal: true,
     });
   }
@@ -330,6 +418,7 @@ export class STTChainManager implements SpeechToText {
       clearTimeout(this.retryTimer);
       this.retryTimer = null;
     }
+    this.clearWsDropTimer();
     const hadReconnecting = this.isReconnecting || this.reconnectAttempt > 0;
     this.isReconnecting = false;
     this.reconnectAttempt = 0;
@@ -376,7 +465,9 @@ export class STTChainManager implements SpeechToText {
 
   public stop(): void {
     this.desiredListening = false;
+    this.isSpeechActive = false;
     this.clearRetry();
+    this.clearSpeechStallTimer();
     if (this.currentSTT) {
       this.currentSTT.stop();
     }
@@ -384,21 +475,27 @@ export class STTChainManager implements SpeechToText {
 
   public abort(): void {
     this.desiredListening = false;
+    this.isSpeechActive = false;
     this.clearRetry();
+    this.clearSpeechStallTimer();
     if (this.currentSTT) {
       this.currentSTT.abort();
     }
   }
 
   public resetTranscript(): void {
-    this.currentFullTranscript = '';
+    this.masterAssembler.reset();
     if (this.currentSTT) {
       this.currentSTT.resetTranscript();
     }
   }
 
+  public seal(): string {
+    return this.masterAssembler.seal();
+  }
+
   public getFullTranscript(): string {
-    return this.currentSTT ? this.currentSTT.getFullTranscript() : this.currentFullTranscript;
+    return this.masterAssembler.getText();
   }
 
   public onTranscript(callback: (event: TranscriptEvent) => void): () => void {

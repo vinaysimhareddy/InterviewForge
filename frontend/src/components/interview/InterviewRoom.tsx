@@ -413,7 +413,15 @@ export function InterviewRoom({
 
   // Answer submission pipeline
   const executeAnswerSubmission = useCallback(
-    async (answerText: string, metadata?: { source?: 'voice' | 'typed' }) => {
+    async (
+      answerText: string,
+      metadata?: {
+        source?: 'voice' | 'typed';
+        answer_raw?: string;
+        stt_confidence?: number;
+        is_low_confidence?: boolean;
+      }
+    ) => {
       const trimmed = answerText.trim();
       if (!trimmed || isSubmitting) return;
 
@@ -435,7 +443,13 @@ export function InterviewRoom({
       try {
         const res = await apiClient.post<InterviewStepResponse>(
           `/api/v1/interview/sessions/${session.id}/answer`,
-          { answer: trimmed, source: metadata?.source || 'voice' }
+          {
+            answer: trimmed,
+            answer_raw: metadata?.answer_raw || trimmed,
+            source: metadata?.source || 'voice',
+            stt_confidence: metadata?.stt_confidence,
+            is_low_confidence: metadata?.is_low_confidence,
+          }
         );
 
         if (res.evaluation) {
@@ -504,6 +518,7 @@ export function InterviewRoom({
     autoPlayTTS: true,
     silenceTimeoutMs: 2200,
     minSpeechDurationMs: 400,
+    customTerms: session.role ? [session.role] : [],
   });
 
   // Remaining duration countdown timer
@@ -919,6 +934,7 @@ export function InterviewRoom({
               sttStatusNotice={sttStatusNotice}
               activeSTTProvider={activeSTTProvider}
               sttError={sttError}
+              isAnswerCaptured={turnState === 'submitting' || isSubmitting}
               onSubmit={executeAnswerSubmission}
               onClearAndRetry={clearTranscript}
               onManualTextChange={setTranscript}

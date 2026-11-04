@@ -152,12 +152,15 @@ async def submit_answer_endpoint(
             challenges_failed=challenges_failed,
         )
 
-    # Advance state machine via LangGraph
+    # Advance state machine via LangGraph (§T7)
     candidate_answer = submission.answer if submission.answer is not None else ""
     updated_state = await submit_candidate_answer(
         state=state,
         answer=candidate_answer,
         telemetry_summary=telemetry_summary,
+        answer_raw=submission.answer_raw,
+        stt_confidence=submission.stt_confidence,
+        is_low_confidence=submission.is_low_confidence,
     )
 
     now = datetime.now(timezone.utc)

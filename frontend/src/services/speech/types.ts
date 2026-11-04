@@ -27,14 +27,51 @@ export interface TTSOptions {
   onStart?: () => void;
 }
 
+export interface STTProviderConfig {
+  sampleRate?: number;
+  frameMs?: number;
+  wsUrl?: string;
+  initialPrompt?: string;
+  lang?: string;
+  audioStream?: MediaStream | null;
+}
+
+export interface STTProviderMetrics {
+  providerId: string;
+  providerName: string;
+  firstPartialLatencyMs?: number;
+  totalLatencyMs?: number;
+  wordsCaptured?: number;
+  connected?: boolean;
+  errorCount?: number;
+}
+
+export interface ISTTProvider {
+  readonly id: string;
+  readonly name: string;
+  readonly isSupported: boolean;
+  readonly isListening: boolean;
+  init(config?: STTProviderConfig): Promise<void> | void;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onPartial(callback: (text: string, timestamp: number) => void): () => void;
+  onFinal(callback: (text: string, timestamp: number) => void): () => void;
+  onError(callback: (error: SpeechError) => void): () => void;
+  getMetrics(): STTProviderMetrics;
+}
+
 export interface SpeechToText {
   readonly isSupported: boolean;
   readonly isListening: boolean;
+  readonly isRestarting?: boolean;
   start(): void;
   stop(): void;
   abort(): void;
   resetTranscript(): void;
   getFullTranscript(): string;
+  seal?(): string;
+  hasPendingInterim?(): boolean;
   onTranscript(callback: (event: TranscriptEvent) => void): () => void;
   onError(callback: (err: SpeechError) => void): () => void;
   onStateChange(callback: (state: STTState) => void): () => void;

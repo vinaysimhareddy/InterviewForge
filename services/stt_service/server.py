@@ -1,5 +1,5 @@
 """
-Nemotron Streaming Speech-to-Text WebSocket Service (§2).
+Streaming Speech-to-Text WebSocket Microservice (§2, T4).
 Runs on port 8001 (separate from main backend on port 8000).
 
 Strict Zero Audio Storage:
@@ -8,6 +8,7 @@ No audio files, blobs, or waveforms are ever written to disk or database.
 """
 
 import asyncio
+from collections import defaultdict
 import json
 import logging
 import os
@@ -16,27 +17,33 @@ import time
 import uuid
 from typing import Any, Dict, Optional
 
-import psutil
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Query, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import psutil
 import uvicorn
 
 from .config import (
-    DEFAULT_ATT_CONTEXT_SIZE,
+    DEFAULT_PROVIDER,
     FRAME_SIZE_MS,
+    MAX_CONCURRENT_STREAMS,
+    RATE_LIMIT_PER_MINUTE,
+    REQUIRE_AUTH,
     SAMPLE_RATE,
+    STT_FALLBACK_PORT,
     STT_HOST,
     STT_PORT,
 )
-from .engine import NEMO_AVAILABLE, NEMO_VERSION, NemotronStreamingEngine
+from .providers import get_available_providers, get_stt_provider
+from .tickets import create_stt_ticket, validate_and_consume_ticket
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("nemotron_stt_server")
+logger = logging.getLogger("stt_server")
 
 app = FastAPI(
-    title="Nemotron Streaming STT Service",
-    description="Low-latency cache-aware streaming STT microservice with zero audio persistence.",
-    version="1.0.0",
+    title="Streaming Speech-to-Text Microservice",
+    description="Dual-engine (faster-whisper + Vosk) streaming STT microservice with zero audio persistence.",
+    version="2.0.0",
 )
 
 app.add_middleware(
@@ -47,12 +54,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-engine = NemotronStreamingEngine(att_context_size=DEFAULT_ATT_CONTEXT_SIZE)
 process = psutil.Process()
+stream_semaphore = asyncio.Semaphore(MAX_CONCURRENT_STREAMS)
+active_connections: Dict[str, Dict[str, Any]] = {}
+
+# Simple sliding-window rate limiter per IP: {ip: [timestamps]}
+rate_limiter: Dict[str, list] = defaultdict(list)
+
+
+def check_rate_limit(client_ip: str) -> bool:
+    """Return True if under rate limit; False if exceeded."""
+    now = time.time()
+    cutoff = now - 60.0
+    history = [t for t in rate_limiter[client_ip] if t > cutoff]
+    if len(history) >= RATE_LIMIT_PER_MINUTE:
+        return False
+    history.append(now)
+    rate_limiter[client_ip] = history
+    return True
 
 
 def query_gpu_stats() -> Dict[str, Any]:
-    """Query live NVIDIA GPU utilization and VRAM usage."""
+    """Query NVIDIA GPU utilization and VRAM usage via nvidia-smi."""
     try:
         cmd = [
             "nvidia-smi",
@@ -82,25 +105,33 @@ def query_gpu_stats() -> Dict[str, Any]:
 
 @app.get("/health")
 async def health_check() -> Dict[str, Any]:
-    """Health check endpoint for auto-fallback detection."""
+    """Health check reporting provider status, hardware, and audio constraints."""
+    prov_metrics = get_available_providers()
+    gpu = query_gpu_stats()
+
     return {
         "status": "ok",
-        "service": "nemotron-streaming-stt",
+        "service": "streaming-stt-service",
         "port": STT_PORT,
-        "nemo_available": NEMO_AVAILABLE,
-        "nemo_version": NEMO_VERSION,
-        "cache_aware": True,
-        "att_context_size": engine.att_context_size,
+        "default_provider": DEFAULT_PROVIDER,
+        "providers": prov_metrics,
+        "hardware": {
+            "gpu": gpu,
+            "cpu_count": psutil.cpu_count(logical=True),
+        },
         "sample_rate": SAMPLE_RATE,
         "frame_ms": FRAME_SIZE_MS,
         "zero_audio_storage_guaranteed": True,
+        "require_auth": REQUIRE_AUTH,
+        "max_concurrent_streams": MAX_CONCURRENT_STREAMS,
+        "active_streams": len(active_connections),
     }
 
 
 @app.get("/metrics")
 async def get_metrics() -> Dict[str, Any]:
-    """System resource metrics (CPU %, GPU %, memory)."""
-    cpu_pct = process.cpu_percent(interval=0.1)
+    """System resource metrics (CPU %, GPU %, memory, active connections)."""
+    cpu_pct = process.cpu_percent(interval=0.05)
     mem_info = process.memory_info()
     gpu_stats = query_gpu_stats()
 
@@ -108,30 +139,71 @@ async def get_metrics() -> Dict[str, Any]:
         "service_port": STT_PORT,
         "process_cpu_pct": round(cpu_pct, 2),
         "process_memory_mb": round(mem_info.rss / (1024 * 1024), 2),
-        "active_sessions": len(engine.sessions),
+        "active_streams": len(active_connections),
+        "max_streams": MAX_CONCURRENT_STREAMS,
         "gpu": gpu_stats,
     }
 
 
+@app.post("/api/v1/stt/ticket")
+async def issue_stt_ticket(session_id: Optional[str] = None) -> Dict[str, Any]:
+    """Generate a single-use ticket for authenticating WebSocket streaming sessions."""
+    ticket = create_stt_ticket(session_id=session_id)
+    return {
+        "ticket": ticket,
+        "expires_in_seconds": 30.0,
+    }
+
+
 @app.websocket("/ws/stt")
-async def websocket_stt_endpoint(websocket: WebSocket) -> None:
+async def websocket_stt_endpoint(
+    websocket: WebSocket,
+    ticket: Optional[str] = Query(None),
+    provider: Optional[str] = Query(None),
+    initial_prompt: Optional[str] = Query(None),
+) -> None:
     """
-    Streaming ASR WebSocket Endpoint (§2).
-    Receives:
-    - Binary messages: Raw 16 kHz 16-bit mono linear PCM frames (80-160 ms).
-    - JSON text messages: Control commands (start, stop, set_hypothesis).
-    Sends:
-    - JSON messages: Partial/final transcript events, VAD indicators, timestamps.
+    Streaming STT WebSocket Endpoint (§2 & T4).
+    Accepts:
+    - Binary messages: Raw 16 kHz 16-bit mono linear PCM frames (80-200ms).
+    - JSON text messages: Control commands ({"type": "start"}, {"type": "stop"}, etc.).
+    Emits:
+    - JSON messages: {"type": "transcript", "event": "partial" | "final" | "endpoint", "text": "...", "is_final": bool, ...}
     """
+    client_ip = websocket.client.host if websocket.client else "127.0.0.1"
+
+    # Rate limiting
+    if not check_rate_limit(client_ip):
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Rate limit exceeded")
+        return
+
+    # Single-use ticket authentication
+    if not validate_and_consume_ticket(ticket):
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Invalid or expired ticket")
+        return
+
+    # Check concurrency limits
+    if len(active_connections) >= MAX_CONCURRENT_STREAMS:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Max concurrent streams reached")
+        return
+
     await websocket.accept()
     session_id = str(uuid.uuid4())
-    session = engine.create_session(session_id)
+    provider_name = provider or DEFAULT_PROVIDER
+    stt = get_stt_provider(provider_name)
+    stt.init_session(session_id, options={"initial_prompt": initial_prompt})
 
-    # Acknowledge connection
+    active_connections[session_id] = {
+        "provider": stt.name,
+        "client_ip": client_ip,
+        "connected_at": time.time(),
+    }
+
+    # Send ready handshake
     await websocket.send_json({
         "type": "ready",
         "session_id": session_id,
-        "att_context_size": session.att_context_size,
+        "provider": stt.name,
         "sample_rate": SAMPLE_RATE,
         "frame_ms": FRAME_SIZE_MS,
     })
@@ -140,13 +212,11 @@ async def websocket_stt_endpoint(websocket: WebSocket) -> None:
         while True:
             message = await websocket.receive()
 
-            # Handle Binary PCM Audio Frame (AudioWorklet stream)
+            # Handle Binary PCM Audio Frame (16 kHz mono 16-bit)
             if "bytes" in message and message["bytes"]:
                 pcm_bytes = message["bytes"]
-                result = await engine.process_pcm_frame(session_id, pcm_bytes)
-
-                # If text generated or state change, emit response
-                if result.get("text") or result.get("is_final"):
+                result = await stt.process_pcm_frame(session_id, pcm_bytes)
+                if result and result.get("text"):
                     await websocket.send_json(result)
 
             # Handle JSON Control Messages
@@ -156,31 +226,22 @@ async def websocket_stt_endpoint(websocket: WebSocket) -> None:
                     msg_type = payload.get("type", "")
 
                     if msg_type == "start":
-                        ctx = payload.get("att_context_size", DEFAULT_ATT_CONTEXT_SIZE)
-                        session.att_context_size = ctx
-                        session.reset_utterance()
-                        await websocket.send_json({"type": "state", "status": "listening", "att_context_size": ctx})
+                        stt.reset_session(session_id)
+                        await websocket.send_json({
+                            "type": "state",
+                            "status": "listening",
+                            "provider": stt.name,
+                        })
 
-                    elif msg_type == "stop":
-                        # Flush current buffer as final if speech was active
-                        if session.is_speech_active and session.current_partial_text:
-                            await websocket.send_json({
-                                "session_id": session_id,
-                                "type": "transcript",
-                                "text": session.current_partial_text,
-                                "is_final": True,
-                                "timestamp": int(time.time() * 1000),
-                            })
-                        session.reset_utterance()
+                    elif msg_type in ("stop", "flush"):
+                        endpoint_res = await stt.finalize_utterance(session_id)
+                        if endpoint_res and endpoint_res.get("text"):
+                            await websocket.send_json(endpoint_res)
                         await websocket.send_json({"type": "state", "status": "idle"})
 
                     elif msg_type == "reset":
-                        session.reset_utterance()
+                        stt.reset_session(session_id)
                         await websocket.send_json({"type": "state", "status": "reset"})
-
-                    elif msg_type == "set_hypothesis":
-                        # Benchmark harness hook for synthetic audio evaluation
-                        engine.set_mock_hypothesis(session_id, payload.get("text", ""))
 
                 except json.JSONDecodeError:
                     pass
@@ -190,25 +251,22 @@ async def websocket_stt_endpoint(websocket: WebSocket) -> None:
     except Exception as exc:
         logger.warning("WebSocket error in session %s: %s", session_id, exc)
     finally:
-        engine.close_session(session_id)
+        stt.close_session(session_id)
+        active_connections.pop(session_id, None)
 
 
 def main() -> None:
-    """CLI launcher for streaming STT service."""
+    """CLI launcher with automatic fallback port binding."""
     port = STT_PORT
     try:
         import socket
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((STT_HOST, port))
     except OSError:
-        fallback_port = 8002 if port == 8001 else 8001
-        logger.warning(
-            "Port %d is currently occupied by another process. Binding to fallback port %d.",
-            port, fallback_port
-        )
-        port = fallback_port
+        logger.warning("Port %d is occupied. Binding to fallback port %d.", port, STT_FALLBACK_PORT)
+        port = STT_FALLBACK_PORT
 
-    logger.info("Starting Nemotron Streaming STT Service on %s:%d...", STT_HOST, port)
+    logger.info("Starting Streaming STT Service on %s:%d...", STT_HOST, port)
     uvicorn.run(app, host=STT_HOST, port=port, log_level="info")
 
 

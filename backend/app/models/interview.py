@@ -5,12 +5,16 @@ from pydantic import BaseModel, ConfigDict, Field
 class AnswerSubmission(BaseModel):
     """Schema for candidate submitting an answer to current question."""
     answer: Optional[str] = Field(default="", description="Candidate response text or transcribed speech")
+    answer_raw: Optional[str] = Field(default=None, description="Raw unnormalized speech-to-text transcript (§T7)")
     status: Optional[str] = Field(default="answered", description="answered | skipped")
     turn_id: Optional[str] = None
     response_latency_ms: Optional[float] = None
     answer_duration_sec: Optional[float] = None
     reason: Optional[str] = None  # silence | cap | user
     source: Optional[str] = Field(default="voice", description="voice | typed")
+    stt_confidence: Optional[float] = Field(default=None, description="Per-turn STT confidence score 0.0-1.0 (§T7)")
+    is_low_confidence: Optional[bool] = Field(default=False, description="Flag indicating potential transcription inaccuracies (§T7)")
+
 
 
 class QuestionEvaluation(BaseModel):

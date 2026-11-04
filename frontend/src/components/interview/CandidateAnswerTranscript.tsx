@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SpeechErrorInfo } from '@/services/speech/speechErrors';
+import { STTProviderMode } from '@/services/speech/sttChainManager';
 
 export interface CandidateAnswerTranscriptProps {
   transcript: string;
@@ -25,8 +26,9 @@ export interface CandidateAnswerTranscriptProps {
   isSpeechSupported: boolean;
   isReconnectingVoice?: boolean;
   sttStatusNotice?: string | null;
-  activeSTTProvider?: 'browser' | 'nemotron' | 'typed';
+  activeSTTProvider?: STTProviderMode;
   sttError?: SpeechErrorInfo | null;
+  isAnswerCaptured?: boolean;
   onSubmit: (answerText: string, metadata?: { source?: 'voice' | 'typed' }) => void | Promise<void>;
   onClearAndRetry: () => void;
   onManualTextChange?: (text: string) => void;
@@ -48,6 +50,7 @@ export function CandidateAnswerTranscript({
   sttStatusNotice = null,
   activeSTTProvider = 'browser',
   sttError,
+  isAnswerCaptured = false,
   onSubmit,
   onClearAndRetry,
   onManualTextChange,
@@ -57,6 +60,56 @@ export function CandidateAnswerTranscript({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isManualEditMode, setIsManualEditMode] = useState<boolean>(false);
   const [manualText, setManualText] = useState<string>('');
+
+  // Gentle hints for microphone issues (§T8)
+  const [showZeroLevelHint, setShowZeroLevelHint] = useState<boolean>(false);
+  const [showVoicedNoWordsHint, setShowVoicedNoWordsHint] = useState<boolean>(false);
+  const zeroLevelTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const voicedStartTimeRef = useRef<number | null>(null);
+
+  // Is answer in sealed/captured state
+  const isCaptured = isSubmitting || isAnswerCaptured;
+
+  // Track zero mic input when candidate is expected to speak (§T8)
+  useEffect(() => {
+    const isExpected = isListening && !isAiSpeaking && !isSubmitting && !isManualEditMode;
+    if (isExpected && audioLevel < 0.02) {
+      if (!zeroLevelTimerRef.current) {
+        zeroLevelTimerRef.current = setTimeout(() => {
+          setShowZeroLevelHint(true);
+        }, 4000);
+      }
+    } else {
+      if (zeroLevelTimerRef.current) {
+        clearTimeout(zeroLevelTimerRef.current);
+        zeroLevelTimerRef.current = null;
+      }
+      setShowZeroLevelHint(false);
+    }
+    return () => {
+      if (zeroLevelTimerRef.current) {
+        clearTimeout(zeroLevelTimerRef.current);
+        zeroLevelTimerRef.current = null;
+      }
+    };
+  }, [isListening, isAiSpeaking, isSubmitting, isManualEditMode, audioLevel]);
+
+  // Track voiced audio (>3s) with no words recognized (§T8)
+  useEffect(() => {
+    const hasWords = Boolean(transcript.trim() || interimTranscript.trim());
+    const isVoiced = (audioLevel >= 0.05 || isCandidateSpeaking) && isListening && !isAiSpeaking && !isSubmitting && !isManualEditMode;
+
+    if (isVoiced && !hasWords) {
+      if (voicedStartTimeRef.current === null) {
+        voicedStartTimeRef.current = Date.now();
+      } else if (Date.now() - voicedStartTimeRef.current >= 3000) {
+        setShowVoicedNoWordsHint(true);
+      }
+    } else {
+      voicedStartTimeRef.current = null;
+      setShowVoicedNoWordsHint(false);
+    }
+  }, [audioLevel, isCandidateSpeaking, isListening, isAiSpeaking, isSubmitting, isManualEditMode, transcript, interimTranscript]);
 
   // Combined full text
   const fullVoiceText = useMemo(() => {
@@ -91,7 +144,7 @@ export function CandidateAnswerTranscript({
     if (!isManualEditMode && scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [transcript, interimTranscript, isManualEditMode]);
+  }, [transcript, interimTranscript, isManualEditMode, isCaptured]);
 
   // If SpeechRecognition throws error and not actively reconnecting, automatically enable manual input fallback
   useEffect(() => {
@@ -134,7 +187,15 @@ export function CandidateAnswerTranscript({
       <div className="px-4 py-2.5 bg-[#0A2E24]/50 border-b border-[#E3DED2]/10 flex items-center justify-between text-xs select-none">
         {/* Left: State Badge + Live Audio Equalizer */}
         <div className="flex items-center gap-2.5">
-          {isReconnectingVoice ? (
+          {isCaptured ? (
+            <div
+              className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-mint/20 border border-mint/40 text-mint font-semibold text-[11px] animate-in fade-in"
+              data-testid="answer-captured-header"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5 text-mint" />
+              <span>Answer captured ✓</span>
+            </div>
+          ) : isReconnectingVoice ? (
             <div className="flex items-center gap-2 text-amber-300 font-medium">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
@@ -155,8 +216,8 @@ export function CandidateAnswerTranscript({
               </span>
               <span>Speaking</span>
               {/* Dynamic waveform equalizer */}
-              <div className="flex items-center gap-0.5 h-3 ml-1">
-                {[0.12, 0.28, 0.45, 0.65, 0.85].map((threshold, idx) => {
+              <div className="flex items-center gap-0.5 h-3 ml-1" title={`Mic level: ${Math.round(audioLevel * 100)}%`}>
+                {[0.08, 0.20, 0.38, 0.58, 0.80].map((threshold, idx) => {
                   const isActive = audioLevel >= threshold;
                   return (
                     <div
@@ -181,6 +242,24 @@ export function CandidateAnswerTranscript({
               </span>
               <Mic className="h-3.5 w-3.5 text-mint" />
               <span>Listening for answer...</span>
+              {/* Dynamic mic level indicator tied to real input (§T8) */}
+              <div className="flex items-center gap-0.5 h-3 ml-1" title={`Mic level: ${Math.round(audioLevel * 100)}%`}>
+                {[0.08, 0.20, 0.38, 0.58, 0.80].map((threshold, idx) => {
+                  const isActive = audioLevel >= threshold;
+                  return (
+                    <div
+                      key={idx}
+                      className={`w-1 rounded-full transition-all duration-75 ${
+                        isActive
+                          ? 'bg-mint h-2.5'
+                          : audioLevel >= threshold * 0.5
+                          ? 'bg-mint/50 h-1.5'
+                          : 'bg-[#E3DED2]/20 h-1'
+                      }`}
+                    />
+                  );
+                })}
+              </div>
             </div>
           ) : isAiSpeaking ? (
             <div className="flex items-center gap-1.5 text-[#E3DED2]/70 font-medium">
@@ -251,6 +330,44 @@ export function CandidateAnswerTranscript({
         </div>
       )}
 
+      {/* Captured Answer Confirmation Banner (§T8) */}
+      {isCaptured && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="mx-4 mt-3 px-3 py-2 rounded-xl bg-mint/15 border border-mint/30 text-mint text-xs flex items-center gap-2 animate-in fade-in"
+          data-testid="answer-captured-banner"
+        >
+          <CheckCircle2 className="h-4 w-4 text-mint shrink-0" />
+          <span className="font-semibold">Answer captured ✓</span>
+          <span className="text-[#E3DED2]/70 font-sans">&mdash; evaluating response</span>
+        </div>
+      )}
+
+      {/* Gentle Zero Level Hint (§T8) */}
+      {showZeroLevelHint && !showVoicedNoWordsHint && !isCaptured && !isReconnectingVoice && (
+        <div
+          role="status"
+          className="mx-4 mt-3 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-amber-200 text-xs flex items-center gap-2 animate-in fade-in"
+          data-testid="mic-zero-level-hint"
+        >
+          <MicOff className="h-3.5 w-3.5 text-amber-300 shrink-0" />
+          <span>Check your mic input &mdash; no audio signal detected.</span>
+        </div>
+      )}
+
+      {/* Gentle Voiced Audio Without Recognized Words Hint (§T8) */}
+      {showVoicedNoWordsHint && !isCaptured && !isReconnectingVoice && (
+        <div
+          role="status"
+          className="mx-4 mt-3 px-3 py-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 text-xs flex items-center gap-2 animate-in fade-in"
+          data-testid="mic-voiced-no-words-hint"
+        >
+          <AlertTriangle className="h-3.5 w-3.5 text-amber-300 shrink-0" />
+          <span>I can hear you but couldn&apos;t catch the words &mdash; check mic position or speak up.</span>
+        </div>
+      )}
+
       {/* Actionable Error Alert Box if all retries and fallback providers fail */}
       {!isReconnectingVoice && (sttError || !isSpeechSupported) && (
         <div className="p-3 mx-4 mt-3 rounded-xl bg-peach/20 border border-accent/30 text-accent-soft text-xs space-y-1.5 animate-in fade-in">
@@ -309,22 +426,27 @@ export function CandidateAnswerTranscript({
           >
             {transcript || interimTranscript ? (
               <div className="space-y-1">
-                {/* Finalized speech text in solid foreground */}
+                {/* Finalized speech text in solid foreground (§T8) */}
                 {transcript && (
                   <span className="text-[#FBFAF6] font-normal transition-colors duration-150">
                     {transcript}{' '}
                   </span>
                 )}
-                {/* Real-time streaming interim speech in italic */}
+                {/* Real-time streaming interim speech in lighter mint, flicker-free (§T8) */}
                 {interimTranscript && (
-                  <span className="text-muted-foreground italic font-normal animate-pulse text-mint/80">
+                  <span className="text-[#96C8B4] text-muted-foreground italic font-light">
                     {interimTranscript}
                   </span>
                 )}
               </div>
             ) : (
               <div className="h-full flex items-center justify-center text-center text-xs text-[#E3DED2]/60 py-4 italic select-none">
-                {isListening ? (
+                {isCaptured ? (
+                  <span className="flex items-center gap-1.5 text-mint font-medium">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-mint" />
+                    Answer captured ✓. Evaluating response...
+                  </span>
+                ) : isListening ? (
                   <span className="flex items-center gap-1.5 animate-pulse text-mint/80">
                     <Mic className="h-3.5 w-3.5 text-mint" />
                     Speak clearly into your microphone. Your answer will transcribe here in real time...

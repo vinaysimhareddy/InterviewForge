@@ -262,6 +262,10 @@ def _turn_review_from_json(item: dict, orig: dict, role: str, seniority: str) ->
     t_index = item.get("question_index", orig.get("question_index", 1))
     topic = orig.get("target_topic") or orig.get("topic") or "General"
     ans = orig.get("candidate_answer", "")
+    ans_clean = orig.get("answer_clean") or ans
+    ans_raw = orig.get("answer_raw") or ans
+    stt_conf = float(orig.get("stt_confidence", 0.95))
+    is_low_conf = bool(orig.get("is_low_confidence", False) or stt_conf < 0.65)
 
     return TurnReview(
         turn_id=orig.get("turn_id") or f"turn_{t_index}",
@@ -270,10 +274,10 @@ def _turn_review_from_json(item: dict, orig: dict, role: str, seniority: str) ->
         difficulty=f"{orig.get('difficulty_label', 'Medium')} ({float(orig.get('difficulty_tier', 2.0)):.1f})",
         why_asked=orig.get("source_description") or "Role knowledge base",
         question=orig.get("question", ""),
-        answer_clean=ans.strip(),
-        answer_raw=ans,
-        stt_confidence=float(orig.get("stt_confidence", 0.95)),
-        status="skipped" if not ans.strip() or "no response provided" in ans.lower() else "answered",
+        answer_clean=ans_clean.strip(),
+        answer_raw=ans_raw,
+        stt_confidence=stt_conf,
+        status="skipped" if not ans_clean.strip() or "no response provided" in ans_clean.lower() else "answered",
         correctness=item.get("correctness", "mostly"),
         scores=TurnDimensionScores(
             technical=float(item.get("technical_score", 7.0)),
@@ -288,13 +292,13 @@ def _turn_review_from_json(item: dict, orig: dict, role: str, seniority: str) ->
         concepts_missed=item.get("concepts_missed", []),
         model_answer=item.get("model_answer", f"At {seniority} level, an effective response covers key trade-offs in {topic}."),
         improvement_tips=item.get("improvement_tips", ["Structure answers with opening principles."]),
-        needs_verification=bool(item.get("needs_verification", False)),
+        needs_verification=bool(item.get("needs_verification", False) or is_low_conf),
         excluded=bool(orig.get("excluded", False)),
     )
 
 
 def _build_heuristic_turn_review(t: dict, role: str, seniority: str) -> TurnReview:
-    """Build a deterministic TurnReview without LLM (§4.1 fallback)."""
+    """Build a deterministic TurnReview without LLM (§4.1 fallback, §T7)."""
     t_index = t.get("question_index", 1)
     topic = t.get("target_topic") or t.get("topic") or "General"
     tier = float(t.get("difficulty_tier", 2.0))
@@ -302,7 +306,10 @@ def _build_heuristic_turn_review(t: dict, role: str, seniority: str) -> TurnRevi
     why = t.get("source_description") or "Role knowledge base question"
     question = t.get("question", "")
     ans = t.get("candidate_answer", "")
-    clean_ans = ans.strip()
+    clean_ans = (t.get("answer_clean") or ans).strip()
+    raw_ans = t.get("answer_raw") or ans
+    stt_conf = float(t.get("stt_confidence", 0.95))
+    is_low_conf = bool(t.get("is_low_confidence", False) or stt_conf < 0.65)
 
     is_skipped = not clean_ans or clean_ans.lower().startswith("no response provided") or t.get("status") == "skipped"
     score_val = float(t.get("score", 7.0)) if not is_skipped else 0.0
@@ -331,8 +338,8 @@ def _build_heuristic_turn_review(t: dict, role: str, seniority: str) -> TurnRevi
         why_asked=why,
         question=question,
         answer_clean=clean_ans,
-        answer_raw=ans,
-        stt_confidence=float(t.get("stt_confidence", 0.95)),
+        answer_raw=raw_ans,
+        stt_confidence=stt_conf,
         status="skipped" if is_skipped else "answered",
         correctness=correctness,
         scores=TurnDimensionScores(
@@ -355,7 +362,7 @@ def _build_heuristic_turn_review(t: dict, role: str, seniority: str) -> TurnRevi
             "State the primary architectural trade-off within your first two sentences.",
             "Mention specific monitoring metrics (e.g. latency percentiles, error rates) to demonstrate production maturity.",
         ],
-        needs_verification=False,
+        needs_verification=bool(is_low_conf or (not is_skipped and score_val < 5.0 and len(clean_ans.split()) < 8)),
         excluded=bool(t.get("excluded", False)),
     )
 

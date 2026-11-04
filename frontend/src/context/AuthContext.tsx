@@ -38,6 +38,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
   const setToken = useCallback((newToken: string | null) => {
     setTokenState(newToken);
     setAuthToken(newToken);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        if (newToken) {
+          localStorage.setItem('access_token', newToken);
+        } else {
+          localStorage.removeItem('access_token');
+        }
+      }
+    } catch {
+      // Ignore storage access errors
+    }
   }, []);
 
   const clearError = useCallback(() => setError(null), []);
@@ -48,14 +59,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
     } catch {
       // Ignore network errors during logout
     }
-    setToken(null);
-    setUser(null);
-    setError(null);
     try {
-      localStorage.removeItem('access_token');
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.removeItem('access_token');
+      }
     } catch {
       // Ignore
     }
+    setToken(null);
+    setUser(null);
+    setError(null);
     if (typeof window !== 'undefined' && window.location.pathname !== '/' && !window.location.pathname.startsWith('/login')) {
       window.location.href = '/';
     }
@@ -77,15 +90,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
   useEffect(() => {
     let isMounted = true;
     async function restoreSession() {
-      // Remove any legacy token from localStorage
+      // Retrieve persisted token from localStorage if available
+      let storedToken: string | null = null;
       try {
-        localStorage.removeItem('access_token');
+        if (typeof window !== 'undefined' && window.localStorage) {
+          storedToken = localStorage.getItem('access_token');
+        }
       } catch {
         // Ignore
       }
 
+      if (storedToken) {
+        setToken(storedToken);
+      }
+
       try {
-        // Restore session via HttpOnly cookie
+        // Fetch authenticated user profile using Bearer token or HttpOnly cookie
         const profile = await apiClient.get<UserProfile>('/api/v1/auth/me');
         if (isMounted) {
           setUser(profile);
@@ -95,6 +115,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
           if (err instanceof ApiError && (err.status === 503 || err.status === 502 || err.status === 504)) {
             setError('Server unavailable');
           } else {
+            // If token is expired or unauthorized, clear invalid token
+            try {
+              if (typeof window !== 'undefined' && window.localStorage) {
+                localStorage.removeItem('access_token');
+              }
+            } catch {
+              // Ignore
+            }
             setToken(null);
           }
           setUser(null);
@@ -118,7 +146,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
         email,
         password,
       });
-      // Token is kept in memory only; HttpOnly cookie is set by server
+      // Persist access token to localStorage and update memory state
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('access_token', res.access_token);
+        }
+      } catch {
+        // Ignore
+      }
       setToken(res.access_token);
       const profile = await apiClient.get<UserProfile>('/api/v1/auth/me');
       setUser(profile);

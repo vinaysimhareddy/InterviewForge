@@ -196,10 +196,21 @@ export function useWebSocketInterview({
     seqRef.current = 0;
     setAckedPacketCount(0);
 
-    // Compute ws protocol and host
-    const isHttps = window.location.protocol === 'https:';
-    const wsProto = isHttps ? 'wss:' : 'ws:';
-    const host = window.location.host;
+    // Compute ws protocol and host, honoring explicit VITE_WS_URL or VITE_API_URL when deployed
+    let wsBase: string;
+    const configuredApiUrl = (import.meta.env.VITE_WS_URL || import.meta.env.VITE_API_URL || '').trim();
+    if (configuredApiUrl.startsWith('http://') || configuredApiUrl.startsWith('https://')) {
+      const parsed = new URL(configuredApiUrl);
+      const wsProto = parsed.protocol === 'https:' ? 'wss:' : 'ws:';
+      wsBase = `${wsProto}//${parsed.host}`;
+    } else if (configuredApiUrl.startsWith('ws://') || configuredApiUrl.startsWith('wss://')) {
+      wsBase = configuredApiUrl.replace(/\/+$/, '');
+    } else {
+      const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+      const wsProto = isHttps ? 'wss:' : 'ws:';
+      const host = typeof window !== 'undefined' ? window.location.host : 'localhost:8000';
+      wsBase = `${wsProto}//${host}`;
+    }
 
     let wsUrl: string;
     try {
@@ -207,11 +218,11 @@ export function useWebSocketInterview({
       const ticketRes = await apiClient.post<{ ticket: string; expires_in: number }>('/api/v1/auth/ws-ticket', {
         session_id: sessionId,
       });
-      wsUrl = `${wsProto}//${host}/api/v1/ws/interview/${encodeURIComponent(sessionId)}?ticket=${encodeURIComponent(ticketRes.ticket)}`;
+      wsUrl = `${wsBase}/api/v1/ws/interview/${encodeURIComponent(sessionId)}?ticket=${encodeURIComponent(ticketRes.ticket)}`;
     } catch {
       // Fallback if ticket endpoint unavailable (e.g. offline testing)
       if (token) {
-        wsUrl = `${wsProto}//${host}/api/v1/ws/interview/${encodeURIComponent(sessionId)}?token=${encodeURIComponent(token)}`;
+        wsUrl = `${wsBase}/api/v1/ws/interview/${encodeURIComponent(sessionId)}?token=${encodeURIComponent(token)}`;
       } else {
         setError('Failed to establish authenticated connection ticket.');
         setStatus('error');

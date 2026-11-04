@@ -95,7 +95,7 @@ export default function PrivacyPage(): React.ReactElement {
           <div className="space-y-3">
             <h2 className="font-display text-2xl text-text font-semibold">4. Data Retention & Deletion</h2>
             <p>
-              You retain full ownership of your interview data. You can delete individual interview sessions, uploaded resumes, or your entire account at any time from your settings or by contacting <code className="text-xs font-mono bg-bg-subtle px-1.5 py-0.5 rounded text-text">support@adaptivemock.local</code>. Upon deletion, all associated transcripts, embeddings, and scorecards are permanently purged from the database.
+              You retain full ownership of your interview data. You can delete individual interview sessions, uploaded resumes, or your entire account at any time from your settings or by contacting <code className="text-xs font-mono bg-bg-subtle px-1.5 py-0.5 rounded text-text">pvinaysimhareddy333@gmail.com</code>. Upon deletion, all associated transcripts, embeddings, and scorecards are permanently purged from the database.
             </p>
           </div>
         </section>

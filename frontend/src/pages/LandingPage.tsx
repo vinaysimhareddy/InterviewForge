@@ -900,7 +900,7 @@ export default function LandingPage(): React.ReactElement {
             <div className="space-y-2">
               <h5 className="font-mono uppercase tracking-wider text-mint/90 font-semibold">Contact</h5>
               <p className="text-mint/70">
-                support@interviewforge.local
+                pvinaysimhareddy333@gmail.com
               </p>
               <p className="text-[11px] text-mint/50 font-mono mt-1">
                 Version 1.0.0 (Editorial)

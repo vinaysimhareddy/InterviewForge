@@ -1442,7 +1442,7 @@ export function InterviewRoom({
         onReconnectWS={() => sendWSMessage({ type: 'ping' })}
         wsStatus={_wsStatus}
         sendWSMessage={sendWSMessage}
-        supportEmail={import.meta.env.VITE_SUPPORT_EMAIL || 'support@ai-interviewer.com'}
+        supportEmail={import.meta.env.VITE_SUPPORT_EMAIL || 'pvinaysimhareddy333@gmail.com'}
       />
     </div>
   );

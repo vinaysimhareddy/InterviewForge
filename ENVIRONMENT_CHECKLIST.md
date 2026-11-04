@@ -28,6 +28,7 @@ This checklist documents every configuration setting across the InterviewForge p
 | `MAX_ANSWER_CHARS` | NO | `30000` | Maximum characters accepted for a single candidate answer. | Config update |
 | `WS_MAX_MESSAGE_BYTES` | NO | `262144` | Maximum incoming WebSocket frame size (256 KB). | Config update |
 | `MAX_TRANSCRIPT_CHARS_PER_TURN` | NO | `30000` | Maximum transcript characters preserved per turn. | Config update |
+| `SUPPORT_EMAIL` | NO | `pvinaysimhareddy333@gmail.com` | Public support email address displayed on help and contact views. | Config update |
 
 ---
 
@@ -87,5 +88,8 @@ ANSWER_SOFT_WARNING_SEC=240
 MAX_ANSWER_CHARS=30000
 WS_MAX_MESSAGE_BYTES=262144
 MAX_TRANSCRIPT_CHARS_PER_TURN=30000
+
+# Support Email
+SUPPORT_EMAIL=pvinaysimhareddy333@gmail.com
 ```
 

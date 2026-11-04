@@ -53,7 +53,7 @@ export function HelpDrawer({
   onReconnectWS,
   wsStatus = 'connected',
   sendWSMessage,
-  supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'support@ai-interviewer.com',
+  supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'pvinaysimhareddy333@gmail.com',
 }: HelpDrawerProps): React.ReactElement | null {
   const [isRetryingCamera, setIsRetryingCamera] = useState(false);
   const [isRetryingMic, setIsRetryingMic] = useState(false);

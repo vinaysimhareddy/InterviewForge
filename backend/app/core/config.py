@@ -194,7 +194,7 @@ class Settings(BaseSettings):
         description="Client camera integrity policy mode: 'off' | 'advisory' | 'strict'",
     )
     SUPPORT_EMAIL: str = Field(
-        default="support@ai-interviewer.com",
+        default="pvinaysimhareddy333@gmail.com",
         description="Public technical support email contact for candidate assistance",
     )
 

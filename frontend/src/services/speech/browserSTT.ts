@@ -176,36 +176,9 @@ export class BrowserSpeechToText implements SpeechToText, ISTTProvider {
 
     this.recognition = BrowserSpeechToText.sharedRecognitionInstance;
 
-    this.recognition.onaudiostart = () => {
-      if (import.meta.env.DEV) {
-        console.log(`[BrowserSTT][RawEvent] onaudiostart @ ${performance.now().toFixed(1)}ms`);
-      }
-    };
-
-    this.recognition.onspeechstart = () => {
-      if (import.meta.env.DEV) {
-        console.log(`[BrowserSTT][RawEvent] onspeechstart @ ${performance.now().toFixed(1)}ms`);
-      }
-    };
-
-    this.recognition.onspeechend = () => {
-      if (import.meta.env.DEV) {
-        console.log(`[BrowserSTT][RawEvent] onspeechend @ ${performance.now().toFixed(1)}ms`);
-      }
-    };
-
-    this.recognition.onaudioend = () => {
-      if (import.meta.env.DEV) {
-        console.log(`[BrowserSTT][RawEvent] onaudioend @ ${performance.now().toFixed(1)}ms`);
-      }
-    };
-
     this.recognition.onstart = () => {
       this._isRestarting = false;
       this.speechStartTime = Date.now();
-      if (import.meta.env.DEV) {
-        console.log(`[BrowserSTT][RawEvent] onstart @ ${performance.now().toFixed(1)}ms (lang: ${this.recognition?.lang})`);
-      }
       this.setState('listening');
       this.lastStartTime = Date.now();
     };
@@ -227,13 +200,6 @@ export class BrowserSpeechToText implements SpeechToText, ISTTProvider {
           hasFinalInBatch = true;
           finalBatchText += (finalBatchText ? ' ' : '') + itemTranscript.trim();
         }
-      }
-
-      if (import.meta.env.DEV) {
-        console.log(
-          `[BrowserSTT][RawEvent] onresult @ ${performance.now().toFixed(1)}ms | resultIndex=${event.resultIndex}, count=${event.results.length}:`,
-          parsedResults
-        );
       }
 
       const state = this.assembler.ingestResults(event.resultIndex, parsedResults);
@@ -287,9 +253,6 @@ export class BrowserSpeechToText implements SpeechToText, ISTTProvider {
     };
 
     this.recognition.onend = () => {
-      if (import.meta.env.DEV) {
-        console.log(`[BrowserSTT][RawEvent] onend @ ${performance.now().toFixed(1)}ms, desiredListening=${this.desiredListening}`);
-      }
       // Never discard committed history on session boundary; consolidate across restarts (§T2)
       this.assembler.handleSessionRestart();
 

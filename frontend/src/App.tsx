@@ -31,17 +31,6 @@ import { ExecutiveScorecard } from '@/components/interview/ExecutiveScorecard';
 import { FinalReport } from '@/lib/types';
 import { formatPageTitle } from '@/copy/glossary';
 
-// Lazy dev pages: dynamically imported in development mode only; completely tree-shaken in production builds
-const DesignSystemPage = import.meta.env.DEV
-  ? React.lazy(() => import('@/pages/DesignSystemPage'))
-  : null;
-const LatencyLabPage = import.meta.env.DEV
-  ? React.lazy(() => import('@/pages/LatencyLabPage').then((m) => ({ default: m.LatencyLabPage })))
-  : null;
-const STTLabPage = import.meta.env.DEV
-  ? React.lazy(() => import('@/pages/STTLabPage').then((m) => ({ default: m.STTLabPage })))
-  : null;
-
 function ThemeToggleButton(): React.ReactElement {
   const { resolvedTheme, toggleTheme } = useTheme();
   return (
@@ -287,28 +276,6 @@ function PlatformContent(): React.ReactElement {
     const isDirectComplete = typeof window !== 'undefined' && window.location.search.includes('complete=true');
     const isDirectAborted = typeof window !== 'undefined' && window.location.search.includes('aborted=true');
     const isDirectScorecard = typeof window !== 'undefined' && (window.location.search.includes('scorecard=true') || window.location.search.includes('report=true'));
-    const isDirectDesignSystem = typeof window !== 'undefined' && (window.location.search.includes('design-system=true') || window.location.pathname.includes('design-system'));
-    const isDirectLatencyLab =
-      typeof window !== 'undefined' &&
-      (window.location.search.includes('latency-lab=true') ||
-        window.location.pathname.includes('/dev/latency-lab') ||
-        window.location.pathname.includes('/latency-lab'));
-
-    if (isDirectLatencyLab && LatencyLabPage) {
-      return (
-        <React.Suspense fallback={<div className="min-h-screen bg-bg" />}>
-          <LatencyLabPage />
-        </React.Suspense>
-      );
-    }
-
-    if (isDirectDesignSystem && DesignSystemPage) {
-      return (
-        <React.Suspense fallback={<div className="min-h-screen bg-bg" />}>
-          <DesignSystemPage />
-        </React.Suspense>
-      );
-    }
 
     if (isDirectWelcome) {
       return (
@@ -343,7 +310,7 @@ function PlatformContent(): React.ReactElement {
             }}
             durationMinutes={15}
             onStart={() => {
-              console.log('Ready start clicked');
+              window.location.search = '?live=true';
             }}
             onBack={() => {
               window.location.search = '?setup=true';
@@ -360,7 +327,7 @@ function PlatformContent(): React.ReactElement {
             role="Full Stack Engineer"
             seniority="Senior"
             onStartInterview={(_config) => {
-              console.log('Setup completed -> starting interview session');
+              window.location.search = '?ready=true';
             }}
             onCancel={() => {
               window.location.search = '';
@@ -579,70 +546,6 @@ function PlatformContent(): React.ReactElement {
         <Route path="/register" element={<AuthRouteWrapper mode="register" />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
-        {import.meta.env.DEV && (
-          <>
-            <Route
-              path="/design-system"
-              element={
-                DesignSystemPage ? (
-                  <React.Suspense fallback={<div className="min-h-screen bg-bg" />}>
-                    <DesignSystemPage />
-                  </React.Suspense>
-                ) : (
-                  <Navigate to="/404" replace />
-                )
-              }
-            />
-            <Route
-              path="/dev/latency-lab"
-              element={
-                LatencyLabPage ? (
-                  <React.Suspense fallback={<div className="min-h-screen bg-bg" />}>
-                    <LatencyLabPage />
-                  </React.Suspense>
-                ) : (
-                  <Navigate to="/404" replace />
-                )
-              }
-            />
-            <Route
-              path="/latency-lab"
-              element={
-                LatencyLabPage ? (
-                  <React.Suspense fallback={<div className="min-h-screen bg-bg" />}>
-                    <LatencyLabPage />
-                  </React.Suspense>
-                ) : (
-                  <Navigate to="/404" replace />
-                )
-              }
-            />
-            <Route
-              path="/dev/stt-lab"
-              element={
-                STTLabPage ? (
-                  <React.Suspense fallback={<div className="min-h-screen bg-bg" />}>
-                    <STTLabPage />
-                  </React.Suspense>
-                ) : (
-                  <Navigate to="/404" replace />
-                )
-              }
-            />
-            <Route
-              path="/stt-lab"
-              element={
-                STTLabPage ? (
-                  <React.Suspense fallback={<div className="min-h-screen bg-bg" />}>
-                    <STTLabPage />
-                  </React.Suspense>
-                ) : (
-                  <Navigate to="/404" replace />
-                )
-              }
-            />
-          </>
-        )}
 
         {/* Protected App Routes */}
         <Route

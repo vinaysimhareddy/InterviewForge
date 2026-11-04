@@ -400,9 +400,6 @@ export function useVoiceTurnEngine({
                     }
                   }
 
-                  if (import.meta.env.DEV) {
-                    console.log(`[useVoiceTurnEngine][SilenceTrigger] Silence timeout reached: elapsedSilence=${elapsedSilence.toFixed(0)}ms >= adaptiveTimeoutMs=${adaptiveTimeoutMs}ms (currentWords=${currentWords}, hasSpokenMeaningfully=true)`);
-                  }
                   // Adaptive silence timeout reached -> automatically complete answer
                   void triggerAnswerCompletion();
                 }
@@ -560,15 +557,6 @@ export function useVoiceTurnEngine({
 
     sttTimingLogger.recordEvent('answer_sent', questionIndex);
 
-    if (import.meta.env.DEV) {
-      console.log(`[useVoiceTurnEngine][triggerAnswerCompletion] Sealed answer:
-        - rawTranscriptRef.current: "${finalRaw}"
-        - cleanTranscript: "${finalClean}"
-        - words committed: ${finalClean.split(/\s+/).filter(Boolean).length}
-        - questionIndex: ${questionIndex}
-        - confidence: ${confResult.confidence} (low=${confResult.isLowConfidence})
-      `);
-    }
     const source = metadata?.source || (activeSTTProvider === 'typed' ? 'typed' : 'voice');
     try {
       await onSubmitAnswer(finalClean, {

@@ -4,10 +4,6 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
-if (import.meta.env.DEV) {
-  console.log(`[API Client] Initialized. Base URL: "${API_BASE_URL || '(relative / vite proxy)'}"`);
-}
-
 export class ApiError extends Error {
   status: number;
   data: unknown;

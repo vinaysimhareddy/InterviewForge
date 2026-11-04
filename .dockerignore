@@ -12,3 +12,11 @@ dist
 build
 .git
 .github
+.vite
+.mypy_cache
+test-results
+backups
+prompt_dump*.txt
+test_resume.pdf
+*.tmp
+*.bak

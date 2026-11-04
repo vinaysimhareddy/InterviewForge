@@ -47,9 +47,6 @@ export default defineConfig(({ mode }) => {
               if (normalizedId.includes('lucide-react')) {
                 return 'vendor-icons';
               }
-              if (normalizedId.includes('@tanstack/react-query')) {
-                return 'vendor-query';
-              }
               if (
                 normalizedId.includes('/react/') ||
                 normalizedId.includes('/react-dom/') ||

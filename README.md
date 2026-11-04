@@ -44,7 +44,8 @@ flowchart TD
     subgraph Backend ["FastAPI ASGI Application (Python 3.11+)"]
         direction TB
         AuthService["Argon2id Auth & Session Manager"]
-        ResumeParser["Resume Extraction & Skill Matcher (pdfplumber)"]
+        ResumeParser["Resume Extraction & Semantic Chunker (pdfplumber)"]
+        RAGService["RAG Retrieval Service (Hybrid Vector + Keyword Search)"]
         LangGraphSM["Interview State Machine (Adaptive Turns & Follow-ups)"]
         ReportEngine["Report Pipeline & Deterministic Readiness Math"]
     end
@@ -52,6 +53,7 @@ flowchart TD
     subgraph ExternalAI ["AI & Language Models"]
         GeminiPrimary["Google Gemini 3.5 Flash-Lite (Primary Engine)"]
         GeminiFallback["Google Gemini 2.5 Flash (Quota Fallback)"]
+        GeminiEmbed["Google Gemini Embeddings (models/gemini-embedding-001)"]
         RuleEngine["Deterministic Rule Synthesis (Offline / 429 Failover)"]
     end
 
@@ -63,6 +65,8 @@ flowchart TD
     subgraph Storage ["Persistence Layer (MongoDB Atlas)"]
         MongoAuth[("auth")]
         MongoResumes[("resumes")]
+        MongoChunks[("resume_chunks (Vector Indexed)")]
+        MongoKB[("knowledge_base (Role Rubrics)")]
         MongoSessions[("interview_sessions")]
         MongoTelemetry[("telemetry_samples")]
         MongoReports[("evaluations")]
@@ -75,6 +79,9 @@ flowchart TD
     Client -- "Connects with ?ticket=..." --> WSServer
     WSServer --> LangGraphSM
     
+    LangGraphSM <--> RAGService
+    RAGService <--> GeminiEmbed
+    RAGService --> MongoChunks & MongoKB
     LangGraphSM <--> GeminiPrimary
     GeminiPrimary -. "On Quota Limit" .-> GeminiFallback
     GeminiFallback -. "On Exhaustion" .-> RuleEngine
@@ -83,7 +90,7 @@ flowchart TD
     FasterWhisper -. "Offline Fallback" .-> Vosk
 
     AuthService --> MongoAuth
-    ResumeParser --> MongoResumes
+    ResumeParser --> MongoResumes & MongoChunks
     LangGraphSM --> MongoSessions
     Aggregator --> MongoTelemetry
     ReportEngine --> MongoReports
@@ -111,6 +118,7 @@ flowchart TD
 | **Security & Hashing** | Argon2id (`passlib`) | `1.7.x` | State-of-the-art password hashing resistant to GPU cracking and side-channel attacks |
 | **Token Authentication** | PyJWT | `2.8.x` | HS256 cryptographically signed tokens with HttpOnly cookies and single-use WebSocket tickets |
 | **State Machine** | LangGraph / LangChain | `0.1.x` | Stateful interview agent workflows, question adaptation, and multi-turn state transitions |
+| **Vector Search / RAG** | Gemini Embeddings & MongoDB | `models/gemini-embedding-001` | Semantic chunking (200-400 tokens), hybrid retrieval, seniority caps, and token-budgeted prompt grounding |
 | **Document Parsing** | pdfplumber | `0.11.x` | Precise PDF text and structural extraction for candidate resume parsing |
 | **STT Microservice** | Faster-Whisper & Vosk | `1.0.x / 0.3.x` | Streaming neural transcription fallback (INT8 quantized) and offline Kaldi engine |
 | **Web Server / Proxy** | Nginx / Caddy | `1.25+ / 2.7+` | Reverse proxy, TLS/SSL termination, WebSocket frame upgrade, and HTTP/2 |
@@ -120,7 +128,7 @@ flowchart TD
 
 ## 3. AI & Vision Models Used
 
-InterviewForge integrates a multi-tiered pipeline of state-of-the-art generative language models, client-side computer vision neural nets, and streaming speech engines:
+InterviewForge integrates a multi-tiered pipeline of state-of-the-art generative language models, client-side computer vision neural nets, vector embeddings, and streaming speech engines:
 
 ### 3.1 Primary Reasoning & Conversational LLM: Google Gemini 3.5 Flash-Lite
 - **Model Identifier:** `gemini-3.5-flash-lite` (via Google GenAI SDK / LangChain)
@@ -140,7 +148,20 @@ InterviewForge integrates a multi-tiered pipeline of state-of-the-art generative
   - Measures spinal alignment, shoulder levelness, slouching ratios, and fidgeting frequency.
 - **Zero Video Upload Guarantee:** Frames are processed on-canvas inside browser memory and immediately discarded. No video frames are ever recorded, buffered to disk, or transmitted to any server.
 
-### 3.4 Speech-to-Text (STT) Tiered Hierarchy
+### 3.4 Vector Embeddings & Contextual RAG Pipeline
+- **Embedding Model:** `models/gemini-embedding-001` (via Google GenAI SDK) / OpenAI `text-embedding-3-small`.
+- **Semantic Resume Chunking (`resume_chunker.py`):**
+  - Automatically decomposes uploaded PDF resumes into semantic chunks of **200–400 tokens** with a **15% sliding window sentence overlap** across work history, project descriptions, and technical competencies.
+  - Automatically extracts and indexes programming languages, frameworks, and architecture patterns as structured tags.
+- **Multi-Source Hybrid Retrieval (`rag_retrieval_service.py`):**
+  - **Candidate Resume Chunks:** Retrieves the Top-3 most relevant project and experience chunks matching the dialogue context (isolated strictly per candidate).
+  - **Role & Seniority Knowledge Base:** Retrieves the Top-4 benchmark evaluation rubrics for the selected job title and seniority level.
+- **Seniority Ceilings & Token Budgeting:**
+  - Enforces strict seniority ceilings (Junior candidates are never asked Staff-level distributed consensus questions; Senior candidates are never asked trivial syntax trivia).
+  - Enforces topic deduplication to prevent repetitive question loops.
+  - Injects a strictly budgeted context (~1,200 tokens: ~40% resume proof, ~50% knowledge base criteria, ~10% tags) into the LangGraph planner node (`retrieve_context_node`).
+
+### 3.5 Speech-to-Text (STT) Tiered Hierarchy
 1. **Tier 1 (Default): Browser Web Speech API (`webkitSpeechRecognition`)**
    - Zero-latency, zero-cost, browser-native client transcription.
    - Paired with `TranscriptAssembler` to eliminate word dropping and recognizer auto-restart truncation.
@@ -371,7 +392,7 @@ adaptive-ai-mock-interview-platform/
 │   │   │   └── websocket.py    # WebSocket connection & telemetry ingestion
 │   │   ├── core/               # App configuration, security (Argon2id), database setup
 │   │   ├── models/             # Pydantic schemas and MongoDB document entities
-│   │   ├── services/           # LangGraph engine, Gemini integration, resume parser
+│   │   ├── services/           # LangGraph engine, RAG retrieval, resume chunker, Gemini LLM
 │   │   └── main.py             # ASGI entrypoint with CORS & lifecycle handlers
 │   ├── scripts/                # Database checks & auth storage verification scripts
 │   ├── tests/                  # Pytest automated test suite (35+ test files)
@@ -446,7 +467,13 @@ adaptive-ai-mock-interview-platform/
 - **Piecewise Seniority Calibration:** Curves are calibrated differently for Junior, Mid, Senior, and Lead/Staff roles.
 - **Thin Data Gating:** Sessions under 4 answered questions or 5 minutes duration are gated with an informative banner instead of calculating unreliable numbers.
 
-### 7.5 Strict White-Label Privacy (AST Scanner)
+### 7.5 Multi-Source Retrieval-Augmented Generation (RAG)
+- **Resume & Knowledge Base Grounding:** Rather than querying LLMs blindly with generic questions, every conversational turn is grounded using vector search over candidate resume chunks and role-specific rubrics.
+- **Zero Hallucination Anchor:** Questions cite technologies, architectures, and projects directly present on the candidate's resume, cross-referenced with expected industry seniority benchmarks.
+- **Dynamic Seniority Caps:** Enforces difficulty boundaries so candidates are evaluated strictly against their chosen level (Junior, Mid, Senior, Lead).
+- **Topic Deduplication:** Automatically tracks topics covered across earlier turns to ensure broad skill coverage without repetitive loops.
+
+### 7.6 Strict White-Label Privacy (AST Scanner)
 - **Zero Vendor Name Leaks:** An automated AST source scanner (`banned-terms-ast-scan.test.ts`) verifies that internal technology and vendor names (e.g., `Gemini`, `OpenAI`, `LangGraph`, `MediaPipe`, `MongoDB`, `Argon2`) never appear in candidate-facing UI elements.
 
 ---

@@ -37,7 +37,7 @@ export function PermissionHelpModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-deep-1/60 backdrop-blur-sm p-4 animate-in fade-in">
-      <Card className="w-full max-w-lg card-editorial shadow-2xl flex flex-col max-h-[90vh]">
+      <Card className="w-full max-w-lg card-editorial shadow-2xl flex flex-col max-h-[90dvh]">
         <CardHeader className="pb-3 border-b border-card-border flex flex-row items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="h-8 w-8 rounded-lg bg-peach border border-accent/20 flex items-center justify-center text-accent">
@@ -52,7 +52,7 @@ export function PermissionHelpModal({
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="h-8 w-8 p-0 text-text-muted hover:text-text"
+            className="h-11 w-11 sm:h-8 sm:w-8 p-0 text-text-muted hover:text-text flex items-center justify-center"
             aria-label="Close permission help"
           >
             <X className="h-4 w-4" />
@@ -60,7 +60,7 @@ export function PermissionHelpModal({
         </CardHeader>
 
         {/* Browser Selector Tabs */}
-        <div className="flex border-b border-card-border bg-bg-subtle px-4 pt-2 gap-1 text-xs shrink-0">
+        <div className="flex border-b border-card-border bg-bg-subtle px-3 sm:px-4 pt-2 gap-1 text-xs shrink-0 overflow-x-auto">
           {(
             [
               { id: 'chrome', label: 'Google Chrome' },
@@ -73,7 +73,7 @@ export function PermissionHelpModal({
               key={t.id}
               type="button"
               onClick={() => setActiveTab(t.id)}
-              className={`px-3 py-1.5 font-medium rounded-t-lg transition-colors border-b-2 text-[11px] cursor-pointer ${
+              className={`px-3 py-2 sm:py-1.5 min-h-[40px] sm:min-h-0 flex items-center whitespace-nowrap font-medium rounded-t-lg transition-colors border-b-2 text-[11px] cursor-pointer ${
                 activeTab === t.id
                   ? 'border-primary text-primary font-bold bg-card'
                   : 'border-transparent text-text-muted hover:text-text hover:bg-card/40'
@@ -188,14 +188,14 @@ export function PermissionHelpModal({
                 variant="outline"
                 size="sm"
                 onClick={onClose}
-                className="text-xs border-card-border text-text hover:bg-bg-subtle h-8 px-3"
+                className="text-xs border-card-border text-text hover:bg-bg-subtle min-h-[44px] sm:min-h-0 sm:h-8 px-3.5"
               >
                 Close
               </Button>
               <Button
                 size="sm"
                 onClick={handleRetry}
-                className="bg-primary hover:bg-primary-hover text-primary-ink text-xs h-8 px-3.5 font-medium"
+                className="bg-primary hover:bg-primary-hover text-primary-ink text-xs min-h-[44px] sm:min-h-0 sm:h-8 px-4 font-medium"
               >
                 Try Again
               </Button>

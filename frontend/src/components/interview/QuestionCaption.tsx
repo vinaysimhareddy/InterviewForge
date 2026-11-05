@@ -70,7 +70,7 @@ export function QuestionCaption({
       <div className="label-mono text-[11px] text-mint/70 tracking-widest uppercase mb-3">
         CURRENT QUESTION
       </div>
-      <h2 className="text-2xl sm:text-3xl lg:text-[32px] font-display font-medium text-[#FBFAF6] leading-[1.35] tracking-tight transition-colors duration-200">
+      <h2 className="text-xl sm:text-2xl lg:text-[32px] font-display font-medium text-[#FBFAF6] leading-snug sm:leading-[1.35] tracking-tight transition-colors duration-200 break-words">
         {words.map((word, idx) => {
           const isRevealed = idx < displayedWordsCount;
           return (

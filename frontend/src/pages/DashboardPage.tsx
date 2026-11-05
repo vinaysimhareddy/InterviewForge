@@ -283,8 +283,8 @@ export default function DashboardPage(): React.ReactElement {
   // FULL REVIEW INSPECTION VIEW
   if (viewingReport) {
     return (
-      <div className="w-full max-w-6xl mx-auto py-8 px-4 space-y-6">
-        <div className="flex items-center justify-between pb-4 border-b border-card-border">
+      <div className="w-full max-w-6xl mx-auto py-4 sm:py-8 px-3 sm:px-4 space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-card-border">
           <Button
             variant="outline"
             size="sm"
@@ -424,12 +424,12 @@ export default function DashboardPage(): React.ReactElement {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-end sm:self-auto">
+          <div className="flex items-center gap-2 self-start sm:self-auto w-full sm:w-auto">
             <Button
               variant="outline"
               size="sm"
               onClick={logout}
-              className="text-danger border-danger/30 bg-danger/5 hover:bg-danger/10 hover:text-danger cursor-pointer"
+              className="w-full sm:w-auto text-danger border-danger/30 bg-danger/5 hover:bg-danger/10 hover:text-danger cursor-pointer min-h-[44px] sm:min-h-0"
             >
               <LogOut className="h-4 w-4 mr-1.5" />
               Sign Out
@@ -577,7 +577,7 @@ export default function DashboardPage(): React.ReactElement {
                 <Button
                   size="sm"
                   onClick={() => setWelcomeSession(activeSession)}
-                  className="h-8 bg-primary hover:bg-primary-hover text-primary-ink text-xs gap-1.5 cursor-pointer shadow-sm"
+                  className="w-full sm:w-auto h-10 sm:h-8 bg-primary hover:bg-primary-hover text-primary-ink text-xs gap-1.5 cursor-pointer shadow-sm min-h-[44px] sm:min-h-0"
                 >
                   <Video className="h-3.5 w-3.5" />
                   3 Check Camera & Microphone
@@ -1080,7 +1080,7 @@ export default function DashboardPage(): React.ReactElement {
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                    <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto w-full sm:w-auto">
                       <div className="px-3 py-1.5 rounded-xl bg-bg-subtle border border-card-border text-center">
                         <span className="text-[10px] text-text-faint block uppercase font-mono">Score</span>
                         <span className="text-sm font-bold text-primary font-mono">
@@ -1100,7 +1100,7 @@ export default function DashboardPage(): React.ReactElement {
                       <Button
                         size="sm"
                         onClick={() => setViewingReport({ report: rpt, session: sessionForRpt })}
-                        className="h-9 px-3.5 bg-primary hover:bg-primary-hover text-primary-ink text-xs font-semibold gap-1.5 cursor-pointer shadow-sm"
+                        className="w-full sm:w-auto h-10 sm:h-9 px-3.5 bg-primary hover:bg-primary-hover text-primary-ink text-xs font-semibold gap-1.5 cursor-pointer shadow-sm min-h-[44px] sm:min-h-0"
                       >
                         <FileText className="h-3.5 w-3.5" />
                         View Full Review
@@ -1111,7 +1111,7 @@ export default function DashboardPage(): React.ReactElement {
                         variant="outline"
                         disabled={isDownloading}
                         onClick={() => handleDownloadPdf(rpt, sessionForRpt)}
-                        className="h-9 px-3 text-xs border-card-border text-text hover:bg-bg-subtle gap-1.5 cursor-pointer font-sans"
+                        className="w-full sm:w-auto h-10 sm:h-9 px-3 text-xs border-card-border text-text hover:bg-bg-subtle gap-1.5 cursor-pointer font-sans min-h-[44px] sm:min-h-0"
                       >
                         {isDownloading ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1167,7 +1167,7 @@ export default function DashboardPage(): React.ReactElement {
                       size="sm"
                       variant="outline"
                       onClick={() => setWelcomeSession(sess)}
-                      className="h-8 px-3 text-xs text-primary border-primary/30 hover:bg-mint/40 gap-1.5 cursor-pointer font-sans"
+                      className="h-10 sm:h-8 px-3 text-xs text-primary border-primary/30 hover:bg-mint/40 gap-1.5 cursor-pointer font-sans min-h-[44px] sm:min-h-0"
                     >
                       <Video className="h-3 w-3" />
                       Configure &amp; Start

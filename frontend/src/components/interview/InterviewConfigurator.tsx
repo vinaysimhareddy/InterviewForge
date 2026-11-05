@@ -92,7 +92,7 @@ export function InterviewConfigurator({
               <Target className="h-4 w-4" />
             </div>
             <div>
-              <span className="label-mono text-primary text-[10px]">02 // STEP 2: CHOOSE ROLE & LEVEL</span>
+              <span className="label-mono text-primary text-[10px]">02 // STEP 2: CHOOSE ROLE &amp; LEVEL</span>
               <CardTitle className="text-lg text-text font-display font-bold">Interview Configuration</CardTitle>
             </div>
           </div>
@@ -114,15 +114,15 @@ export function InterviewConfigurator({
         )}
 
         {/* 1. Resume Indicator */}
-        <div className="p-3 rounded-xl bg-bg-subtle border border-card-border flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="p-3 rounded-xl bg-bg-subtle border border-card-border flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             <FileText className="h-4 w-4 text-primary shrink-0" />
-            <span className="text-xs text-text-muted">1. Attached Resume:</span>
-            <span className="text-xs font-semibold text-text truncate max-w-[200px] sm:max-w-xs">
-              {selectedResume ? selectedResume.filename : 'No resume attached (General questions)'}
+            <span className="text-xs text-text-muted shrink-0">1. Resume:</span>
+            <span className="text-xs font-semibold text-text truncate max-w-[170px] sm:max-w-xs">
+              {selectedResume ? selectedResume.filename : 'No resume (General)'}
             </span>
           </div>
-          <Badge variant="outline" className="text-[10px] font-mono border-card-border">
+          <Badge variant="outline" className="text-[10px] font-mono border-card-border shrink-0">
             {selectedResume ? 'Grounded' : 'Standard'}
           </Badge>
         </div>
@@ -156,9 +156,9 @@ export function InterviewConfigurator({
         <div className="space-y-2">
           <label className="text-xs font-semibold text-text flex items-center gap-1.5 font-mono uppercase tracking-wider text-[11px]">
             <Target className="h-3.5 w-3.5 text-primary" />
-            2. Target Role & Specialization
+            2. Target Role &amp; Specialization
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {CANONICAL_ROLES.map((preset) => (
               <button
                 key={preset}
@@ -167,7 +167,7 @@ export function InterviewConfigurator({
                   setRole(preset);
                   setCustomRole('');
                 }}
-                className={`px-3 py-2 rounded-xl text-xs font-medium text-left transition-all border cursor-pointer ${
+                className={`px-3 py-2.5 rounded-xl text-xs font-medium text-left transition-all border cursor-pointer min-h-[44px] flex items-center touch-manipulation ${
                   activeRole === preset && !customRole
                     ? 'border-primary bg-primary text-primary-ink shadow-xs'
                     : 'border-card-border bg-card text-text-muted hover:text-text hover:bg-bg-subtle'
@@ -184,7 +184,7 @@ export function InterviewConfigurator({
               placeholder="Or enter custom role (e.g. Site Reliability Engineer)"
               value={customRole}
               onChange={(e) => setCustomRole(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-bg-subtle border border-card-border text-xs text-text placeholder:text-text-faint focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-bg-subtle border border-card-border text-base sm:text-xs text-text placeholder:text-text-faint focus:outline-none focus:ring-1 focus:ring-primary min-h-[44px]"
             />
           </div>
         </div>
@@ -201,7 +201,7 @@ export function InterviewConfigurator({
                 key={tier}
                 type="button"
                 onClick={() => setLevel(tier)}
-                className={`px-3 py-2.5 rounded-xl text-xs font-semibold transition-all border flex items-center justify-between cursor-pointer ${
+                className={`px-3 py-2.5 rounded-xl text-xs font-semibold transition-all border flex items-center justify-between cursor-pointer min-h-[44px] touch-manipulation ${
                   level === tier
                     ? 'border-primary bg-primary text-primary-ink shadow-xs'
                     : 'border-card-border bg-card text-text-muted hover:text-text hover:bg-bg-subtle'
@@ -220,13 +220,13 @@ export function InterviewConfigurator({
             <Clock className="h-3.5 w-3.5 text-primary" />
             4. Interview Duration
           </label>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {DURATIONS.map((dur) => (
               <button
                 key={dur}
                 type="button"
                 onClick={() => setDuration(dur)}
-                className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all border text-center cursor-pointer ${
+                className={`px-3 py-2.5 rounded-xl text-xs font-semibold transition-all border text-center cursor-pointer min-h-[44px] flex items-center justify-center touch-manipulation ${
                   duration === dur
                     ? 'border-primary bg-primary text-primary-ink shadow-xs'
                     : 'border-card-border bg-card text-text-muted hover:text-text hover:bg-bg-subtle'
@@ -239,7 +239,7 @@ export function InterviewConfigurator({
         </div>
 
         {/* 5. Start / Summary */}
-        <div className="pt-4 border-t border-card-border flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="pt-4 border-t border-card-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
           <div className="text-xs text-text-muted space-y-0.5">
             <div>
               Ready to interview for:{' '}
@@ -254,7 +254,7 @@ export function InterviewConfigurator({
           <Button
             onClick={handleCreateSession}
             disabled={isCreating}
-            className="w-full sm:w-auto h-11 px-6 bg-primary hover:bg-primary-hover text-primary-ink font-semibold rounded-xl shadow-md gap-2 shrink-0 cursor-pointer"
+            className="w-full sm:w-auto h-11 min-h-[44px] px-6 bg-primary hover:bg-primary-hover text-primary-ink font-semibold rounded-xl shadow-md gap-2 shrink-0 cursor-pointer"
           >
             {isCreating ? (
               <span className="flex items-center gap-2">

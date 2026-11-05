@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Sparkles,
   Shield,
@@ -15,6 +15,8 @@ import {
   Lock,
   ExternalLink,
   Laptop,
+  Menu,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -27,6 +29,7 @@ export default function LandingPage(): React.ReactElement {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = React.useState<number>(0);
   const [openFaq, setOpenFaq] = React.useState<number | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
   React.useEffect(() => {
     document.title = formatPageTitle('Practice Technical Interviews');
@@ -36,18 +39,26 @@ export default function LandingPage(): React.ReactElement {
     setOpenFaq(openFaq === index ? null : index);
   };
 
+  const handleMobileNavClick = (anchorId: string) => {
+    setMobileMenuOpen(false);
+    const elem = document.getElementById(anchorId);
+    if (elem) {
+      elem.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const showPricing = import.meta.env.VITE_SHOW_PRICING !== 'false';
 
   return (
     <div className="min-h-screen bg-bg text-text selection:bg-accent-soft selection:text-accent font-sans transition-colors duration-200 overflow-x-hidden">
       {/* 1. TOP NAV (Sticky blurred cream) */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-bg/85 border-b border-card-border">
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-bg/90 border-b border-card-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <a href="/" className="hover:opacity-95 transition-opacity">
+          <a href="/" className="hover:opacity-95 transition-opacity shrink-0">
             <LogoWordmark />
           </a>
 
-          {/* Nav links */}
+          {/* Nav links (Desktop) */}
           <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-text-muted">
             <a href="#how-it-works" className="hover:text-text transition-colors">How it works</a>
             <a href="#features" className="hover:text-text transition-colors">Features</a>
@@ -56,8 +67,8 @@ export default function LandingPage(): React.ReactElement {
             <a href="#faq" className="hover:text-text transition-colors">FAQ</a>
           </nav>
 
-          {/* Action buttons */}
-          <div className="flex items-center gap-3">
+          {/* Action buttons (Desktop) */}
+          <div className="hidden md:flex items-center gap-3">
             {user ? (
               <div className="flex items-center gap-3">
                 <Button
@@ -66,7 +77,7 @@ export default function LandingPage(): React.ReactElement {
                   onClick={() => {
                     window.location.href = '/app/dashboard';
                   }}
-                  className="rounded-full px-4"
+                  className="rounded-full px-4 min-h-[44px] sm:min-h-0"
                 >
                   Go to Dashboard <ArrowRight className="h-3.5 w-3.5 ml-1" />
                 </Button>
@@ -85,7 +96,7 @@ export default function LandingPage(): React.ReactElement {
                   onClick={() => {
                     window.location.href = '/login';
                   }}
-                  className="text-text-muted hover:text-text"
+                  className="text-text-muted hover:text-text min-h-[44px] sm:min-h-0"
                 >
                   Sign in
                 </Button>
@@ -95,20 +106,130 @@ export default function LandingPage(): React.ReactElement {
                   onClick={() => {
                     window.location.href = '/register';
                   }}
-                  className="rounded-full px-4 shadow-sm"
+                  className="rounded-full px-4 shadow-sm min-h-[44px] sm:min-h-0"
                 >
                   Get started free
                 </Button>
               </>
             )}
           </div>
+
+          {/* Mobile Hamburger Button */}
+          <div className="flex items-center gap-2 md:hidden">
+            {user && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = '/app/dashboard';
+                }}
+                className="h-9 w-9 rounded-full bg-mint border border-primary/20 flex items-center justify-center text-xs font-semibold text-primary cursor-pointer touch-manipulation"
+                aria-label="Go to Dashboard"
+              >
+                {user.full_name.charAt(0).toUpperCase()}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={mobileMenuOpen}
+              className="p-2.5 rounded-xl border border-card-border bg-card text-text hover:bg-bg-subtle focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors cursor-pointer touch-manipulation"
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Navigation Sheet / Drawer */}
+        {mobileMenuOpen && (
+          <div
+            className="md:hidden border-b border-card-border bg-card/98 backdrop-blur-lg px-4 pt-3 pb-6 space-y-4 shadow-elevated animate-in slide-in-from-top-2 duration-200"
+            role="dialog"
+            aria-label="Mobile Navigation Menu"
+          >
+            <nav className="flex flex-col space-y-1 text-sm font-medium text-text">
+              <button
+                type="button"
+                onClick={() => handleMobileNavClick('how-it-works')}
+                className="text-left py-2.5 px-3 rounded-lg hover:bg-bg-subtle transition-colors min-h-[44px] flex items-center"
+              >
+                How it works
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMobileNavClick('features')}
+                className="text-left py-2.5 px-3 rounded-lg hover:bg-bg-subtle transition-colors min-h-[44px] flex items-center"
+              >
+                Features
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMobileNavClick('tracks')}
+                className="text-left py-2.5 px-3 rounded-lg hover:bg-bg-subtle transition-colors min-h-[44px] flex items-center"
+              >
+                Interview tracks
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMobileNavClick('privacy')}
+                className="text-left py-2.5 px-3 rounded-lg hover:bg-bg-subtle transition-colors min-h-[44px] flex items-center"
+              >
+                Privacy
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMobileNavClick('faq')}
+                className="text-left py-2.5 px-3 rounded-lg hover:bg-bg-subtle transition-colors min-h-[44px] flex items-center"
+              >
+                FAQ
+              </button>
+            </nav>
+
+            <div className="pt-3 border-t border-card-border space-y-2">
+              {user ? (
+                <Button
+                  variant="default"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    window.location.href = '/app/dashboard';
+                  }}
+                  className="w-full rounded-full min-h-[44px] font-semibold"
+                >
+                  Go to Dashboard <ArrowRight className="h-4 w-4 ml-1" />
+                </Button>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      window.location.href = '/login';
+                    }}
+                    className="w-full rounded-full min-h-[44px] font-medium"
+                  >
+                    Sign in
+                  </Button>
+                  <Button
+                    variant="default"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      window.location.href = '/register';
+                    }}
+                    className="w-full rounded-full min-h-[44px] font-semibold"
+                  >
+                    Get started free
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
       <main id="main-content">
         {/* 2. HERO SECTION */}
-        <section className="relative pt-16 pb-20 sm:pt-24 sm:pb-28 bg-hero-wash border-b border-card-border/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        <section className="relative pt-12 pb-16 sm:pt-24 sm:pb-28 bg-hero-wash border-b border-card-border/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-12">
           {/* Text and CTAs */}
           <div className="text-center max-w-3xl mx-auto space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-card border border-card-border shadow-sm">
@@ -118,23 +239,23 @@ export default function LandingPage(): React.ReactElement {
               </span>
             </div>
 
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl text-text leading-[1.12] tracking-tight">
+            <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl text-text leading-[1.15] tracking-tight">
               Practice interviews that listen, adapt, and{' '}
               <span className="italic font-normal text-accent">tell you the truth</span>
             </h1>
 
-            <p className="text-text-muted text-base sm:text-lg lg:text-xl leading-relaxed max-w-2xl mx-auto font-normal">
+            <p className="text-text-muted text-sm sm:text-lg lg:text-xl leading-relaxed max-w-2xl mx-auto font-normal">
               An adaptive voice-to-voice interview simulator grounded in your resume and target seniority level, with honest multi-dimensional scorecard feedback.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 pt-2 w-full max-w-md sm:max-w-none mx-auto">
               <Button
                 variant="default"
                 size="lg"
                 onClick={() => {
                   window.location.href = user ? '/app/setup' : '/register';
                 }}
-                className="w-full sm:w-auto rounded-full px-8 py-3.5 shadow-md text-base"
+                className="w-full sm:w-auto rounded-full px-8 py-3.5 shadow-md text-base min-h-[44px]"
               >
                 {user ? 'Start Practicing Now' : 'Start Practicing Free'}
                 <ArrowRight className="h-4 w-4 ml-2" />
@@ -145,14 +266,14 @@ export default function LandingPage(): React.ReactElement {
                 onClick={() => {
                   document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="w-full sm:w-auto rounded-full px-7 text-base hover:bg-bg-subtle"
+                className="w-full sm:w-auto rounded-full px-7 text-base hover:bg-bg-subtle min-h-[44px]"
               >
                 See how it works
               </Button>
             </div>
 
             {/* 3 Truth facts */}
-            <div className="flex flex-wrap items-center justify-center gap-6 pt-4 text-xs text-text-faint font-medium">
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 pt-4 text-xs text-text-faint font-medium">
               <div className="flex items-center gap-1.5">
                 <Check className="h-3.5 w-3.5 text-primary stroke-[3]" />
                 <span>Voice-to-voice conversational AI</span>
@@ -169,7 +290,7 @@ export default function LandingPage(): React.ReactElement {
           </div>
 
           {/* 3. PRODUCT PREVIEW CARD (Framed window mockup with sample data) */}
-          <div className="max-w-5xl mx-auto pt-6">
+          <div className="max-w-5xl mx-auto pt-2 sm:pt-6">
             <div className="rounded-2xl border border-card-border bg-card shadow-elevated overflow-hidden">
               {/* Window Title Bar */}
               <div className="bg-bg-subtle px-4 py-3 border-b border-card-border flex items-center justify-between">
@@ -187,8 +308,8 @@ export default function LandingPage(): React.ReactElement {
               {/* Split Content: Left = Live Stage Mockup, Right = Sample Scorecard */}
               <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-card-border">
                 {/* Left Mini Live Stage */}
-                <div className="lg:col-span-7 p-6 sm:p-8 bg-deep-band text-primary-ink space-y-6 flex flex-col justify-between">
-                  <div className="flex items-center justify-between text-xs text-mint/80 font-mono">
+                <div className="lg:col-span-7 p-5 sm:p-8 bg-deep-band text-primary-ink space-y-6 flex flex-col justify-between">
+                  <div className="flex flex-wrap items-center justify-between text-xs text-mint/80 font-mono gap-2">
                     <span className="flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping inline-block" />
                       LIVE AUDIO TURN 3 / 5
@@ -203,14 +324,14 @@ export default function LandingPage(): React.ReactElement {
                     </div>
                     <div className="space-y-2 max-w-md mx-auto">
                       <span className="label-mono text-[10px] text-peach">INTERVIEWER QUESTION</span>
-                      <p className="font-display text-lg sm:text-xl text-primary-ink leading-snug">
+                      <p className="font-display text-base sm:text-xl text-primary-ink leading-snug">
                         "How do you guarantee distributed idempotency when handling payment event updates across microservices?"
                       </p>
                     </div>
                   </div>
 
                   {/* Live Candidate Answer Transcript Line */}
-                  <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/15 space-y-1.5">
+                  <div className="bg-white/10 backdrop-blur-sm p-3.5 sm:p-4 rounded-xl border border-white/15 space-y-1.5">
                     <div className="flex items-center justify-between text-[11px] font-mono text-mint/80">
                       <span>CANDIDATE SPEECH (REAL-TIME)</span>
                       <span className="text-emerald-300">Speaking...</span>
@@ -222,7 +343,7 @@ export default function LandingPage(): React.ReactElement {
                 </div>
 
                 {/* Right Sample Scorecard */}
-                <div className="lg:col-span-5 p-6 sm:p-8 bg-card space-y-6">
+                <div className="lg:col-span-5 p-5 sm:p-8 bg-card space-y-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="label-mono text-[10px]">EXECUTIVE SCORECARD</span>
@@ -264,7 +385,7 @@ export default function LandingPage(): React.ReactElement {
 
                     <div>
                       <div className="flex justify-between font-mono mb-1 text-text-muted">
-                        <span>Composure & Integrity</span>
+                        <span>Composure &amp; Integrity</span>
                         <span className="text-text font-semibold">88%</span>
                       </div>
                       <div className="h-2 rounded-full bg-muted-surface overflow-hidden">
@@ -288,7 +409,7 @@ export default function LandingPage(): React.ReactElement {
       {/* 4. WHAT YOU CAN PRACTICE STRIP (Role & Level Chips) */}
       <section id="tracks" className="py-12 bg-bg-subtle border-b border-card-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 text-center">
-          <div className="label-mono">AVAILABLE INTERVIEW TRACKS & CALIBRATION TIERS</div>
+          <div className="label-mono">AVAILABLE INTERVIEW TRACKS &amp; CALIBRATION TIERS</div>
           
           <div className="space-y-4">
             {/* Role Chips */}
@@ -311,7 +432,7 @@ export default function LandingPage(): React.ReactElement {
             </div>
 
             {/* Seniority Chips */}
-            <div className="flex items-center justify-center gap-2 pt-2">
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
               <span className="text-xs text-text-faint font-mono mr-2">CALIBRATED TO:</span>
               {['Junior', 'Mid-Level', 'Senior', 'Staff / Lead'].map((level) => (
                 <span
@@ -327,7 +448,7 @@ export default function LandingPage(): React.ReactElement {
       </section>
 
       {/* 5. FEATURES GRID (4 Cards with Pastel Icon Tiles) */}
-      <section id="features" className="py-20 sm:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      <section id="features" className="py-16 sm:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <div className="label-mono">01 // CORE ARCHITECTURE</div>
           <h2 className="font-display text-3xl sm:text-4xl text-text font-semibold tracking-tight">
@@ -406,8 +527,8 @@ export default function LandingPage(): React.ReactElement {
       </section>
 
       {/* 6. HOW IT WORKS (Numbered steps with large serif numerals 01 02 03) */}
-      <section id="how-it-works" className="py-20 sm:py-28 bg-bg-subtle border-y border-card-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+      <section id="how-it-works" className="py-16 sm:py-28 bg-bg-subtle border-y border-card-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 sm:space-y-16">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <div className="label-mono">02 // HOW IT WORKS</div>
             <h2 className="font-display text-3xl sm:text-4xl text-text font-semibold tracking-tight">
@@ -418,12 +539,12 @@ export default function LandingPage(): React.ReactElement {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {/* Step 01 */}
-            <div className="card-editorial p-8 space-y-4 relative">
-              <div className="font-display text-5xl sm:text-6xl text-card-border font-bold">01</div>
+            <div className="card-editorial p-6 sm:p-8 space-y-4 relative">
+              <div className="font-display text-4xl sm:text-6xl text-card-border font-bold">01</div>
               <div className="space-y-2">
-                <h3 className="font-display text-xl text-text font-semibold">Upload Resume & Choose Track</h3>
+                <h3 className="font-display text-lg sm:text-xl text-text font-semibold">Upload Resume &amp; Choose Track</h3>
                 <p className="text-xs text-text-muted leading-relaxed">
                   Provide your PDF resume or enter your target engineering track (Frontend, Backend, Full Stack). The RAG chunker indexes your real technologies.
                 </p>
@@ -431,10 +552,10 @@ export default function LandingPage(): React.ReactElement {
             </div>
 
             {/* Step 02 */}
-            <div className="card-editorial p-8 space-y-4 relative">
-              <div className="font-display text-5xl sm:text-6xl text-card-border font-bold">02</div>
+            <div className="card-editorial p-6 sm:p-8 space-y-4 relative">
+              <div className="font-display text-4xl sm:text-6xl text-card-border font-bold">02</div>
               <div className="space-y-2">
-                <h3 className="font-display text-xl text-text font-semibold">Check Devices & Start Voice Session</h3>
+                <h3 className="font-display text-lg sm:text-xl text-text font-semibold">Check Devices &amp; Start Voice Session</h3>
                 <p className="text-xs text-text-muted leading-relaxed">
                   Run a 10-second mic and camera check. Speak naturally with the AI interviewer via WebSocket streaming, with real-time adaptive turn handling.
                 </p>
@@ -442,10 +563,10 @@ export default function LandingPage(): React.ReactElement {
             </div>
 
             {/* Step 03 */}
-            <div className="card-editorial p-8 space-y-4 relative">
-              <div className="font-display text-5xl sm:text-6xl text-card-border font-bold">03</div>
+            <div className="card-editorial p-6 sm:p-8 space-y-4 relative">
+              <div className="font-display text-4xl sm:text-6xl text-card-border font-bold">03</div>
               <div className="space-y-2">
-                <h3 className="font-display text-xl text-text font-semibold">Get Scorecard & Download PDF</h3>
+                <h3 className="font-display text-lg sm:text-xl text-text font-semibold">Get Scorecard &amp; Download PDF</h3>
                 <p className="text-xs text-text-muted leading-relaxed">
                   Receive a multi-dimensional assessment covering technical depth, clarity, composure, per-question feedback, and an exportable executive PDF.
                 </p>
@@ -456,7 +577,7 @@ export default function LandingPage(): React.ReactElement {
       </section>
 
       {/* 7. INTERVIEW EXPERIENCE SECTION (Tabbed interactive demonstration) */}
-      <section className="py-20 sm:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      <section className="py-16 sm:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-12">
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <div className="label-mono">03 // INTERVIEW EXPERIENCE</div>
           <h2 className="font-display text-3xl sm:text-4xl text-text font-semibold tracking-tight">
@@ -467,40 +588,42 @@ export default function LandingPage(): React.ReactElement {
           </p>
         </div>
 
-        {/* Tab Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-2 border-b border-card-border pb-4">
-          {[
-            { label: 'Voice Conversation', icon: Mic },
-            { label: 'Real-Time Transcript', icon: FileText },
-            { label: 'Integrity Heuristics', icon: Camera },
-            { label: 'Scorecard & PDF', icon: Layers },
-          ].map((tab, idx) => {
-            const Icon = tab.icon;
-            const isSelected = activeTab === idx;
-            return (
-              <button
-                key={tab.label}
-                onClick={() => setActiveTab(idx)}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all ${
-                  isSelected
-                    ? 'bg-primary text-primary-ink shadow-sm'
-                    : 'bg-card border border-card-border text-text-muted hover:text-text'
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
+        {/* Tab Buttons (Horizontally scrollable on small screens) */}
+        <div className="w-full overflow-x-auto pb-2 -mb-2">
+          <div className="flex items-center justify-start sm:justify-center gap-2 border-b border-card-border pb-4 min-w-max px-2">
+            {[
+              { label: 'Voice Conversation', icon: Mic },
+              { label: 'Real-Time Transcript', icon: FileText },
+              { label: 'Integrity Heuristics', icon: Camera },
+              { label: 'Scorecard & PDF', icon: Layers },
+            ].map((tab, idx) => {
+              const Icon = tab.icon;
+              const isSelected = activeTab === idx;
+              return (
+                <button
+                  key={tab.label}
+                  onClick={() => setActiveTab(idx)}
+                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-medium transition-all min-h-[44px] cursor-pointer touch-manipulation ${
+                    isSelected
+                      ? 'bg-primary text-primary-ink shadow-sm'
+                      : 'bg-card border border-card-border text-text-muted hover:text-text'
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Tab Content Panels */}
-        <div className="card-editorial p-6 sm:p-10">
+        <div className="card-editorial p-5 sm:p-10">
           {activeTab === 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               <div className="space-y-4">
                 <Badge variant="mint">HANDS-FREE DIALOGUE</Badge>
-                <h3 className="font-display text-2xl text-text font-semibold">Natural Turn-Taking Voice Engine</h3>
+                <h3 className="font-display text-xl sm:text-2xl text-text font-semibold">Natural Turn-Taking Voice Engine</h3>
                 <p className="text-sm text-text-muted leading-relaxed">
                   Speech synthesis and recognition seamlessly hand off turns using energy-based Voice Activity Detection (VAD). You speak directly to the AI interviewer without having to click buttons between every sentence.
                 </p>
@@ -514,8 +637,8 @@ export default function LandingPage(): React.ReactElement {
                 </ul>
               </div>
               <div className="rounded-xl bg-deep-band p-6 text-primary-ink text-center space-y-4">
-                <div className="h-20 w-20 mx-auto rounded-full bg-mint/20 border border-mint/40 flex items-center justify-center animate-orb-breathe">
-                  <Mic className="h-8 w-8 text-mint" />
+                <div className="h-16 w-16 sm:h-20 sm:w-20 mx-auto rounded-full bg-mint/20 border border-mint/40 flex items-center justify-center animate-orb-breathe">
+                  <Mic className="h-7 w-7 sm:h-8 sm:w-8 text-mint" />
                 </div>
                 <div className="text-xs font-mono text-mint/80">SPEECH DETECTOR ACTIVE</div>
                 <p className="text-xs italic text-primary-ink/90 max-w-sm mx-auto">
@@ -529,7 +652,7 @@ export default function LandingPage(): React.ReactElement {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               <div className="space-y-4">
                 <Badge variant="peach">LIVE CAPTIONING</Badge>
-                <h3 className="font-display text-2xl text-text font-semibold">Real-Time Continuous Transcript</h3>
+                <h3 className="font-display text-xl sm:text-2xl text-text font-semibold">Real-Time Continuous Transcript</h3>
                 <p className="text-sm text-text-muted leading-relaxed">
                   Every word is stitched client-side with confidence metrics. Candidates can see captions evolve in real time, with automatic phrase consolidation and timestamping.
                 </p>
@@ -542,7 +665,7 @@ export default function LandingPage(): React.ReactElement {
                   </li>
                 </ul>
               </div>
-              <div className="rounded-xl border border-card-border bg-bg-subtle p-5 font-mono text-xs space-y-3">
+              <div className="rounded-xl border border-card-border bg-bg-subtle p-4 sm:p-5 font-mono text-xs space-y-3">
                 <div className="flex justify-between text-text-faint border-b border-card-border pb-2">
                   <span>TRANSCRIPT STREAM // T-04:12</span>
                   <span className="text-success">98.2% CONFIDENCE</span>
@@ -561,7 +684,7 @@ export default function LandingPage(): React.ReactElement {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               <div className="space-y-4">
                 <Badge variant="sky">ON-DEVICE VISION</Badge>
-                <h3 className="font-display text-2xl text-text font-semibold">Non-Verbal Composure Telemetry</h3>
+                <h3 className="font-display text-xl sm:text-2xl text-text font-semibold">Non-Verbal Composure Telemetry</h3>
                 <p className="text-sm text-text-muted leading-relaxed">
                   MediaPipe Face Mesh runs at 5 Hz inside your browser to measure blink frequency, posture stability, and eye contact continuity. These signals provide objective feedback on confidence and engagement.
                 </p>
@@ -574,7 +697,7 @@ export default function LandingPage(): React.ReactElement {
                   </li>
                 </ul>
               </div>
-              <div className="rounded-xl border border-card-border bg-card p-5 space-y-3">
+              <div className="rounded-xl border border-card-border bg-card p-4 sm:p-5 space-y-3">
                 <div className="flex justify-between items-center text-xs font-mono">
                   <span className="text-text-muted">VISION TELEMETRY SIGNALS</span>
                   <Badge variant="mint">MediaPipe 0.10.18</Badge>
@@ -605,7 +728,7 @@ export default function LandingPage(): React.ReactElement {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               <div className="space-y-4">
                 <Badge variant="sand">MULTIDIMENSIONAL RUBRIC</Badge>
-                <h3 className="font-display text-2xl text-text font-semibold">Immediate Comprehensive Scorecard</h3>
+                <h3 className="font-display text-xl sm:text-2xl text-text font-semibold">Immediate Comprehensive Scorecard</h3>
                 <p className="text-sm text-text-muted leading-relaxed">
                   Upon interview completion, the LangGraph evaluator aggregates all response turn rubrics into an executive summary with concrete strengths, weaknesses, and a downloadable PDF document.
                 </p>
@@ -618,7 +741,7 @@ export default function LandingPage(): React.ReactElement {
                   </li>
                 </ul>
               </div>
-              <div className="rounded-xl border border-card-border bg-bg-subtle p-5 space-y-3">
+              <div className="rounded-xl border border-card-border bg-bg-subtle p-4 sm:p-5 space-y-3">
                 <div className="flex justify-between items-center text-xs font-mono text-text-muted">
                   <span>EXECUTIVE REPORT #84920</span>
                   <Badge variant="success">Strong Hire</Badge>
@@ -637,10 +760,10 @@ export default function LandingPage(): React.ReactElement {
       </section>
 
       {/* 8. PRIVACY & INTEGRITY SECTION (Honest & Technical) */}
-      <section id="privacy" className="py-20 sm:py-28 bg-bg-subtle border-y border-card-border">
+      <section id="privacy" className="py-16 sm:py-28 bg-bg-subtle border-y border-card-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <div className="label-mono">04 // TRANSPARENCY & DATA PRIVACY</div>
+            <div className="label-mono">04 // TRANSPARENCY &amp; DATA PRIVACY</div>
             <h2 className="font-display text-3xl sm:text-4xl text-text font-semibold tracking-tight">
               Honest Engineering, Not Surveillance
             </h2>
@@ -690,7 +813,7 @@ export default function LandingPage(): React.ReactElement {
           <div className="text-center">
             <a
               href="/privacy"
-              className="inline-flex items-center gap-1.5 text-xs text-primary font-medium underline underline-offset-4 hover:opacity-80"
+              className="inline-flex items-center gap-1.5 text-xs text-primary font-medium underline underline-offset-4 hover:opacity-80 min-h-[44px] sm:min-h-0"
             >
               Read the full Technical Privacy Architecture <ExternalLink className="h-3 w-3" />
             </a>
@@ -700,9 +823,9 @@ export default function LandingPage(): React.ReactElement {
 
       {/* 9. PRICING SECTION (Single Honest Free Tier) */}
       {showPricing && (
-        <section className="py-20 sm:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        <section className="py-16 sm:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <div className="label-mono">05 // PRICING & ACCESS</div>
+            <div className="label-mono">05 // PRICING &amp; ACCESS</div>
             <h2 className="font-display text-3xl sm:text-4xl text-text font-semibold tracking-tight">
               100% Free for Job Seekers
             </h2>
@@ -712,14 +835,14 @@ export default function LandingPage(): React.ReactElement {
           </div>
 
           <div className="max-w-md mx-auto">
-            <div className="card-editorial p-8 space-y-6 border-2 border-primary/20 bg-card shadow-elevated">
+            <div className="card-editorial p-6 sm:p-8 space-y-6 border-2 border-primary/20 bg-card shadow-elevated">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-display text-2xl text-text font-bold">Standard Practice</h3>
                   <p className="text-xs text-text-muted mt-0.5">Complete technical interview suite</p>
                 </div>
                 <div className="text-right">
-                  <span className="font-display text-4xl font-extrabold text-primary">$0</span>
+                  <span className="font-display text-3xl sm:text-4xl font-extrabold text-primary">$0</span>
                   <span className="text-xs text-text-faint font-mono block">FREE FOREVER</span>
                 </div>
               </div>
@@ -746,7 +869,7 @@ export default function LandingPage(): React.ReactElement {
                 onClick={() => {
                   window.location.href = user ? '/app/setup' : '/register';
                 }}
-                className="w-full rounded-full"
+                className="w-full rounded-full min-h-[44px]"
               >
                 {user ? 'Go to Simulator' : 'Start Practicing Free'}
               </Button>
@@ -756,7 +879,7 @@ export default function LandingPage(): React.ReactElement {
       )}
 
       {/* 10. FAQ ACCORDION (8 Items) */}
-      <section id="faq" className="py-20 sm:py-28 bg-bg-subtle border-t border-card-border">
+      <section id="faq" className="py-16 sm:py-28 bg-bg-subtle border-t border-card-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <div className="label-mono">06 // FREQUENTLY ASKED QUESTIONS</div>
@@ -811,7 +934,8 @@ export default function LandingPage(): React.ReactElement {
                 >
                   <button
                     onClick={() => toggleFaq(idx)}
-                    className="w-full p-5 text-left flex items-center justify-between gap-4 font-semibold text-text text-sm sm:text-base hover:text-primary transition-colors"
+                    className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 font-semibold text-text text-sm sm:text-base hover:text-primary transition-colors min-h-[44px] cursor-pointer touch-manipulation"
+                    aria-expanded={isOpen}
                   >
                     <span>{item.q}</span>
                     <ChevronDown
@@ -821,7 +945,7 @@ export default function LandingPage(): React.ReactElement {
                     />
                   </button>
                   {isOpen && (
-                    <div className="px-5 pb-5 text-xs sm:text-sm text-text-muted leading-relaxed border-t border-card-border/60 pt-3">
+                    <div className="px-4 sm:px-5 pb-5 text-xs sm:text-sm text-text-muted leading-relaxed border-t border-card-border/60 pt-3">
                       {item.a}
                     </div>
                   )}
@@ -833,13 +957,13 @@ export default function LandingPage(): React.ReactElement {
       </section>
 
       {/* 11. FINAL CTA BAND (Deep Forest Green Gradient) */}
-      <section className="bg-deep-band text-primary-ink py-20 sm:py-28 border-t border-primary/30">
+      <section className="bg-deep-band text-primary-ink py-16 sm:py-28 border-t border-primary/30">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
           <span className="label-mono text-[11px] text-mint">07 // PRACTICE WITH INTEGRITY</span>
-          <h2 className="font-display text-4xl sm:text-5xl text-primary-ink leading-tight">
+          <h2 className="font-display text-3xl sm:text-5xl text-primary-ink leading-tight">
             Ready to test your skills in an interview that <span className="italic text-peach">listens and adapts?</span>
           </h2>
-          <p className="text-mint/85 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+          <p className="text-mint/85 text-sm sm:text-lg max-w-2xl mx-auto leading-relaxed">
             Upload your resume, step into the voice chamber, and get actionable engineering feedback in 15 minutes.
           </p>
           <div className="pt-4">
@@ -849,7 +973,7 @@ export default function LandingPage(): React.ReactElement {
               onClick={() => {
                 window.location.href = user ? '/app/setup' : '/register';
               }}
-              className="bg-bg text-primary hover:bg-card shadow-xl font-semibold px-8 py-3.5 rounded-full text-base"
+              className="bg-bg text-primary hover:bg-card shadow-xl font-semibold px-8 py-3.5 rounded-full text-base min-h-[44px] w-full sm:w-auto"
             >
               {user ? 'Go to Interview Setup' : 'Get Started Free — No Card Required'}
               <ArrowRight className="h-4 w-4 ml-2" />
@@ -873,18 +997,18 @@ export default function LandingPage(): React.ReactElement {
             <div className="space-y-2">
               <h5 className="font-mono uppercase tracking-wider text-mint/90 font-semibold">Simulator</h5>
               <ul className="space-y-1.5 text-mint/70">
-                <li><a href="#tracks" className="hover:text-primary-ink">Available Tracks</a></li>
-                <li><a href="#how-it-works" className="hover:text-primary-ink">How It Works</a></li>
-                <li><a href="#features" className="hover:text-primary-ink">Features</a></li>
+                <li><a href="#tracks" className="hover:text-primary-ink min-h-[32px] inline-flex items-center">Available Tracks</a></li>
+                <li><a href="#how-it-works" className="hover:text-primary-ink min-h-[32px] inline-flex items-center">How It Works</a></li>
+                <li><a href="#features" className="hover:text-primary-ink min-h-[32px] inline-flex items-center">Features</a></li>
               </ul>
             </div>
 
             <div className="space-y-2">
-              <h5 className="font-mono uppercase tracking-wider text-mint/90 font-semibold">Legal & Safety</h5>
+              <h5 className="font-mono uppercase tracking-wider text-mint/90 font-semibold">Legal &amp; Safety</h5>
               <ul className="space-y-1.5 text-mint/70">
-                <li><a href="/privacy" className="hover:text-primary-ink">Privacy Architecture</a></li>
-                <li><a href="/terms" className="hover:text-primary-ink">Terms of Use</a></li>
-                <li><a href="#faq" className="hover:text-primary-ink">FAQ</a></li>
+                <li><a href="/privacy" className="hover:text-primary-ink min-h-[32px] inline-flex items-center">Privacy Architecture</a></li>
+                <li><a href="/terms" className="hover:text-primary-ink min-h-[32px] inline-flex items-center">Terms of Use</a></li>
+                <li><a href="#faq" className="hover:text-primary-ink min-h-[32px] inline-flex items-center">FAQ</a></li>
               </ul>
             </div>
 
@@ -908,9 +1032,9 @@ export default function LandingPage(): React.ReactElement {
             </div>
           </div>
 
-          <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-mint/60">
+          <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-mint/60 gap-2">
             <span>© 2026 InterviewForge. All rights reserved.</span>
-            <span className="font-mono text-[11px] text-mint/50 mt-2 sm:mt-0">
+            <span className="font-mono text-[11px] text-mint/50 text-center sm:text-right">
               Zero Synthetic Social Proof • Privacy-First Telemetry
             </span>
           </div>

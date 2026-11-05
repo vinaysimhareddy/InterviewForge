@@ -5,6 +5,13 @@ import {
   LogOut,
   Sun,
   Moon,
+  Menu,
+  X,
+  LayoutDashboard,
+  PlayCircle,
+  Award,
+  FileText,
+  User,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -38,7 +45,7 @@ function ThemeToggleButton(): React.ReactElement {
       variant="ghost"
       size="sm"
       onClick={toggleTheme}
-      className="h-8 w-8 p-0 rounded-full text-text-muted hover:text-text"
+      className="h-9 w-9 sm:h-8 sm:w-8 p-0 rounded-full text-text-muted hover:text-text min-h-[44px] sm:min-h-0 min-w-[44px] sm:min-w-0"
       title={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
       aria-label="Toggle theme"
     >
@@ -87,7 +94,7 @@ function ProtectedRoute({ children }: { children: React.ReactElement }): React.R
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-bg text-text flex flex-col items-center justify-center p-8 space-y-4">
+      <div className="min-h-[100dvh] bg-bg text-text flex flex-col items-center justify-center p-8 space-y-4">
         <Logo variant="mark" size={48} className="animate-pulse" />
         <div className="flex items-center gap-3 text-text-muted text-sm font-mono">
           <span className="h-4 w-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -118,7 +125,7 @@ function AuthRouteWrapper({ mode }: { mode: 'login' | 'register' }): React.React
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-bg text-text flex flex-col items-center justify-center p-8 space-y-4">
+      <div className="min-h-[100dvh] bg-bg text-text flex flex-col items-center justify-center p-8 space-y-4">
         <Logo variant="mark" size={48} className="animate-pulse" />
         <div className="flex items-center gap-3 text-text-muted text-sm font-mono">
           <span className="h-4 w-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
@@ -135,8 +142,8 @@ function AuthRouteWrapper({ mode }: { mode: 'login' | 'register' }): React.React
   }
 
   return (
-    <div className="min-h-screen bg-bg text-text flex flex-col justify-between selection:bg-accent-soft selection:text-accent font-sans">
-      <header className="border-b border-card-border bg-bg/80 backdrop-blur-md sticky top-0 z-40">
+    <div className="min-h-[100dvh] bg-bg text-text flex flex-col justify-between selection:bg-accent-soft selection:text-accent font-sans">
+      <header className="border-b border-card-border bg-bg/85 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Logo href="/" size="md" responsive={true} />
           <Button
@@ -145,7 +152,7 @@ function AuthRouteWrapper({ mode }: { mode: 'login' | 'register' }): React.React
             onClick={() => {
               window.location.href = '/';
             }}
-            className="text-text-muted hover:text-text"
+            className="text-text-muted hover:text-text min-h-[44px] sm:min-h-0"
           >
             Back to Home
           </Button>
@@ -154,7 +161,7 @@ function AuthRouteWrapper({ mode }: { mode: 'login' | 'register' }): React.React
       <main className="flex-1 flex items-center justify-center p-4 sm:p-8">
         <AuthPage key={mode} initialMode={mode} />
       </main>
-      <footer className="border-t border-card-border bg-bg-subtle py-4 text-center text-xs text-text-muted">
+      <footer className="border-t border-card-border bg-bg-subtle py-4 safe-bottom text-center text-xs text-text-muted">
         InterviewForge • Secure Candidate Authentication
       </footer>
     </div>
@@ -166,24 +173,30 @@ function AuthRouteWrapper({ mode }: { mode: 'login' | 'register' }): React.React
  */
 function AppDashboardWrapper(): React.ReactElement {
   const { user, logout } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     document.title = formatPageTitle('Dashboard');
   }, []);
 
+  const handleMobileNav = (url: string) => {
+    setMobileMenuOpen(false);
+    window.location.href = url;
+  };
+
   return (
-    <div className="min-h-screen bg-bg text-text flex flex-col selection:bg-accent-soft selection:text-accent font-sans overflow-x-hidden">
+    <div className="min-h-[100dvh] bg-bg text-text flex flex-col selection:bg-accent-soft selection:text-accent font-sans overflow-x-hidden">
       {/* Top Navigation */}
       <header className="border-b border-card-border bg-card/90 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 shrink-0">
             <Logo href="/app/dashboard" size="md" responsive={true} />
             <span className="label-mono bg-bg-subtle px-2 py-0.5 rounded border border-card-border hidden sm:inline">
               CANDIDATE WORKSPACE
             </span>
           </div>
 
-          {/* App Shell Navigation (Canonical Order: Dashboard → New Interview → My Reviews → Resume → Account) */}
+          {/* App Shell Navigation (Desktop Canonical Order: Dashboard → New Interview → My Reviews → Resume → Account) */}
           <nav className="hidden lg:flex items-center gap-6 text-xs font-medium text-text-muted">
             <a
               href="/app/dashboard"
@@ -217,7 +230,7 @@ function AppDashboardWrapper(): React.ReactElement {
             </a>
           </nav>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <Badge variant="success" className="gap-1.5 py-1 px-3 hidden md:inline-flex">
               <CheckCircle2 className="h-3.5 w-3.5" />
               Live Telemetry & Adaptive AI Active
@@ -226,7 +239,7 @@ function AppDashboardWrapper(): React.ReactElement {
             <ThemeToggleButton />
 
             {user && (
-              <div className="flex items-center gap-3 pl-3 border-l border-card-border">
+              <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-card-border">
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 rounded-full bg-mint border border-primary/20 flex items-center justify-center text-xs text-primary font-semibold">
                     {user.full_name.charAt(0).toUpperCase()}
@@ -239,24 +252,119 @@ function AppDashboardWrapper(): React.ReactElement {
                   variant="ghost"
                   size="sm"
                   onClick={logout}
-                  className="h-8 px-2 text-text-muted hover:text-text cursor-pointer"
+                  className="h-9 w-9 sm:h-8 sm:w-8 p-0 text-text-muted hover:text-text cursor-pointer min-h-[44px] sm:min-h-0 min-w-[44px] sm:min-w-0"
                   title="Sign out"
+                  aria-label="Sign out"
                 >
-                  <LogOut className="h-3.5 w-3.5" />
+                  <LogOut className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                 </Button>
               </div>
             )}
+
+            {/* Mobile Hamburger Navigation Button (< 1024px) */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              aria-label={mobileMenuOpen ? 'Close workspace menu' : 'Open workspace menu'}
+              aria-expanded={mobileMenuOpen}
+              className="lg:hidden p-2 rounded-xl border border-card-border bg-card text-text hover:bg-bg-subtle focus:outline-none focus:ring-2 focus:ring-primary/40 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer touch-manipulation ml-1"
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Sheet Panel */}
+        {mobileMenuOpen && (
+          <div
+            className="lg:hidden border-b border-card-border bg-card/98 backdrop-blur-lg px-4 pt-3 pb-5 space-y-3 shadow-elevated animate-in slide-in-from-top-2 duration-200"
+            role="dialog"
+            aria-label="Candidate Workspace Mobile Menu"
+          >
+            {user && (
+              <div className="p-3 rounded-xl bg-bg-subtle border border-card-border flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-9 w-9 rounded-full bg-mint border border-primary/20 flex items-center justify-center text-xs text-primary font-bold">
+                    {user.full_name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-text block">{user.full_name}</span>
+                    <span className="text-[11px] text-text-muted font-mono block">{user.email}</span>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-[10px] font-mono">
+                  {user.role}
+                </Badge>
+              </div>
+            )}
+
+            <nav className="flex flex-col space-y-1 text-sm font-medium text-text">
+              <button
+                type="button"
+                onClick={() => handleMobileNav('/app/dashboard')}
+                className="text-left py-2.5 px-3 rounded-xl hover:bg-bg-subtle transition-colors min-h-[44px] flex items-center gap-2.5 font-semibold text-primary"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Dashboard
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMobileNav('/app/setup')}
+                className="text-left py-2.5 px-3 rounded-xl hover:bg-bg-subtle transition-colors min-h-[44px] flex items-center gap-2.5"
+              >
+                <PlayCircle className="h-4 w-4 text-primary" />
+                New Interview
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMobileNav('/app/dashboard#reviews')}
+                className="text-left py-2.5 px-3 rounded-xl hover:bg-bg-subtle transition-colors min-h-[44px] flex items-center gap-2.5"
+              >
+                <Award className="h-4 w-4 text-primary" />
+                My Reviews
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMobileNav('/app/dashboard#resume')}
+                className="text-left py-2.5 px-3 rounded-xl hover:bg-bg-subtle transition-colors min-h-[44px] flex items-center gap-2.5"
+              >
+                <FileText className="h-4 w-4 text-primary" />
+                Resume
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMobileNav('/app/dashboard#account')}
+                className="text-left py-2.5 px-3 rounded-xl hover:bg-bg-subtle transition-colors min-h-[44px] flex items-center gap-2.5"
+              >
+                <User className="h-4 w-4 text-primary" />
+                Account
+              </button>
+            </nav>
+
+            <div className="pt-2 border-t border-card-border">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  logout();
+                }}
+                className="w-full text-danger border-danger/30 bg-danger/5 hover:bg-danger/10 hover:text-danger min-h-[44px] font-semibold text-xs gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Body */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-10">
+      <main className="flex-1 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 w-full space-y-8 sm:space-y-10">
         <DashboardPage />
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-card-border bg-bg-subtle py-6 text-center text-xs text-text-muted">
+      <footer className="border-t border-card-border bg-bg-subtle py-6 safe-bottom text-center text-xs text-text-muted">
         InterviewForge • AI Technical Interview Platform
       </footer>
     </div>
@@ -279,7 +387,7 @@ function PlatformContent(): React.ReactElement {
 
     if (isDirectWelcome) {
       return (
-        <div className="min-h-screen bg-bg text-text p-4 sm:p-8">
+        <div className="min-h-[100dvh] bg-bg text-text p-4 sm:p-8">
           <InterviewWelcome
             role="Full Stack Engineer"
             seniority="Senior"
@@ -297,7 +405,7 @@ function PlatformContent(): React.ReactElement {
 
     if (isDirectReady) {
       return (
-        <div className="min-h-screen bg-bg text-text p-4 sm:p-8">
+        <div className="min-h-[100dvh] bg-bg text-text p-4 sm:p-8">
           <InterviewReady
             session={{
               id: 'demo-session-1234',
@@ -322,7 +430,7 @@ function PlatformContent(): React.ReactElement {
 
     if (isDirectSetup) {
       return (
-        <div className="min-h-screen bg-bg text-text p-4 sm:p-8">
+        <div className="min-h-[100dvh] bg-bg text-text p-4 sm:p-8">
           <PreInterviewSetup
             role="Full Stack Engineer"
             seniority="Senior"
@@ -343,7 +451,7 @@ function PlatformContent(): React.ReactElement {
 
     if (isDirectFaceLost) {
       return (
-        <div className="min-h-screen bg-bg text-text flex items-center justify-center p-4">
+        <div className="min-h-[100dvh] bg-bg text-text flex items-center justify-center p-4">
           <FaceLostModal
             isOpen={true}
             missingSeconds={14}
@@ -357,7 +465,7 @@ function PlatformContent(): React.ReactElement {
 
     if (isDirectCameraLost) {
       return (
-        <div className="min-h-screen bg-bg text-text flex items-center justify-center p-4">
+        <div className="min-h-[100dvh] bg-bg text-text flex items-center justify-center p-4">
           <CameraLostModal
             isOpen={true}
             graceSeconds={30}
@@ -372,7 +480,7 @@ function PlatformContent(): React.ReactElement {
 
     if (isDirectComplete) {
       return (
-        <div className="min-h-screen bg-bg text-text flex items-center justify-center p-4">
+        <div className="min-h-[100dvh] bg-bg text-text flex items-center justify-center p-4">
           <InterviewComplete
             role="Full Stack Engineer"
             seniority="Senior"
@@ -392,7 +500,7 @@ function PlatformContent(): React.ReactElement {
 
     if (isDirectAborted) {
       return (
-        <div className="min-h-screen bg-bg text-text flex items-center justify-center p-4">
+        <div className="min-h-[100dvh] bg-bg text-text flex items-center justify-center p-4">
           <InterviewAborted
             role="Full Stack Engineer"
             seniority="Senior"
@@ -515,7 +623,7 @@ function PlatformContent(): React.ReactElement {
       };
 
       return (
-        <div className="min-h-screen bg-bg text-text p-4 sm:p-8">
+        <div className="min-h-[100dvh] bg-bg text-text p-4 sm:p-8">
           <ExecutiveScorecard
             session={{
               id: 'session-demo-84920',
@@ -560,7 +668,7 @@ function PlatformContent(): React.ReactElement {
           path="/app/setup"
           element={
             <ProtectedRoute>
-              <div className="min-h-screen bg-bg text-text p-4 sm:p-8">
+              <div className="min-h-[100dvh] bg-bg text-text p-4 sm:p-8">
                 <PreInterviewSetup
                   role="Full Stack Engineer"
                   seniority="Senior"

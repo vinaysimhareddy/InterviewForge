@@ -141,7 +141,7 @@ export function DiagnosticsModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-deep-1/60 backdrop-blur-md p-4 animate-in fade-in">
-      <Card className="w-full max-w-2xl max-h-[85vh] flex flex-col card-editorial shadow-2xl overflow-hidden">
+      <Card className="w-full max-w-2xl max-h-[90dvh] flex flex-col card-editorial shadow-2xl overflow-hidden">
         <CardHeader className="pb-3 border-b border-card-border flex flex-row items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="h-8 w-8 rounded-lg bg-sky border border-primary/20 flex items-center justify-center text-primary">
@@ -177,7 +177,7 @@ export function DiagnosticsModal({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="h-8 w-8 p-0 text-text-muted hover:text-text"
+              className="h-10 w-10 sm:h-8 sm:w-8 p-0 text-text-muted hover:text-text flex items-center justify-center"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -600,12 +600,12 @@ export function DiagnosticsModal({
               variant="outline"
               size="sm"
               onClick={handleCopy}
-              className="text-xs border-primary/30 text-primary hover:bg-mint/40 gap-1.5 h-8 px-3"
+              className="text-xs border-primary/30 text-primary hover:bg-mint/40 gap-1.5 min-h-[44px] sm:min-h-0 sm:h-8 px-3"
             >
               {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
               {copied ? 'Copied to Clipboard' : 'Copy Report'}
             </Button>
-            <Button size="sm" onClick={onClose} className="text-xs bg-primary hover:bg-primary-hover text-primary-ink h-8 px-4">
+            <Button size="sm" onClick={onClose} className="text-xs bg-primary hover:bg-primary-hover text-primary-ink min-h-[44px] sm:min-h-0 sm:h-8 px-4">
               Close
             </Button>
           </div>

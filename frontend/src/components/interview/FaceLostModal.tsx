@@ -43,7 +43,7 @@ export function FaceLostModal({
       aria-labelledby="face-lost-title"
       className="fixed inset-0 z-50 bg-[#0A2E24]/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
     >
-      <div className="w-full max-w-md bg-card border border-card-border rounded-3xl p-6 sm:p-8 shadow-soft space-y-6 text-center text-text">
+      <div className="w-full max-w-md max-h-[90dvh] overflow-y-auto bg-card border border-card-border rounded-3xl p-5 sm:p-8 shadow-soft space-y-4 sm:space-y-6 text-center text-text">
         {/* Pulsing Alert Icon */}
         <div className="relative mx-auto w-16 h-16 flex items-center justify-center">
           <span

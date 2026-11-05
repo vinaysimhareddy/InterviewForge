@@ -175,7 +175,7 @@ export function HelpDrawer({
         aria-hidden="true"
       />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+      <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
         <aside className="w-screen max-w-md bg-bg border-l border-card-border shadow-soft flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-300 ease-out select-none text-text">
           {/* Header */}
           <div className="p-6 border-b border-card-border space-y-2 sticky top-0 bg-card/95 backdrop-blur-md z-10">
@@ -196,7 +196,7 @@ export function HelpDrawer({
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="h-8 w-8 p-0 rounded-full text-text-muted hover:text-text hover:bg-bg-subtle"
+                className="h-11 w-11 sm:h-8 sm:w-8 p-0 rounded-full text-text-muted hover:text-text hover:bg-bg-subtle flex items-center justify-center"
                 aria-label="Close help drawer"
               >
                 <X className="h-4 w-4" />
@@ -238,7 +238,7 @@ export function HelpDrawer({
                   <select
                     value={selectedCameraId}
                     onChange={(e) => onSelectCamera(e.target.value)}
-                    className="w-full h-8 rounded-xl bg-card border border-card-border text-xs text-text px-2.5 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                    className="w-full h-10 sm:h-8 rounded-xl bg-card border border-card-border text-base sm:text-xs text-text px-2.5 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
                   >
                     {availableCameras.map((cam) => (
                       <option key={cam.deviceId} value={cam.deviceId}>
@@ -254,7 +254,7 @@ export function HelpDrawer({
                 size="sm"
                 onClick={handleRetryCameraClick}
                 disabled={isRetryingCamera}
-                className="w-full h-8 text-xs font-medium gap-1.5 rounded-full border-card-border text-text hover:bg-bg-subtle"
+                className="w-full min-h-[44px] sm:min-h-0 sm:h-8 text-xs font-medium gap-1.5 rounded-full border-card-border text-text hover:bg-bg-subtle"
               >
                 <RotateCcw className={`h-3 w-3 ${isRetryingCamera ? 'animate-spin' : ''}`} />
                 <span>{isRetryingCamera ? 'Refreshing camera...' : 'Retry camera'}</span>
@@ -304,7 +304,7 @@ export function HelpDrawer({
                 size="sm"
                 onClick={handleRetryMicClick}
                 disabled={isRetryingMic}
-                className="w-full h-8 text-xs font-medium gap-1.5 rounded-full border-card-border text-text hover:bg-bg-subtle"
+                className="w-full min-h-[44px] sm:min-h-0 sm:h-8 text-xs font-medium gap-1.5 rounded-full border-card-border text-text hover:bg-bg-subtle"
               >
                 <RotateCcw className={`h-3 w-3 ${isRetryingMic ? 'animate-spin' : ''}`} />
                 <span>{isRetryingMic ? 'Refreshing mic...' : 'Retry microphone'}</span>
@@ -327,7 +327,7 @@ export function HelpDrawer({
                 size="sm"
                 onClick={handlePlayTestSound}
                 disabled={isPlayingTestSound}
-                className="w-full h-8 text-xs font-medium gap-1.5 rounded-full border-card-border text-text hover:bg-bg-subtle"
+                className="w-full min-h-[44px] sm:min-h-0 sm:h-8 text-xs font-medium gap-1.5 rounded-full border-card-border text-text hover:bg-bg-subtle"
               >
                 <Sparkles className={`h-3 w-3 ${isPlayingTestSound ? 'animate-spin' : ''}`} />
                 <span>{isPlayingTestSound ? 'Playing test audio...' : 'Play test sound'}</span>
@@ -385,7 +385,7 @@ export function HelpDrawer({
                 variant="outline"
                 size="sm"
                 onClick={handleCopyDiagnostics}
-                className="w-full h-8 text-xs font-medium gap-1.5 rounded-full border-card-border text-text hover:bg-bg-subtle"
+                className="w-full min-h-[44px] sm:min-h-0 sm:h-8 text-xs font-medium gap-1.5 rounded-full border-card-border text-text hover:bg-bg-subtle"
               >
                 {copiedDiagnostics ? (
                   <>

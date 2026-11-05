@@ -156,7 +156,7 @@ export function InterviewComplete({
             <Button
               variant="ghost"
               onClick={onReturnHome}
-              className="w-full h-10 text-text-muted hover:text-text hover:bg-bg-subtle text-xs rounded-full gap-1.5 cursor-pointer"
+              className="w-full min-h-[44px] sm:min-h-0 sm:h-10 text-text-muted hover:text-text hover:bg-bg-subtle text-xs rounded-full gap-1.5 cursor-pointer"
             >
               <Home className="h-3.5 w-3.5" />
               <span>Return to Dashboard</span>

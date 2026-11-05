@@ -566,7 +566,7 @@ export function ExecutiveScorecard({
                 variant="ghost"
                 size="sm"
                 onClick={onBack}
-                className="h-8 px-2.5 text-xs text-text-muted hover:text-text hover:bg-bg-subtle gap-1.5 rounded-full"
+                className="min-h-[44px] sm:min-h-0 sm:h-8 px-2.5 text-xs text-text-muted hover:text-text hover:bg-bg-subtle gap-1.5 rounded-full"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Back</span>
@@ -586,7 +586,7 @@ export function ExecutiveScorecard({
                 <button
                   key={sec.id}
                   onClick={() => scrollToSection(sec.id)}
-                  className={`px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
+                  className={`px-2.5 py-1.5 min-h-[36px] sm:min-h-0 flex items-center rounded-full text-[11px] sm:text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
                     activeSection === sec.id
                       ? 'bg-primary text-primary-ink font-semibold'
                       : 'text-text-muted hover:text-text hover:bg-bg-subtle'
@@ -604,7 +604,7 @@ export function ExecutiveScorecard({
               disabled={isDownloadingPdf}
               variant="outline"
               size="sm"
-              className="h-8 border-card-border bg-card hover:bg-bg-subtle text-text text-xs px-3 gap-1.5 rounded-full shadow-sm"
+              className="min-h-[44px] sm:min-h-0 sm:h-8 border-card-border bg-card hover:bg-bg-subtle text-text text-xs px-3 gap-1.5 rounded-full shadow-sm"
             >
               {isDownloadingPdf ? (
                 <>
@@ -622,7 +622,7 @@ export function ExecutiveScorecard({
             <Button
               onClick={onReturnHome}
               size="sm"
-              className="h-8 bg-primary hover:bg-primary-hover text-primary-ink text-xs px-3 gap-1.5 rounded-full shadow-sm"
+              className="min-h-[44px] sm:min-h-0 sm:h-8 bg-primary hover:bg-primary-hover text-primary-ink text-xs px-3 gap-1.5 rounded-full shadow-sm"
             >
               <span className="hidden sm:inline">Dashboard</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -929,7 +929,7 @@ export function ExecutiveScorecard({
                   placeholder="Search questions or topics..."
                   value={qaSearch}
                   onChange={(e) => setQaSearch(e.target.value)}
-                  className="w-full h-8 pl-8 pr-3 rounded-full text-xs bg-bg-subtle border border-card-border text-text placeholder:text-text-muted focus:outline-none focus:border-primary transition-colors"
+                  className="w-full h-9 pl-8 pr-3 rounded-full text-base sm:text-xs bg-bg-subtle border border-card-border text-text placeholder:text-text-muted focus:outline-none focus:border-primary transition-colors"
                 />
               </div>
             </div>
@@ -947,7 +947,7 @@ export function ExecutiveScorecard({
                 <button
                   key={f.key}
                   onClick={() => setQaFilter(f.key as any)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+                  className={`px-3 py-1.5 min-h-[36px] sm:min-h-0 rounded-full text-xs font-medium cursor-pointer transition-colors whitespace-nowrap flex items-center gap-1.5 ${
                     qaFilter === f.key
                       ? 'bg-primary text-primary-ink font-semibold'
                       : 'bg-bg-subtle text-text-muted hover:text-text hover:bg-card-border/50 border border-card-border'
@@ -1885,7 +1885,7 @@ export function ExecutiveScorecard({
                         onReturnHome();
                       }
                     }}
-                    className="w-full sm:w-auto bg-primary hover:bg-primary-hover text-primary-ink text-xs px-5 h-10 gap-2 rounded-full shadow-sm cursor-pointer whitespace-nowrap"
+                    className="w-full sm:w-auto bg-primary hover:bg-primary-hover text-primary-ink text-xs px-5 h-11 min-h-[44px] gap-2 rounded-full shadow-sm cursor-pointer whitespace-normal sm:whitespace-nowrap text-center"
                   >
                     <span>Start another interview with these focus areas</span>
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -1905,7 +1905,7 @@ export function ExecutiveScorecard({
           onClick={onDownloadPdf}
           disabled={isDownloadingPdf}
           variant="outline"
-          className="w-full sm:w-auto border-card-border bg-card hover:bg-bg-subtle text-text font-semibold text-xs px-5 h-10 gap-2 rounded-full shadow-sm cursor-pointer"
+          className="w-full sm:w-auto border-card-border bg-card hover:bg-bg-subtle text-text font-semibold text-xs px-5 h-11 min-h-[44px] gap-2 rounded-full shadow-sm cursor-pointer"
         >
           {isDownloadingPdf ? (
             <>
@@ -1922,7 +1922,7 @@ export function ExecutiveScorecard({
 
         <Button
           onClick={onReturnHome}
-          className="w-full sm:w-auto bg-primary hover:bg-primary-hover text-primary-ink font-semibold text-xs px-6 h-10 gap-2 rounded-full shadow-sm cursor-pointer"
+          className="w-full sm:w-auto bg-primary hover:bg-primary-hover text-primary-ink font-semibold text-xs px-6 h-11 min-h-[44px] gap-2 rounded-full shadow-sm cursor-pointer"
         >
           <span>Return to Dashboard</span>
           <ArrowRight className="h-4 w-4" />

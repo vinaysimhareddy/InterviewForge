@@ -99,7 +99,7 @@ export function ResumeUploadDropzone({
 
     const maxBytes = 5 * 1024 * 1024;
     if (file.size > maxBytes) {
-      setUploadError('File size exceeds the 5MB maximum limit.');
+      setUploadError('File exceeds 5MB limit. Please upload a smaller PDF resume.');
       return;
     }
 
@@ -108,10 +108,10 @@ export function ResumeUploadDropzone({
     formData.append('file', file);
 
     try {
-      const data = await apiClient.post<ResumeData>('/api/v1/resumes/upload', formData);
+      const data = await apiClient.post<ResumeData>('/api/v1/resumes', formData);
       onParsed(data);
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : 'Failed to parse resume PDF.';
+      const msg = err instanceof ApiError ? err.message : 'Failed to parse resume document.';
       setUploadError(msg);
     } finally {
       setIsUploading(false);
@@ -189,7 +189,7 @@ export function ResumeUploadDropzone({
         onDragLeave={onDragLeave}
         onDrop={onDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
+        className={`border-2 border-dashed rounded-2xl p-6 sm:p-8 text-center cursor-pointer transition-all ${
           isDragging
             ? 'border-primary bg-mint/30 scale-[1.01]'
             : 'border-card-border bg-card/80 hover:border-primary/50 hover:bg-bg-subtle'
@@ -218,68 +218,85 @@ export function ResumeUploadDropzone({
 
           <div>
             <p className="text-base font-semibold text-text font-display">
-              {isUploading ? 'Parsing Resume PDF with pdfplumber & AI...' : 'Drop your resume PDF here or browse'}
+              {isUploading ? 'Parsing Resume Structure...' : 'Drop your resume PDF here'}
             </p>
             <p className="text-xs text-text-muted mt-1">
-              Supports PDF documents up to 5MB. Skills and experience are parsed automatically.
+              or <span className="text-primary font-semibold underline underline-offset-2">browse file</span> from your computer
             </p>
+          </div>
+
+          <div className="flex items-center gap-2 pt-1 text-[11px] font-mono text-text-faint">
+            <span className="px-2 py-0.5 rounded bg-bg-subtle border border-card-border">PDF ONLY</span>
+            <span>MAX 5MB</span>
           </div>
         </div>
       </div>
 
       {uploadError && (
-        <div className="p-3.5 rounded-xl bg-danger/10 border border-danger/25 text-danger text-xs flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 text-danger shrink-0" />
+        <div className="p-3 rounded-xl bg-danger/10 border border-danger/25 text-danger text-xs flex items-center gap-2 animate-in fade-in">
+          <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{uploadError}</span>
         </div>
       )}
 
+      {/* Selected Resume Parsing Details View */}
       {selectedResume && (
-        <Card className="card-editorial shadow-sm">
-          <CardHeader className="pb-4 border-b border-card-border">
+        <Card className="border border-card-border bg-card shadow-sm animate-in fade-in rounded-2xl">
+          <CardHeader className="pb-3 border-b border-card-border">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-sky border border-primary/20 flex items-center justify-center text-primary">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="p-2 rounded-xl bg-mint border border-primary/20 text-primary shrink-0">
                   <FileText className="h-4 w-4" />
                 </div>
-                <CardTitle className="text-base text-text font-display font-bold">
-                  Parsed Resume: {selectedResume.filename}
-                </CardTitle>
+                <div className="min-w-0">
+                  <CardTitle className="text-sm font-bold text-text truncate max-w-[200px] sm:max-w-sm">
+                    {selectedResume.filename}
+                  </CardTitle>
+                  <CardDescription className="text-[11px] text-text-muted font-mono">
+                    {(selectedResume.file_size / 1024).toFixed(1)} KB • Uploaded {new Date(selectedResume.created_at).toLocaleDateString()}
+                  </CardDescription>
+                </div>
               </div>
-              <Badge variant="success" className="gap-1 font-mono text-xs">
+              <Badge variant="success" className="gap-1 text-[10px] font-mono shrink-0">
                 <CheckCircle2 className="h-3 w-3" />
-                Parsed ({((selectedResume.file_size || 0) / 1024).toFixed(1)} KB)
+                Indexed
               </Badge>
             </div>
-            {summary && (
-              <CardDescription className="text-text-muted text-xs mt-2 italic">
-                "{summary}"
-              </CardDescription>
-            )}
           </CardHeader>
 
-          <CardContent className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-text flex items-center gap-1.5 font-mono uppercase tracking-wider text-[11px]">
+          <CardContent className="space-y-4 pt-4 text-xs">
+            {summary && (
+              <div className="space-y-1">
+                <span className="font-semibold text-text flex items-center gap-1.5 font-mono uppercase tracking-wider text-[11px]">
                   <Sparkles className="h-3.5 w-3.5 text-primary" />
-                  Target Skills Grounding ({skills.length})
+                  Candidate Profile Summary
                 </span>
-                <span className="text-[11px] text-text-faint font-mono">Click × to remove or add custom</span>
+                <p className="text-text-muted text-xs leading-relaxed bg-bg-subtle p-3 rounded-xl border border-card-border">
+                  {summary}
+                </p>
               </div>
+            )}
+
+            {/* Extracted Skills with Chip Tags */}
+            <div className="space-y-2">
+              <span className="font-semibold text-text flex items-center justify-between font-mono uppercase tracking-wider text-[11px]">
+                <span>Extracted Technical Skills ({skills.length})</span>
+                <span className="text-[10px] text-text-faint font-normal font-sans">Grounding Context</span>
+              </span>
 
               {skills.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-1 border border-card-border/60 rounded-xl bg-bg-subtle/50">
                   {skills.map((skill) => (
                     <span
                       key={skill}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-mint text-primary border border-primary/20 shadow-xs"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-mono bg-card border border-card-border text-text shadow-2xs"
                     >
-                      {skill}
+                      <span>{skill}</span>
                       <button
                         type="button"
                         onClick={() => removeSkill(skill)}
-                        className="text-primary/70 hover:text-danger transition-colors cursor-pointer"
+                        className="text-primary/70 hover:text-danger transition-colors cursor-pointer p-0.5"
+                        aria-label={`Remove skill ${skill}`}
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -290,7 +307,7 @@ export function ResumeUploadDropzone({
                 <p className="text-xs text-text-muted italic">No technical skills detected yet. You can add skills manually below.</p>
               )}
 
-              <div className="flex gap-2 pt-1">
+              <div className="flex flex-col sm:flex-row gap-2 pt-1">
                 <input
                   type="text"
                   placeholder="Add another skill..."
@@ -302,13 +319,13 @@ export function ResumeUploadDropzone({
                       addCustomSkill();
                     }
                   }}
-                  className="px-3 py-1.5 rounded-lg bg-bg-subtle border border-card-border text-xs text-text placeholder:text-text-faint focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="flex-1 px-3 py-2 rounded-xl bg-bg-subtle border border-card-border text-base sm:text-xs text-text placeholder:text-text-faint focus:outline-none focus:ring-1 focus:ring-primary min-h-[44px]"
                 />
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={addCustomSkill}
-                  className="h-8 text-xs text-text gap-1 border-card-border bg-card hover:bg-bg-subtle"
+                  className="h-10 sm:h-8 text-xs text-text gap-1 border-card-border bg-card hover:bg-bg-subtle min-h-[44px] sm:min-h-0 shrink-0"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Add Skill

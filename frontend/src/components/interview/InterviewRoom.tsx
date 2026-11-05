@@ -880,7 +880,7 @@ export function InterviewRoom({
   // Screen 1: Interview Aborted Screen
   if (roomPhase === 'aborted') {
     return (
-      <div className="min-h-screen w-full flex flex-col bg-bg text-text">
+      <div className="min-h-[100dvh] w-full flex flex-col bg-bg text-text">
         <InterviewAborted
           role={session.role}
           seniority={session.seniority}
@@ -896,7 +896,7 @@ export function InterviewRoom({
   if (roomPhase === 'complete') {
     return (
       <ErrorBoundary fallbackTitle="Interview Review Screen Error">
-        <div className="min-h-screen w-full flex flex-col bg-bg text-text">
+        <div className="min-h-[100dvh] w-full flex flex-col bg-bg text-text">
           <InterviewComplete
             role={session.role}
             seniority={session.seniority}
@@ -920,7 +920,7 @@ export function InterviewRoom({
   if (roomPhase === 'scorecard' && finalReport) {
     return (
       <ErrorBoundary fallbackTitle="Scorecard Render Error">
-        <div className="min-h-screen w-full flex flex-col bg-bg text-text">
+        <div className="min-h-[100dvh] w-full flex flex-col bg-bg text-text">
           <ExecutiveScorecard
             session={session}
             report={finalReport}
@@ -936,7 +936,7 @@ export function InterviewRoom({
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col text-[#FBFAF6] transition-colors relative selection:bg-mint/20 overflow-x-hidden"
+      className="min-h-[100dvh] w-full flex flex-col text-[#FBFAF6] transition-colors relative selection:bg-mint/20 overflow-x-hidden"
       style={{
         background: 'linear-gradient(135deg, var(--deep-1), var(--deep-2))',
       }}
@@ -984,7 +984,7 @@ export function InterviewRoom({
       />
 
       {/* Main Immersive Interview Stage */}
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 flex flex-col items-center justify-center relative select-none z-10">
+      <main className="flex-1 w-full max-w-5xl mx-auto px-3 sm:px-6 py-3 sm:py-6 flex flex-col items-center justify-center relative select-none z-10">
         {/* Subtle Stage Branding Watermark */}
         <div className="absolute top-4 right-4 pointer-events-none opacity-20 hidden md:block">
           <Logo variant="mark" size={40} />
@@ -998,7 +998,7 @@ export function InterviewRoom({
         )}
 
         {/* Center Stage: Large Animated AI Interviewer Orb */}
-        <div className="w-full flex flex-col items-center justify-center space-y-8 my-auto">
+        <div className="w-full flex flex-col items-center justify-center space-y-4 sm:space-y-6 md:space-y-8 my-auto">
           <InterviewerOrb
             state={orbState}
             audioLevel={isAiSpeaking ? 0.7 : audioLevel}
@@ -1132,19 +1132,20 @@ export function InterviewRoom({
       </main>
 
       {/* Bottom Bar Controls */}
-      <footer className="w-full border-t border-[#E3DED2]/15 bg-[#0A2E24]/85 backdrop-blur-md px-4 sm:px-6 h-16 flex items-center justify-between text-[#FBFAF6] relative z-30">
+      <footer className="w-full border-t border-[#E3DED2]/15 bg-[#0A2E24]/85 backdrop-blur-md px-2 sm:px-6 h-16 min-h-[56px] safe-bottom flex items-center justify-between text-[#FBFAF6] relative z-30">
         {/* Left: Self-View Toggle and Accessibility Captions Toggle */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowSelfView((prev) => !prev)}
-            className={`h-9 px-3 text-xs font-medium gap-1.5 rounded-full border border-[#E3DED2]/20 ${
+            className={`min-h-[44px] sm:min-h-0 sm:h-9 px-2.5 sm:px-3 text-xs font-medium gap-1.5 rounded-full border border-[#E3DED2]/20 ${
               showSelfView ? 'bg-mint/20 text-mint border-mint/40' : 'text-[#E3DED2]/80 hover:text-white hover:bg-white/10'
             }`}
           >
-            <Video className="h-4 w-4" />
-            <span>{showSelfView ? 'Hide Self-View' : 'Show Self-View'}</span>
+            <Video className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">{showSelfView ? 'Hide Self-View' : 'Show Self-View'}</span>
+            <span className="sm:hidden">{showSelfView ? 'Hide' : 'Camera'}</span>
           </Button>
 
           <Button
@@ -1157,28 +1158,28 @@ export function InterviewRoom({
                 return next;
               });
             }}
-            className={`h-9 px-3 text-xs font-medium gap-1.5 rounded-full border border-[#E3DED2]/20 ${
+            className={`min-h-[44px] sm:min-h-0 sm:h-9 px-2.5 sm:px-3 text-xs font-medium gap-1.5 rounded-full border border-[#E3DED2]/20 ${
               showCandidateCaptions ? 'bg-mint/20 text-mint border-mint/40' : 'text-[#E3DED2]/80 hover:text-white hover:bg-white/10'
             }`}
             title="Toggle candidate real-time speech transcript"
           >
-            <Subtitles className="h-4 w-4" />
+            <Subtitles className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">Transcript</span>
           </Button>
         </div>
 
         {/* Center: Quiet Mic Level Indicator & Pause Button */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           {/* Subtle Mic Activity Glow */}
           <div
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all duration-200 select-none ${
+            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-full border transition-all duration-200 select-none ${
               isCandidateSpeaking
                 ? 'bg-mint/20 border-mint/40 text-mint shadow-[0_0_12px_rgba(227,239,232,0.25)]'
                 : 'bg-[#0F4A3A]/60 border-[#E3DED2]/20 text-[#E3DED2]/80'
             }`}
             title={isCandidateSpeaking ? 'Speaking: Mic detecting voice' : 'Mic listening'}
           >
-            <Mic className="h-3.5 w-3.5" />
+            <Mic className="h-3.5 w-3.5 shrink-0" />
             <div className="flex items-center gap-0.5 h-3">
               {[0.15, 0.4, 0.7].map((threshold, i) => (
                 <div
@@ -1200,17 +1201,17 @@ export function InterviewRoom({
             variant="outline"
             size="sm"
             onClick={() => setIsUserPaused((prev) => !prev)}
-            className="h-9 px-3.5 text-xs font-medium gap-1.5 rounded-full border-[#E3DED2]/20 bg-[#0F4A3A]/50 text-[#FBFAF6] hover:bg-white/10"
+            className="min-h-[44px] sm:min-h-0 sm:h-9 px-2.5 sm:px-3.5 text-xs font-medium gap-1.5 rounded-full border-[#E3DED2]/20 bg-[#0F4A3A]/50 text-[#FBFAF6] hover:bg-white/10"
             title="Pause or resume the interview session (Spacebar)"
           >
             {isUserPaused ? (
               <>
-                <Play className="h-3.5 w-3.5 fill-current text-mint" />
+                <Play className="h-3.5 w-3.5 fill-current text-mint shrink-0" />
                 <span>Resume</span>
               </>
             ) : (
               <>
-                <Pause className="h-3.5 w-3.5" />
+                <Pause className="h-3.5 w-3.5 shrink-0" />
                 <span>Pause</span>
               </>
             )}
@@ -1228,17 +1229,18 @@ export function InterviewRoom({
               }
               setIsHelpDrawerOpen(true);
             }}
-            className="h-9 px-3 text-xs font-medium gap-1.5 text-[#E3DED2]/80 hover:text-white rounded-full border border-[#E3DED2]/20 hover:bg-white/10"
+            className="min-h-[44px] sm:min-h-0 sm:h-9 px-2.5 sm:px-3 text-xs font-medium gap-1.5 text-[#E3DED2]/80 hover:text-white rounded-full border border-[#E3DED2]/20 hover:bg-white/10"
           >
-            <HelpCircle className="h-4 w-4" />
+            <HelpCircle className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">Having trouble?</span>
+            <span className="sm:hidden">Help</span>
           </Button>
         </div>
       </footer>
 
       {/* Floating Picture-in-Picture Self-View Thumbnail */}
       {showSelfView && (
-        <div className="fixed bottom-20 left-6 z-40 w-56 sm:w-64 rounded-2xl bg-[#0A2E24]/95 border border-[#E3DED2]/20 text-[#FBFAF6] shadow-2xl p-2.5 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4">
+        <div className="fixed bottom-20 left-3 sm:left-6 z-40 w-48 sm:w-64 max-w-[calc(100vw-24px)] rounded-2xl bg-[#0A2E24]/95 border border-[#E3DED2]/20 text-[#FBFAF6] shadow-2xl p-2.5 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4">
           <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-[#E3DED2]/15">
             <div className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-mint animate-pulse" />

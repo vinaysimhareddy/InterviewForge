@@ -445,7 +445,7 @@ export function CandidateAnswerTranscript({
               onChange={handleManualTextChange}
               placeholder="Type your response here if microphone recognition is unavailable..."
               rows={4}
-              className="w-full resize-none rounded-xl bg-[#0A2E24]/50 border border-[#E3DED2]/20 p-3 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-primary text-[#FBFAF6] placeholder:text-[#E3DED2]/40 transition-all"
+              className="w-full resize-none rounded-xl bg-[#0A2E24]/50 border border-[#E3DED2]/20 p-3 text-base sm:text-sm font-sans focus:outline-none focus:ring-2 focus:ring-primary text-[#FBFAF6] placeholder:text-[#E3DED2]/40 transition-all"
               data-testid="manual-answer-input"
             />
             <div className="flex items-center justify-between text-[11px] text-[#E3DED2]/70 px-1 font-mono">
@@ -528,7 +528,7 @@ export function CandidateAnswerTranscript({
           size="sm"
           onClick={handleClear}
           disabled={activeText.length === 0 || isSubmitting}
-          className="h-8 px-2.5 text-xs text-[#E3DED2]/70 hover:text-white hover:bg-white/10 gap-1.5 rounded-lg disabled:opacity-30"
+          className="min-h-[44px] sm:min-h-0 sm:h-8 px-3 sm:px-2.5 text-xs text-[#E3DED2]/70 hover:text-white hover:bg-white/10 gap-1.5 rounded-lg disabled:opacity-30"
           title="Clear current transcript and start answering this question fresh"
           aria-label="Clear answer transcript and retry"
           data-testid="clear-transcript-button"
@@ -543,7 +543,7 @@ export function CandidateAnswerTranscript({
           disabled={wordCount < 1 || isSubmitting}
           size="sm"
           aria-label="Submit recorded answer now"
-          className={`h-8 px-4 text-xs font-semibold rounded-lg gap-1.5 transition-all shadow-sm ${
+          className={`min-h-[44px] sm:min-h-0 sm:h-8 px-4 text-xs font-semibold rounded-lg gap-1.5 transition-all shadow-sm ${
             wordCount >= 5
               ? 'bg-primary text-primary-ink hover:bg-primary-hover border border-mint/20 shadow-lg'
               : 'bg-white/10 text-[#E3DED2]/60 border border-[#E3DED2]/10'

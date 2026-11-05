@@ -87,9 +87,9 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps): Reac
   };
 
   return (
-    <div className="w-full max-w-md mx-auto my-auto py-8 px-4">
+    <div className="w-full max-w-md mx-auto my-auto py-6 sm:py-8 px-3 sm:px-4">
       <div className="flex flex-col items-center justify-center mb-6">
-        <Logo size="lg" variant="full" href="/" />
+        <Logo size="lg" variant="full" href="/" responsive={true} />
       </div>
       <Card className="card-editorial border-card-border bg-card shadow-card">
         <CardHeader className="space-y-4 pb-6">
@@ -121,7 +121,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps): Reac
                 clearError();
                 setLocalValidation(null);
               }}
-              className={`py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+              className={`py-2 sm:py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer min-h-[44px] sm:min-h-0 flex items-center justify-center touch-manipulation ${
                 mode === 'login'
                   ? 'bg-card text-text shadow-sm'
                   : 'text-text-muted hover:text-text'
@@ -136,7 +136,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps): Reac
                 clearError();
                 setLocalValidation(null);
               }}
-              className={`py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+              className={`py-2 sm:py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer min-h-[44px] sm:min-h-0 flex items-center justify-center touch-manipulation ${
                 mode === 'register'
                   ? 'bg-card text-text shadow-sm'
                   : 'text-text-muted hover:text-text'
@@ -168,7 +168,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps): Reac
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   autoComplete="name"
-                  className="w-full px-3.5 py-2.5 rounded-md bg-bg-subtle border border-card-border text-sm text-text placeholder:text-text-faint focus:bg-card focus:border-primary/50 focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-md bg-bg-subtle border border-card-border text-base sm:text-sm text-text placeholder:text-text-faint focus:bg-card focus:border-primary/50 focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all"
                   required
                 />
               </div>
@@ -184,7 +184,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps): Reac
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete={mode === 'register' ? 'email' : 'username'}
-                className="w-full px-3.5 py-2.5 rounded-md bg-bg-subtle border border-card-border text-sm text-text placeholder:text-text-faint focus:bg-card focus:border-primary/50 focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all"
+                className="w-full px-3.5 py-2.5 rounded-md bg-bg-subtle border border-card-border text-base sm:text-sm text-text placeholder:text-text-faint focus:bg-card focus:border-primary/50 focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all"
                 required
               />
             </div>
@@ -200,13 +200,13 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps): Reac
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-                  className="w-full px-3.5 py-2.5 pr-10 rounded-md bg-bg-subtle border border-card-border text-sm text-text placeholder:text-text-faint focus:bg-card focus:border-primary/50 focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all"
+                  className="w-full px-3.5 py-2.5 pr-12 rounded-md bg-bg-subtle border border-card-border text-base sm:text-sm text-text placeholder:text-text-faint focus:bg-card focus:border-primary/50 focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-faint hover:text-text transition-colors cursor-pointer"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 text-text-faint hover:text-text transition-colors cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -226,7 +226,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps): Reac
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     autoComplete="new-password"
-                    className="w-full px-3.5 py-2.5 rounded-md bg-bg-subtle border border-card-border text-sm text-text placeholder:text-text-faint focus:bg-card focus:border-primary/50 focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all"
+                    className="w-full px-3.5 py-2.5 rounded-md bg-bg-subtle border border-card-border text-base sm:text-sm text-text placeholder:text-text-faint focus:bg-card focus:border-primary/50 focus:ring-2 focus:ring-primary/40 focus:outline-none transition-all"
                   />
                 </div>
 
@@ -236,7 +236,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps): Reac
                       type="checkbox"
                       checked={consentChecked}
                       onChange={(e) => setConsentChecked(e.target.checked)}
-                      className="mt-0.5 rounded border-card-border text-primary focus:ring-primary h-4 w-4"
+                      className="mt-0.5 rounded border-card-border text-primary focus:ring-primary h-4 w-4 accent-primary"
                     />
                     <span>
                       I consent to on-device audio and video verification during technical interviews.
@@ -249,7 +249,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps): Reac
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-11 bg-primary hover:bg-primary-hover text-primary-ink font-semibold rounded-md shadow-sm mt-2 transition-all cursor-pointer"
+              className="w-full h-11 min-h-[44px] bg-primary hover:bg-primary-hover text-primary-ink font-semibold rounded-md shadow-sm mt-2 transition-all cursor-pointer"
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
@@ -269,7 +269,7 @@ export default function AuthPage({ initialMode = 'login' }: AuthPageProps): Reac
                 variant="outline"
                 size="sm"
                 onClick={fillDemoCandidate}
-                className="w-full text-xs text-primary border-dashed border-card-border hover:bg-bg-subtle cursor-pointer"
+                className="w-full text-xs text-primary border-dashed border-card-border hover:bg-bg-subtle cursor-pointer min-h-[44px] sm:min-h-0"
               >
                 <Sparkles className="h-3.5 w-3.5 mr-1.5 text-accent" />
                 Fill Demo Candidate Credentials

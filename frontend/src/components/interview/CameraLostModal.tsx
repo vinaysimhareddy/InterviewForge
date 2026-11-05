@@ -74,7 +74,7 @@ export function CameraLostModal({
       aria-labelledby="camera-lost-title"
       className="fixed inset-0 z-50 bg-[#0A2E24]/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
     >
-      <div className="w-full max-w-lg bg-card border border-card-border rounded-3xl p-6 sm:p-8 shadow-soft space-y-6 text-center text-text">
+      <div className="w-full max-w-lg max-h-[90dvh] overflow-y-auto bg-card border border-card-border rounded-3xl p-5 sm:p-8 shadow-soft space-y-5 sm:space-y-6 text-center text-text">
         {/* Pulsing Icon */}
         <div className="relative mx-auto w-16 h-16 flex items-center justify-center">
           <span className="absolute inset-0 rounded-full bg-accent/20 animate-ping" />
@@ -131,7 +131,7 @@ export function CameraLostModal({
             <select
               value={selectedDeviceId}
               onChange={(e) => onSelectCamera(e.target.value)}
-              className="w-full h-9 rounded-xl bg-card border border-card-border text-xs text-text px-3 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+              className="w-full h-10 sm:h-9 rounded-xl bg-card border border-card-border text-base sm:text-xs text-text px-3 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
             >
               {availableCameras.map((cam) => (
                 <option key={cam.deviceId} value={cam.deviceId}>
@@ -146,7 +146,7 @@ export function CameraLostModal({
         <Button
           onClick={handleRestoreClick}
           disabled={isRestoring}
-          className="w-full h-11 bg-primary hover:bg-primary-hover text-primary-ink font-semibold text-sm gap-2 shadow-sm cursor-pointer rounded-full"
+          className="w-full h-11 min-h-[44px] bg-primary hover:bg-primary-hover text-primary-ink font-semibold text-sm gap-2 shadow-sm cursor-pointer rounded-full"
         >
           <RotateCcw className={`h-4 w-4 ${isRestoring ? 'animate-spin' : ''}`} />
           {isRestoring ? 'Reconnecting Camera...' : 'Restore Camera Feed'}

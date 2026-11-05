@@ -1190,7 +1190,7 @@ export function PreInterviewSetup({
             <CardContent className="space-y-5 pt-4">
               <div className="space-y-2">
                 <span className="text-xs font-semibold text-text font-mono uppercase tracking-wider text-[11px]">Preset Durations</span>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {durationPresets.map((m) => (
                     <Button
                       key={m}
@@ -1224,7 +1224,7 @@ export function PreInterviewSetup({
                         setDurationMinutes(parsed);
                       }
                     }}
-                    className={`h-9 rounded-xl bg-bg-subtle border text-xs text-text text-center px-1 font-mono focus:outline-none focus:ring-1 focus:ring-primary ${
+                    className={`h-10 sm:h-9 min-h-[44px] sm:min-h-0 rounded-xl bg-bg-subtle border text-base sm:text-xs text-text text-center px-1 font-mono focus:outline-none focus:ring-1 focus:ring-primary ${
                       isCustomDuration ? 'border-primary ring-1 ring-primary' : 'border-card-border text-text-muted'
                     }`}
                     placeholder="Custom"
@@ -2185,13 +2185,13 @@ export function PreInterviewSetup({
                         onChange={(e) => setSpeakerCodeInput(e.target.value)}
                         placeholder="3-digit code"
                         data-expected-code={speakerTestCode}
-                        className="h-8 w-28 bg-card border border-card-border text-text text-xs text-center font-mono rounded-lg focus:border-primary focus:outline-none"
+                        className="h-10 sm:h-8 min-h-[44px] sm:min-h-0 w-28 bg-card border border-card-border text-text text-base sm:text-xs text-center font-mono rounded-lg focus:border-primary focus:outline-none"
                       />
                       <Button
                         size="sm"
                         onClick={handleConfirmSpeakerCode}
                         disabled={speakerCodeInput.trim().length !== 3}
-                        className="h-8 text-xs bg-primary hover:bg-primary-hover text-primary-ink font-semibold"
+                        className="h-10 sm:h-8 min-h-[44px] sm:min-h-0 text-xs bg-primary hover:bg-primary-hover text-primary-ink font-semibold"
                       >
                         Confirm
                       </Button>
@@ -2275,20 +2275,20 @@ export function PreInterviewSetup({
               </div>
 
               {/* Start Interview CTA */}
-              <div className="pt-4 border-t border-card-border flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="pt-4 border-t border-card-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                 <Button
                   variant="ghost"
                   onClick={onCancel}
-                  className="text-xs text-text-muted hover:text-text"
+                  className="w-full sm:w-auto text-xs text-text-muted hover:text-text min-h-[44px] sm:min-h-0 order-2 sm:order-1"
                 >
                   Cancel
                 </Button>
 
-                <div className="flex flex-col items-end gap-1">
+                <div className="flex flex-col items-stretch sm:items-end gap-1 order-1 sm:order-2 w-full sm:w-auto">
                   <Button
                     disabled={!isAllReady || !consentAccepted}
                     onClick={handleStart}
-                    className={`px-6 text-xs font-semibold gap-2 shadow-md transition-all cursor-pointer rounded-xl h-10 ${
+                    className={`w-full sm:w-auto px-6 text-xs font-semibold gap-2 shadow-md transition-all cursor-pointer rounded-xl h-11 sm:h-10 min-h-[44px] ${
                       isAllReady && consentAccepted
                         ? 'bg-primary hover:bg-primary-hover text-primary-ink shadow-primary/20'
                         : 'bg-card text-text-faint border border-card-border cursor-not-allowed'
@@ -2299,7 +2299,7 @@ export function PreInterviewSetup({
                   </Button>
 
                   {(!isAllReady || !consentAccepted) && (
-                    <span className="text-[10px] text-text-faint font-mono">
+                    <span className="text-[10px] text-text-faint font-mono text-center sm:text-right">
                       {state.camera.status !== 'verified'
                         ? 'Physical camera verification required'
                         : state.liveness.status !== 'passed'

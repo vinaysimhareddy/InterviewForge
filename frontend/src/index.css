@@ -43,6 +43,12 @@
     /* Geometry */
     --radius: 16px;
     color-scheme: light;
+
+    /* Safe Area Insets for Mobile Devices */
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
   }
 
   .dark {
@@ -83,12 +89,28 @@
     border-color: var(--card-border);
   }
 
+  html, body {
+    min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
     background-color: var(--bg);
     color: var(--text);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
     transition: background-color 200ms ease, color 200ms ease;
+  }
+
+  /* Prevent automatic mobile viewport zoom by keeping inputs >= 16px on mobile devices */
+  input, textarea, select {
+    font-size: 16px;
+  }
+  @media (min-width: 640px) {
+    input, textarea, select {
+      font-size: inherit;
+    }
   }
 }
 
@@ -119,6 +141,31 @@
   border: 1px solid var(--card-border);
   border-radius: 16px;
   box-shadow: 0 1px 2px rgba(20, 30, 25, 0.04), 0 8px 24px rgba(20, 30, 25, 0.05);
+}
+
+/* Mobile & Safe Area Utilities */
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+.safe-top {
+  padding-top: max(1rem, env(safe-area-inset-top, 0px));
+}
+
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.table-container-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+pre, code {
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Animations for AI Interviewer Stage */

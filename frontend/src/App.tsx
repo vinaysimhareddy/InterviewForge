@@ -32,6 +32,7 @@ import { InterviewReady } from '@/components/interview/InterviewReady';
 import { InterviewRoom } from '@/components/interview/InterviewRoom';
 import { CameraLostModal } from '@/components/interview/CameraLostModal';
 import { FaceLostModal } from '@/components/interview/FaceLostModal';
+import { HelpDrawer } from '@/components/interview/HelpDrawer';
 import { InterviewComplete } from '@/components/interview/InterviewComplete';
 import { InterviewAborted } from '@/components/interview/InterviewAborted';
 import { ExecutiveScorecard } from '@/components/interview/ExecutiveScorecard';
@@ -381,6 +382,7 @@ function PlatformContent(): React.ReactElement {
     const isDirectLiveStage = typeof window !== 'undefined' && window.location.search.includes('live=true');
     const isDirectFaceLost = typeof window !== 'undefined' && window.location.search.includes('face_lost=true');
     const isDirectCameraLost = typeof window !== 'undefined' && window.location.search.includes('camera_lost=true');
+    const isDirectHelp = typeof window !== 'undefined' && window.location.search.includes('help=true');
     const isDirectComplete = typeof window !== 'undefined' && window.location.search.includes('complete=true');
     const isDirectAborted = typeof window !== 'undefined' && window.location.search.includes('aborted=true');
     const isDirectScorecard = typeof window !== 'undefined' && (window.location.search.includes('scorecard=true') || window.location.search.includes('report=true'));
@@ -473,6 +475,25 @@ function PlatformContent(): React.ReactElement {
             onRestore={() => {
               window.location.search = '?live=true';
             }}
+          />
+        </div>
+      );
+    }
+
+    if (isDirectHelp) {
+      return (
+        <div className="min-h-[100dvh] bg-bg text-text p-4">
+          <HelpDrawer
+            isOpen={true}
+            onClose={() => {
+              window.location.search = '';
+            }}
+            videoStream={null}
+            audioStream={null}
+            audioLevel={0.4}
+            availableCameras={[]}
+            onRetryCamera={() => {}}
+            onRetryMic={() => {}}
           />
         </div>
       );

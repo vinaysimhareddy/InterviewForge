@@ -201,12 +201,16 @@ test.describe('Responsive Audit Across 360, 390, 768, 1024 px', () => {
 
       await page.screenshot({ path: path.join(ARTIFACT_DIR, `live_stage_${width}px.png`) });
 
-      const helpBtn = page.locator('button:has-text("Help"), button:has-text("Having trouble?")').first();
-      if (await helpBtn.isVisible()) {
-        await helpBtn.click();
-        await page.waitForTimeout(400);
-        await page.screenshot({ path: path.join(ARTIFACT_DIR, `help_drawer_${width}px.png`) });
-      }
+      // Test help drawer directly via ?help=true
+      await page.goto('http://localhost:5173/?help=true');
+      await page.waitForLoadState('networkidle');
+
+      const helpOverflow = await page.evaluate(() => ({
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+      }));
+      expect(helpOverflow.scrollWidth).toBeLessThanOrEqual(helpOverflow.clientWidth);
+      await page.screenshot({ path: path.join(ARTIFACT_DIR, `help_drawer_${width}px.png`) });
     });
 
     test(`Scorecard Review at ${width}px`, async ({ page }) => {
